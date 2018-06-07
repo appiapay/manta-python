@@ -1,9 +1,12 @@
+from pycoin.key import Key
+
 import paho.mqtt.client as mqtt
 import json
 import re
 
 CONF = {
     'url': '127.0.0.1',
+    'masterkey': 'xpub661MyMwAqRbcFVF9ULcqLdsEa5WnCCugQAcgNd9iEMQ31tgH6u4DLQWoQayvtSVYFvXz2vPPpbXE1qpjoUFidhjFj82pVShWu9curWmb2zy'
 }
 
 DB = {
@@ -41,6 +44,12 @@ def on_connect(client, userdata, flags, rc):
 
     client.subscribe('/rpc/+/request/#')
 
+def check_key(key, path):
+    kd = Key.from_text(CONF['masterkey']).subkey_for_path(path)
+
+    print('Got key:{} and path:{}. Derivation:{}'.format(key, path, kd.wallet_key()))
+
+    return kd.wallet_key() == key
 
 def on_message(client: mqtt.Client, userdata, msg):
     print ("Got {} on {}".format(msg.payload, msg.topic))
@@ -58,7 +67,8 @@ def on_message(client: mqtt.Client, userdata, msg):
             txid = int(parsed['args'][0])
             p = json.loads(msg.payload)
             # TODO check if valid p.address
-            client.publish("/rpc/get_payment_request/reply/{}".format(txid), json.dumps(PAYMENT_REQUESTS[txid]))
+            if check_key(p['key'], p['path']):
+                client.publish("/rpc/get_payment_request/reply/{}".format(txid), json.dumps(PAYMENT_REQUESTS[txid]))
 
 
 if __name__ == "__main__":

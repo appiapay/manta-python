@@ -5,7 +5,7 @@ import json
 CONF = {
     'pp': 1,
     'url': '127.0.0.1',
-    'deviceID': 'device1'
+    'deviceID': 'device1',
 }
 
 
@@ -17,7 +17,8 @@ def generate_qr(txid):
 
 
 def generate_txid():
-    return random.randint(0, 2 ** 32)
+    return 1234
+    #return random.randint(0, 2 ** 32)
 
 
 def on_connect(client, userdata, flags, rc):
