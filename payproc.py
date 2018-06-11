@@ -10,9 +10,9 @@ CONF = {
 }
 
 DB = {
-    'device1':{
-        'name':'Nano Coffee Shop',
-        'address':'Milano',
+    'device1': {
+        'name': 'Nano Coffee Shop',
+        'address': 'Milano',
     }
 }
 
@@ -23,17 +23,18 @@ def parse(topic):
     m = re.search("^\/rpc\/(\w+)\/request(?:$|\/(.*))", topic)
 
     return (None if m is None else {
-            'method': m.group(1),
-            'args': None if len(m.groups()) == 1 else m.group(2).split('/')
-        })
+        'method': m.group(1),
+        'args': None if len(m.groups()) == 1 else m.group(2).split('/')
+    })
 
 
-def generate_payment_request(device, amount, txid):
+def generate_payment_request(device, amount, txid, key_index='0'):
     merchant = DB[device]
     return {
-        'name' : merchant['name'],
-        'address' : merchant['address'],
+        'name': merchant['name'],
+        'address': merchant['address'],
         'amount': amount,
+        'keyindex': key_index,
         'txid': txid,
 
     }
@@ -44,6 +45,7 @@ def on_connect(client, userdata, flags, rc):
 
     client.subscribe('/rpc/+/request/#')
 
+
 def check_key(key, path):
     kd = Key.from_text(CONF['masterkey']).subkey_for_path(path)
 
@@ -51,8 +53,9 @@ def check_key(key, path):
 
     return kd.wallet_key() == key
 
+
 def on_message(client: mqtt.Client, userdata, msg):
-    print ("Got {} on {}".format(msg.payload, msg.topic))
+    print("Got {} on {}".format(msg.payload, msg.topic))
 
     parsed = parse(msg.topic)
 
@@ -63,7 +66,7 @@ def on_message(client: mqtt.Client, userdata, msg):
             print(PAYMENT_REQUESTS[p['txid']])
 
         if parsed['method'] == 'get_payment_request':
-            print ("Replying to Payment Request")
+            print("Replying to Payment Request")
             txid = int(parsed['args'][0])
             p = json.loads(msg.payload)
             # TODO check if valid p.address
@@ -72,7 +75,6 @@ def on_message(client: mqtt.Client, userdata, msg):
 
 
 if __name__ == "__main__":
-
     c = mqtt.Client()
 
     c.on_connect = on_connect
