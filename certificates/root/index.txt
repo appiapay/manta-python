@@ -1,0 +1,2 @@
+V	190612051759Z		86856498E4ADBCA31625053DC7E99A05	root.crt	/CN=Nanoray Certificate Authority
+V	190612052029Z		FAF5415F8E98B223B111F898EC63CB51	www.brainblocks.com.crt	/CN=www.brainblocks.com
