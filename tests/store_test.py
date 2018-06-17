@@ -10,6 +10,7 @@ class MQTT_Message(NamedTuple):
     topic: any
     payload: any
 
+
 class TestStore(unittest.TestCase):
     def test_ask_generation_payment_request(self):
         client = MagicMock()
@@ -17,7 +18,7 @@ class TestStore(unittest.TestCase):
         client.publish.assert_called_once()
         self.assertRegex(client.publish.call_args[0][0], '^\/generate_payment_request\/\w+')
         message = json.loads(client.publish.call_args[0][1])
-        self.assertEqual(123, message['txid'])
+        self.assertEqual(123, message['session_id'])
         self.assertEqual(100, message['amount'])
 
     @patch('store.print_ack')

@@ -21,27 +21,25 @@ class TestWallet(unittest.TestCase):
 
     def test_verify_payment_request(self):
         payment_request = r"""
-{"message": "{\"name\": \"Nano Coffee Shop\", \"address\": \"Milano\", \"amount\": 100, \"txid\": 123, \"dest_address\": \"xrb_1234\", \"address_sig\": \"E46LrE9vGUUmxfnWkTAc8KOglpAjsiN8b6ATAnqXQYKreW4fbC2paFuS4hWHWuqlK5o48l5JXNMOiW+yzNYsJrVTtSzL5eGsNm/+UadodRAMjRXSkzlLqo3IYx6KUp+OSbnksjrJ9nDM5LY1lKoGtb7da8aIAyl66NGjOs9gQU4LCi0W4hi1/Vjle1ZLVvxDLGj8OAwY6dUQ/4wteh7/35njbw5rUJ6oPSOMI9OYYamPW+fZBrjH9jftiYZvJN8b0ZvHnbIFc1oX5E+9fujp7rapioHfSfQC5xBnF8X29fHzHpArn9Yo4hKbnr3VqpitF51W+Eb2u4s8WEJ/+fUSOQ==\"}", "signature": "SS+I4UiZmiqnL74bObC11c3/5fixe6ECLgDpal0+kvEDmzcRu+dJMqdWgLC8QD7fKJkN7Zqza1ue+C5+rLHKTMmUwcxe/CrsOxD3vjwG38FMi2qp+Qjr8B3UL7q27cyuQqyQcNRbFKhqxdyxq+gndir0h51dxw09qqcDh4TtFAzJ8xnxMDTQZXYEXl0Av76GEqvARi8xuVsZ5mmB4CTU1Q96jqPIFkZ9odrGIM6woZmzgXPH6qk4paM0Ty3U5ZAYyS47FxeoMq78obUltiasxKN7SqumrB5JT5vAbWxKvZf2+0MlpHKp7j+2QBvGd0oNV/Qzq8S43OHvICcB9GwU3A=="}
+{"message": "{\"name\": \"Nano Coffee Shop\", \"address\": \"Milano\", \"amount\": 100, \"dest_address\": \"xrb_1234\"}", "signature": "R1nNnvBY6MPxbIoCk7yjzcAjCCESr3gSwrQF87L2XWRWpvQoF08/RQW1nldEbnc5RNMhxIolSHpGxYPs1hP9wwmRwexRzep5EsqsbyGfhkyfr318kAjo+r1PoTX2u4jOgsMxKRu1h5ycI1qqd8fYJ1IfkcKc5AuKiJPI3IC4AFB0Cg2RvZ0MTFYH0KAsO3yjkKsC7/dIVoD9+hzFzJijJ/+Ur+TWPrJJf9paXlqD9qgcreUZjfqAN5IC2fDoV/TYeVwvuMcIcSA3rA+Gxf6Wi82C0i31M6lzUyGV0PzY4DI0DyodpCofpG/b09weIupzPpCBaGr0KsSH48pc2OEaDA=="}
 """
         #json.loads(payment_request)
         self.assertIsNotNone(verify_payment_request(payment_request))
 
     def test_verify_payment_request_wrong_signature(self):
         payment_request = r"""
-        {"message": "{\"name\": \"Nano Coffee Shop\", \"address\": \"Milano\", \"amount\": 101, \"txid\": 123, \"dest_address\": \"xrb_1234\", \"address_sig\": \"E46LrE9vGUUmxfnWkTAc8KOglpAjsiN8b6ATAnqXQYKreW4fbC2paFuS4hWHWuqlK5o48l5JXNMOiW+yzNYsJrVTtSzL5eGsNm/+UadodRAMjRXSkzlLqo3IYx6KUp+OSbnksjrJ9nDM5LY1lKoGtb7da8aIAyl66NGjOs9gQU4LCi0W4hi1/Vjle1ZLVvxDLGj8OAwY6dUQ/4wteh7/35njbw5rUJ6oPSOMI9OYYamPW+fZBrjH9jftiYZvJN8b0ZvHnbIFc1oX5E+9fujp7rapioHfSfQC5xBnF8X29fHzHpArn9Yo4hKbnr3VqpitF51W+Eb2u4s8WEJ/+fUSOQ==\"}", "signature": "SS+I4UiZmiqnL74bObC11c3/5fixe6ECLgDpal0+kvEDmzcRu+dJMqdWgLC8QD7fKJkN7Zqza1ue+C5+rLHKTMmUwcxe/CrsOxD3vjwG38FMi2qp+Qjr8B3UL7q27cyuQqyQcNRbFKhqxdyxq+gndir0h51dxw09qqcDh4TtFAzJ8xnxMDTQZXYEXl0Av76GEqvARi8xuVsZ5mmB4CTU1Q96jqPIFkZ9odrGIM6woZmzgXPH6qk4paM0Ty3U5ZAYyS47FxeoMq78obUltiasxKN7SqumrB5JT5vAbWxKvZf2+0MlpHKp7j+2QBvGd0oNV/Qzq8S43OHvICcB9GwU3A=="}
-        """
+{"message": "{\"name\": \"Nano Coffee Shop\", \"address\": \"Milano\", \"amount\": 101, \"dest_address\": \"xrb_1234\"}", "signature": "R1nNnvBY6MPxbIoCk7yjzcAjCCESr3gSwrQF87L2XWRWpvQoF08/RQW1nldEbnc5RNMhxIolSHpGxYPs1hP9wwmRwexRzep5EsqsbyGfhkyfr318kAjo+r1PoTX2u4jOgsMxKRu1h5ycI1qqd8fYJ1IfkcKc5AuKiJPI3IC4AFB0Cg2RvZ0MTFYH0KAsO3yjkKsC7/dIVoD9+hzFzJijJ/+Ur+TWPrJJf9paXlqD9qgcreUZjfqAN5IC2fDoV/TYeVwvuMcIcSA3rA+Gxf6Wi82C0i31M6lzUyGV0PzY4DI0DyodpCofpG/b09weIupzPpCBaGr0KsSH48pc2OEaDA=="}
+"""
         # json.loads(payment_request)
         self.assertIsNone(verify_payment_request(payment_request))
 
-    def test_verify_payment_request_wrong_address_signature(self):
-        # TO BE DONE
-        pass
 
     @patch('wallet.ask_confirmation', return_value=True)
-    def test_on_message_payment_request(self, ask_confirmation_mock):
+    @patch('wallet.send_money', return_value=123456)
+    def test_on_message_payment_request(self, ask_confirmation_mock, send_money_mock):
         client = MagicMock()
         payment_request = r"""
-{"message": "{\"name\": \"Nano Coffee Shop\", \"address\": \"Milano\", \"amount\": 100, \"txid\": 123, \"dest_address\": \"xrb_1234\", \"address_sig\": \"E46LrE9vGUUmxfnWkTAc8KOglpAjsiN8b6ATAnqXQYKreW4fbC2paFuS4hWHWuqlK5o48l5JXNMOiW+yzNYsJrVTtSzL5eGsNm/+UadodRAMjRXSkzlLqo3IYx6KUp+OSbnksjrJ9nDM5LY1lKoGtb7da8aIAyl66NGjOs9gQU4LCi0W4hi1/Vjle1ZLVvxDLGj8OAwY6dUQ/4wteh7/35njbw5rUJ6oPSOMI9OYYamPW+fZBrjH9jftiYZvJN8b0ZvHnbIFc1oX5E+9fujp7rapioHfSfQC5xBnF8X29fHzHpArn9Yo4hKbnr3VqpitF51W+Eb2u4s8WEJ/+fUSOQ==\"}", "signature": "SS+I4UiZmiqnL74bObC11c3/5fixe6ECLgDpal0+kvEDmzcRu+dJMqdWgLC8QD7fKJkN7Zqza1ue+C5+rLHKTMmUwcxe/CrsOxD3vjwG38FMi2qp+Qjr8B3UL7q27cyuQqyQcNRbFKhqxdyxq+gndir0h51dxw09qqcDh4TtFAzJ8xnxMDTQZXYEXl0Av76GEqvARi8xuVsZ5mmB4CTU1Q96jqPIFkZ9odrGIM6woZmzgXPH6qk4paM0Ty3U5ZAYyS47FxeoMq78obUltiasxKN7SqumrB5JT5vAbWxKvZf2+0MlpHKp7j+2QBvGd0oNV/Qzq8S43OHvICcB9GwU3A=="}
+{"message": "{\"name\": \"Nano Coffee Shop\", \"address\": \"Milano\", \"amount\": 100, \"dest_address\": \"xrb_1234\"}", "signature": "R1nNnvBY6MPxbIoCk7yjzcAjCCESr3gSwrQF87L2XWRWpvQoF08/RQW1nldEbnc5RNMhxIolSHpGxYPs1hP9wwmRwexRzep5EsqsbyGfhkyfr318kAjo+r1PoTX2u4jOgsMxKRu1h5ycI1qqd8fYJ1IfkcKc5AuKiJPI3IC4AFB0Cg2RvZ0MTFYH0KAsO3yjkKsC7/dIVoD9+hzFzJijJ/+Ur+TWPrJJf9paXlqD9qgcreUZjfqAN5IC2fDoV/TYeVwvuMcIcSA3rA+Gxf6Wi82C0i31M6lzUyGV0PzY4DI0DyodpCofpG/b09weIupzPpCBaGr0KsSH48pc2OEaDA=="}
 """
 
         message = MQTT_Message(topic='/payment_requests/123', payload=payment_request)
@@ -53,13 +51,7 @@ class TestWallet(unittest.TestCase):
 
         payment_message = json.loads(client.publish.call_args[0][1])
 
-        self.assertEqual(123, payment_message['txid'])
-        self.assertEqual("E46LrE9vGUUmxfnWkTAc8KOglpAjsiN8b6ATAnqXQYKreW4fbC2paFuS4hWHWuqlK5o48l5JXNMOiW"
-                         "+yzNYsJrVTtSzL5eGsNm/+UadodRAMjRXSkzlLqo3IYx6KUp"
-                         "+OSbnksjrJ9nDM5LY1lKoGtb7da8aIAyl66NGjOs9gQU4LCi0W4hi1/Vjle1ZLVvxDLGj8OAwY6dUQ/4wteh7"
-                         "/35njbw5rUJ6oPSOMI9OYYamPW+fZBrjH9jftiYZvJN8b0ZvHnbIFc1oX5E"
-                         "+9fujp7rapioHfSfQC5xBnF8X29fHzHpArn9Yo4hKbnr3VqpitF51W+Eb2u4s8WEJ/+fUSOQ==",
-                         payment_message['address_sig'])
+        self.assertEqual(123456, payment_message['txhash'])
 
         client.subscribe.assert_called_with('/acks/123')
 

@@ -125,25 +125,6 @@ class TestPayProc(unittest.TestCase):
         except InvalidSignature:
             self.fail("Not valid signature")
 
-        # Verify address signature
-        j_message = json.loads(message)
-
-        signature = j_message['address_sig']
-        message = j_message['dest_address']
-
-        try:
-            self.cert.public_key().verify(
-                base64.b64decode(signature),
-                message.encode('utf-8'),
-                padding.PSS(
-                    mgf=padding.MGF1(hashes.SHA256()),
-                    salt_length=padding.PSS.MAX_LENGTH
-                ),
-                hashes.SHA256()
-            )
-        except InvalidSignature:
-            self.fail("Not valid signature")
-
 
 class TestPayProcMQTT(unittest.TestCase):
     def test_generate_payment_request(self):
@@ -153,12 +134,14 @@ class TestPayProcMQTT(unittest.TestCase):
             topic="/generate_payment_request/device1",
             payload=json.dumps({
                 'amount': '1000',
-                'txid': '1423',
+                'session_id': '1423',
             }))
 
         on_message(client, None, message)
         client.publish.assert_called_once()
         self.assertEqual('/payment_requests/1423', client.publish.call_args[0][0])
+        client.subscribe.assert_called_once()
+        self.assertEqual('/payments/1423', client.subscribe.call_args[0][0])
 
     def test_payment_message(self):
         client = MagicMock()
@@ -166,18 +149,31 @@ class TestPayProcMQTT(unittest.TestCase):
         message = MQTT_Message(
             topic="/payments/123",
             payload=json.dumps({
-                'txhash': '1000',
-                'address_sig': "E46LrE9vGUUmxfnWkTAc8KOglpAjsiN8b6ATAnqXQYKreW4fbC2paFuS4hWHWuqlK5o48l5JXNMOiW"
-                               "+yzNYsJrVTtSzL5eGsNm/+UadodRAMjRXSkzlLqo3IYx6KUp"
-                               "+OSbnksjrJ9nDM5LY1lKoGtb7da8aIAyl66NGjOs9gQU4LCi0W4hi1/Vjle1ZLVvxDLGj8OAwY6dUQ/4wteh7"
-                               "/35njbw5rUJ6oPSOMI9OYYamPW+fZBrjH9jftiYZvJN8b0ZvHnbIFc1oX5E"
-                               "+9fujp7rapioHfSfQC5xBnF8X29fHzHpArn9Yo4hKbnr3VqpitF51W+Eb2u4s8WEJ/+fUSOQ==",
-                'txid': '123',
+                'txhash': '1000'
         }))
 
         on_message(client, None, message)
 
         client.publish.called_with('123')
+
+    def test_txid_increment(self):
+        client = MagicMock()
+
+        message = MQTT_Message(
+            topic="/payments/123",
+            payload=json.dumps({
+                'txhash': '1000'
+            }))
+
+        on_message(client, None, message)
+
+        payload = json.loads(client.publish.call_args[0][1])
+        start = payload['txid']
+
+        on_message(client, None, message)
+
+        payload = json.loads(client.publish.call_args[0][1])
+        self.assertEqual(1, payload['txid']-start)
 
     if __name__ == '__main__':
         unittest.main()

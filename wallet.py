@@ -66,24 +66,7 @@ def verify_payment_request(payment_request):
     except InvalidSignature:
         return None
 
-    # Verify address signature
     j_message = json.loads(message)
-
-    signature = j_message['address_sig']
-    dest_address = j_message['dest_address']
-
-    try:
-        cert.public_key().verify(
-            base64.b64decode(signature),
-            dest_address.encode('utf-8'),
-            padding.PSS(
-                mgf=padding.MGF1(hashes.SHA256()),
-                salt_length=padding.PSS.MAX_LENGTH
-            ),
-            hashes.SHA256()
-        )
-    except InvalidSignature:
-        return None
 
     return j_message
 
@@ -94,18 +77,15 @@ def on_connect(client, userdata, flags, rc):
     get_payment_request(client, userdata)
 
 
-def handle_payment_request(client, msg):
+def handle_payment_request(client, msg, session_id):
     payment_request = verify_payment_request(msg)
 
     if payment_request is not None:
         if ask_confirmation(payment_request):
             tx_hash = send_money(10, 15)
-            txid = payment_request['txid']
-            client.publish('/payments/{}'.format(txid),
-                           create_payment_message(tx_hash,
-                                                  payment_request['address_sig'],
-                                                  txid))
-            client.subscribe('/acks/{}'.format(txid))
+            client.publish('/payments/{}'.format(session_id),
+                           create_payment_message(tx_hash))
+            client.subscribe('/acks/{}'.format(session_id))
 
 
 def print_ack(txid):
@@ -118,17 +98,15 @@ def on_message(client, userdata, msg):
     tokens = msg.topic.strip('/').split('/')
 
     if tokens[0] == 'payment_requests':
-        handle_payment_request(client, msg.payload)
+        handle_payment_request(client, msg.payload, session_id=tokens[1])
 
     if tokens[0] == 'acks':
         print_ack(tokens[1])
 
 
-def create_payment_message(txhash, address_sig, txid):
+def create_payment_message(txhash):
     return json.dumps({
-        'txhash': txhash,
-        'address_sig': address_sig,
-        'txid': txid,
+        'txhash': txhash
     })
 
 

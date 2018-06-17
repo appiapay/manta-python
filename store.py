@@ -31,7 +31,7 @@ def generate_txid():
 
 def ask_generate_payment_request(client, txid, amount):
     client.publish('/generate_payment_request/{deviceID}'.format(deviceID=CONF.deviceID),
-                   json.dumps({'amount': amount, 'txid': txid}))
+                   json.dumps({'amount': amount, 'session_id': txid}))
 
 
 def on_connect(client, userdata, flags, rc):

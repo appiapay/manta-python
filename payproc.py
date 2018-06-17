@@ -33,6 +33,7 @@ DB = {
 }
 
 PAYMENT_REQUESTS = {}
+TXID = 0
 
 
 def parse(topic):
@@ -73,9 +74,7 @@ def generate_payment_request(device, amount, txid):
         'name': merchant['name'],
         'address': merchant['address'],
         'amount': amount,
-        'txid': txid,
         'dest_address': CONF.nano_address,
-        'address_sig': sign(CONF.nano_address.encode('utf-8'), key).decode('utf-8')
     }
 
     json_message = json.dumps(message)
@@ -110,6 +109,8 @@ def check_blockchain(txhash):
 
 
 def on_message(client: mqtt.Client, userdata, msg):
+    global TXID
+
     print("Got {} on {}".format(msg.payload, msg.topic))
 
     #parsed = parse(msg.topic)
@@ -118,14 +119,16 @@ def on_message(client: mqtt.Client, userdata, msg):
 
     if tokens[0] == 'generate_payment_request':
         p = json.loads(msg.payload)
-        PAYMENT_REQUESTS[p['txid']] = generate_payment_request(tokens[1], p['amount'], p['txid'])
-        print(PAYMENT_REQUESTS[p['txid']])
-        client.publish('/payment_requests/{}'.format(p['txid']), PAYMENT_REQUESTS[p['txid']], retain=True)
+        PAYMENT_REQUESTS[p['session_id']] = generate_payment_request(tokens[1], p['amount'], p['session_id'])
+        print(PAYMENT_REQUESTS[p['session_id']])
+        client.publish('/payment_requests/{}'.format(p['session_id']), PAYMENT_REQUESTS[p['session_id']], retain=True)
+        client.subscribe('/payments/{}'.format(p['session_id']))
 
     if tokens[0] == 'payments':
         payment_message = json.loads(msg.payload)
         if check_blockchain(payment_message['txhash']):
-            client.publish('/acks/{}'.format(tokens[1]))
+            client.publish('/acks/{}'.format(tokens[1]), json.dumps({'txid': TXID}))
+            TXID = TXID + 1
 
 
 if __name__ == "__main__":
