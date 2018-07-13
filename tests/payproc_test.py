@@ -2,7 +2,7 @@ import base64
 import json
 import unittest
 from typing import NamedTuple
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, ANY
 
 from cryptography import x509
 from cryptography.exceptions import InvalidSignature
@@ -131,17 +131,32 @@ class TestPayProcMQTT(unittest.TestCase):
         client = MagicMock()
 
         message = MQTT_Message(
-            topic="/generate_payment_request/device1",
+            topic="/generate_payment_request/device1/request",
             payload=json.dumps({
                 'amount': '1000',
                 'session_id': '1423',
+                'crypto_currency': 'nanoray'
             }))
 
         on_message(client, None, message)
-        client.publish.assert_called_once()
-        self.assertEqual('/payment_requests/1423', client.publish.call_args[0][0])
-        client.subscribe.assert_called_once()
-        self.assertEqual('/payments/1423', client.subscribe.call_args[0][0])
+        client.publish.assert_any_call('/generate_payment_request/device1/reply', ANY)
+        client.publish.assert_any_call('/payment_requests/1423', ANY, retain=True)
+        client.subscribe.assert_called_once_with('/payments/1423')
+
+    def test_generate_payment_request_legacy(self):
+        client = MagicMock()
+
+        message = MQTT_Message(
+            topic="/generate_payment_request/device1/request",
+            payload=json.dumps({
+                'amount': '1000',
+                'session_id': '1423',
+                'crypto_currency': 'BTC'
+            }))
+
+        on_message(client, None, message)
+        client.publish.assert_called_once_with('/generate_payment_request/device1/reply', ANY)
+        client.subscribe.assert_not_called()
 
     def test_payment_message(self):
         client = MagicMock()

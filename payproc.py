@@ -118,11 +118,26 @@ def on_message(client: mqtt.Client, userdata, msg):
     tokens = msg.topic.strip('/').split('/')
 
     if tokens[0] == 'generate_payment_request':
+        device = tokens[1]
         p = json.loads(msg.payload)
-        PAYMENT_REQUESTS[p['session_id']] = generate_payment_request(tokens[1], p['amount'], p['session_id'])
-        print(PAYMENT_REQUESTS[p['session_id']])
-        client.publish('/payment_requests/{}'.format(p['session_id']), PAYMENT_REQUESTS[p['session_id']], retain=True)
-        client.subscribe('/payments/{}'.format(p['session_id']))
+
+        if p['crypto_currency'] == 'nanoray':
+            PAYMENT_REQUESTS[p['session_id']] = generate_payment_request(device, p['amount'], p['session_id'])
+            print(PAYMENT_REQUESTS[p['session_id']])
+            client.publish('/payment_requests/{}'.format(p['session_id']), PAYMENT_REQUESTS[p['session_id']], retain=True)
+            client.subscribe('/payments/{}'.format(p['session_id']))
+            #generate_payment_request reply
+            topic = '/generate_payment_request/{}/reply'.format(device)
+            message = {'status': 200,
+                       'session_id': p['session_id']}
+            client.publish(topic, json.dumps(message))
+        else:
+            topic = '/generate_payment_request/{}/reply'.format(device)
+            message = {'status': 200,
+                       'session_id': p['session_id'],
+                       'crypto_currency:': p['crypto_currency'],
+                       'address': '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2'}
+            client.publish(topic, json.dumps(message))
 
     if tokens[0] == 'payments':
         payment_message = json.loads(msg.payload)

@@ -4,8 +4,7 @@ import callee
 from typing import NamedTuple
 from unittest.mock import MagicMock, patch, ANY
 
-from store import get_generate_payment_request, on_message, generate_qr, generate_qr_legacy, \
-    on_connect, CONF
+from store import get_generate_payment_request, on_message, on_connect, CONF
 
 
 class MQTTMessage(NamedTuple):

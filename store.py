@@ -24,12 +24,12 @@ def generate_session_id():
     return random.randint(0, 2 ** 32)
 
 
-def get_generate_payment_request(txid, amount, fiat_currency="euro", ccurrency="nanoray"):
+def get_generate_payment_request(txid, amount, fiat_currency="euro", crypto_currency="nanoray"):
     topic = '/generate_payment_request/{deviceID}/request'.format(deviceID=CONF.deviceID)
     payload = json.dumps({'amount': amount,
                           'session_id': txid,
                           'fiat_currency': fiat_currency,
-                          'crypto_currency': 'nanoray'
+                          'crypto_currency': crypto_currency,
                           })
     return (topic, payload)
 
