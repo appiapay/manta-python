@@ -6,38 +6,41 @@ import json
 
 
 class Conf(NamedTuple):
-    pp: str
     url: str
     deviceID: str
 
+
 CONF = Conf(
-    pp=1,
     url='127.0.0.1',
     deviceID='device1'
 )
 
 
-def generate_qr(txid):
-    return {
-        'pp': CONF.pp,
-        'txid': txid
-    }
+def generate_qr(data):
+    print(data)
 
 
-def generate_txid():
-    return 1234
-    #return random.randint(0, 2 ** 32)
+def generate_session_id():
+    return random.randint(0, 2 ** 32)
 
 
-def ask_generate_payment_request(client, txid, amount):
-    client.publish('/generate_payment_request/{deviceID}'.format(deviceID=CONF.deviceID),
-                   json.dumps({'amount': amount, 'session_id': txid}))
+def get_generate_payment_request(txid, amount, fiat_currency="euro", ccurrency="nanoray"):
+    topic = '/generate_payment_request/{deviceID}/request'.format(deviceID=CONF.deviceID)
+    payload = json.dumps({'amount': amount,
+                          'session_id': txid,
+                          'fiat_currency': fiat_currency,
+                          'crypto_currency': 'nanoray'
+                          })
+    return (topic, payload)
 
 
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
-    client.subscribe('/acks/{}'.format(userdata[0]))
-    ask_generate_payment_request(client, userdata[0], userdata[1])
+    client.subscribe('/acks/{}'.format(userdata['session_id']))
+    client.subscribe('/generate_payment_request/{deviceID}/reply'.format(deviceID=CONF.deviceID))
+
+    (topic, payload) = get_generate_payment_request(userdata['session_id'], userdata['amount'])
+    client.publish (topic, payload)
 
 
 def on_message(client: mqtt.Client, userdata, msg):
@@ -50,6 +53,12 @@ def on_message(client: mqtt.Client, userdata, msg):
     if tokens[0] == 'acks':
         print_ack(tokens[1])
         client.disconnect()
+    elif tokens[0] == 'generate_payment_request':
+        if userdata['crypto_currency'] == 'nanoray':
+            generate_qr("manta://{}/{}".format(CONF.url, userdata['session_id']))
+        else: #Legacy format
+            message = json.loads(msg.payload)
+            generate_qr("bitcoin:{}?amount={}".format(message['address'], userdata['amount']))
 
 
 def print_ack(txid):
@@ -58,13 +67,19 @@ def print_ack(txid):
 
 if __name__ == "__main__":
 
-    txid = generate_txid()
+    txid = generate_session_id()
     amount = 100
-    generate_qr(txid)
 
-    print('TXID:{}'.format(txid))
+    print('session_id:{}'.format(txid))
 
-    c = mqtt.Client(userdata=(txid, amount))
+    userdata = {
+        'session_id': txid,
+        'amount': amount,
+        'crypto_currency': 'nanoray',
+        'fiat_currency': 'euro'
+    }
+
+    c = mqtt.Client(userdata=userdata)
 
     c.on_connect = on_connect
     c.on_message = on_message
