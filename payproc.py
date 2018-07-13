@@ -7,6 +7,7 @@ from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 
+import logging
 import paho.mqtt.client as mqtt
 import json
 import re
@@ -18,6 +19,8 @@ class Conf(NamedTuple):
     nano_address: str
     key_file: str
 
+
+logging.basicConfig(level=logging.INFO)
 
 CONF = Conf(
     url='127.0.0.1',
@@ -89,18 +92,18 @@ def generate_payment_request(device, amount, txid):
 
 
 def on_connect(client, userdata, flags, rc):
-    print("Connected with result code " + str(rc))
+    logging.info("Connected with result code " + str(rc))
 
-    client.subscribe('/generate_payment_request/#')
+    client.subscribe('/generate_payment_request/+/request')
     client.subscribe('/payments/#')
 
 
-def check_key(key, path):
-    kd = Key.from_text(CONF['masterkey']).subkey_for_path(path)
-
-    print('Got key:{} and path:{}. Derivation:{}'.format(key, path, kd.wallet_key()))
-
-    return kd.wallet_key() == key
+# def check_key(key, path):
+#     kd = Key.from_text(CONF['masterkey']).subkey_for_path(path)
+#
+#     logging.info('Got key:{} and path:{}. Derivation:{}'.format(key, path, kd.wallet_key()))
+#
+#     return kd.wallet_key() == key
 
 
 # Check confirmation on blockchain
@@ -111,7 +114,7 @@ def check_blockchain(txhash):
 def on_message(client: mqtt.Client, userdata, msg):
     global TXID
 
-    print("Got {} on {}".format(msg.payload, msg.topic))
+    logging.info("Got {} on {}".format(msg.payload, msg.topic))
 
     #parsed = parse(msg.topic)
 
@@ -123,7 +126,7 @@ def on_message(client: mqtt.Client, userdata, msg):
 
         if p['crypto_currency'] == 'nanoray':
             PAYMENT_REQUESTS[p['session_id']] = generate_payment_request(device, p['amount'], p['session_id'])
-            print(PAYMENT_REQUESTS[p['session_id']])
+            logging.info(PAYMENT_REQUESTS[p['session_id']])
             client.publish('/payment_requests/{}'.format(p['session_id']), PAYMENT_REQUESTS[p['session_id']], retain=True)
             client.subscribe('/payments/{}'.format(p['session_id']))
             #generate_payment_request reply

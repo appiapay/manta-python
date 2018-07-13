@@ -11,7 +11,9 @@ import json
 import random
 import re
 import base64
+import logging
 
+logging.basicConfig(level=logging.INFO)
 
 class Conf(NamedTuple):
     url: str
@@ -72,7 +74,7 @@ def verify_payment_request(payment_request):
 
 
 def on_connect(client, userdata, flags, rc):
-    print("Connected with result code " + str(rc))
+    logging.info("Connected with result code " + str(rc))
 
     get_payment_request(client, userdata)
 
@@ -89,11 +91,11 @@ def handle_payment_request(client, msg, session_id):
 
 
 def print_ack(txid):
-    print('Received confirmation for tx {}'.format(txid))
+    logging.info('Received confirmation for tx {}'.format(txid))
 
 
 def on_message(client, userdata, msg):
-    print("Got {} on {}".format(msg.payload, msg.topic))
+    logging.info("Got {} on {}".format(msg.payload, msg.topic))
 
     tokens = msg.topic.strip('/').split('/')
 

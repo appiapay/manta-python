@@ -3,6 +3,7 @@ from typing import Any, NamedTuple
 import random
 import paho.mqtt.client as mqtt
 import json
+import logging
 
 
 class Conf(NamedTuple):
@@ -15,13 +16,15 @@ CONF = Conf(
     deviceID='device1'
 )
 
+logging.basicConfig(level=logging.INFO)
 
 def generate_qr(data):
-    print(data)
+    logging.info("QR Code:{}".format(data))
 
 
 def generate_session_id():
-    return random.randint(0, 2 ** 32)
+    return 1234
+    #return random.randint(0, 2 ** 32)
 
 
 def get_generate_payment_request(txid, amount, fiat_currency="euro", crypto_currency="nanoray"):
@@ -35,7 +38,7 @@ def get_generate_payment_request(txid, amount, fiat_currency="euro", crypto_curr
 
 
 def on_connect(client, userdata, flags, rc):
-    print("Connected with result code " + str(rc))
+    logging.info("Connected with result code " + str(rc))
     client.subscribe('/acks/{}'.format(userdata['session_id']))
     client.subscribe('/generate_payment_request/{deviceID}/reply'.format(deviceID=CONF.deviceID))
 
@@ -44,7 +47,7 @@ def on_connect(client, userdata, flags, rc):
 
 
 def on_message(client: mqtt.Client, userdata, msg):
-    print("Got {} on {}".format(msg.payload, msg.topic))
+    logging.info("Got {} on {}".format(msg.payload, msg.topic))
 
     #parsed = parse(msg.topic)
 
@@ -62,18 +65,18 @@ def on_message(client: mqtt.Client, userdata, msg):
 
 
 def print_ack(txid):
-    print('Received confirmation for tx {}'.format(txid))
+    logging.info('Received confirmation for tx {}'.format(txid))
 
 
 if __name__ == "__main__":
 
-    txid = generate_session_id()
+    session_id = generate_session_id()
     amount = 100
 
-    print('session_id:{}'.format(txid))
+    logging.info('session_id:{}'.format(session_id))
 
     userdata = {
-        'session_id': txid,
+        'session_id': session_id,
         'amount': amount,
         'crypto_currency': 'nanoray',
         'fiat_currency': 'euro'
