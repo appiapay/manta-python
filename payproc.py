@@ -1,6 +1,5 @@
 from typing import Any, NamedTuple
 
-from pycoin.key import Key
 from collections import namedtuple
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
@@ -18,6 +17,7 @@ class Conf(NamedTuple):
     url: str
     nano_address: str
     key_file: str
+    nano_euro: float
 
 
 logging.basicConfig(level=logging.INFO)
@@ -25,7 +25,8 @@ logging.basicConfig(level=logging.INFO)
 CONF = Conf(
     url='127.0.0.1',
     nano_address='xrb_1234',
-    key_file='certificates/root/keys/www.brainblocks.com.key'
+    key_file='certificates/root/keys/www.brainblocks.com.key',
+    nano_euro=1.38
 )
 
 DB = {
@@ -59,12 +60,15 @@ def key_from_keydata(key_data):
 
 
 def sign(message, key):
-    signature = key.sign(message,
-                         padding.PSS(
-                             mgf=padding.MGF1(hashes.SHA256()),
-                             salt_length=padding.PSS.MAX_LENGTH
-                         ),
-                         hashes.SHA256())
+    # signature = key.sign(message,
+    #                      padding.PSS(
+    #                          mgf=padding.MGF1(hashes.SHA256()),
+    #                          salt_length=padding.PSS.MAX_LENGTH
+    #                      ),
+    #                      hashes.SHA256())
+
+    signature = key.sign(message, padding.PKCS1v15(), hashes.SHA256())
+
     return base64.b64encode(signature)
 
 
@@ -74,10 +78,13 @@ def generate_payment_request(device, amount, txid):
     merchant = DB[device]
 
     message = {
-        'name': merchant['name'],
+        'merchant': merchant['name'],
         'address': merchant['address'],
         'amount': amount,
-        'dest_address': CONF.nano_address,
+        'fiat_currency': 'euro',
+        'destinations': [
+            {'amount': amount / CONF.nano_euro, 'destination_address': CONF.nano_address, 'crypto_currency': 'nano'}
+        ]
     }
 
     json_message = json.dumps(message)

@@ -91,10 +91,7 @@ class TestPayProc(unittest.TestCase):
             self.cert.public_key().verify(
                 base64.b64decode(signature),
                 message,
-                padding.PSS(
-                    mgf=padding.MGF1(hashes.SHA256()),
-                    salt_length=padding.PSS.MAX_LENGTH
-                ),
+                padding.PKCS1v15(),
                 hashes.SHA256()
             )
         except InvalidSignature:
@@ -110,16 +107,14 @@ class TestPayProc(unittest.TestCase):
         signature = j_payment_request['signature']
         message = j_payment_request['message']
 
+        print("JSON:{}".format(payment_request.replace('\\', '\\\\')))
         key = key_from_keydata(PRIV_KEY_DATA)
 
         try:
             self.cert.public_key().verify(
                 base64.b64decode(signature),
                 message.encode('utf-8'),
-                padding.PSS(
-                    mgf=padding.MGF1(hashes.SHA256()),
-                    salt_length=padding.PSS.MAX_LENGTH
-                ),
+                padding.PKCS1v15(),
                 hashes.SHA256()
             )
         except InvalidSignature:
@@ -133,7 +128,7 @@ class TestPayProcMQTT(unittest.TestCase):
         message = MQTT_Message(
             topic="/generate_payment_request/device1/request",
             payload=json.dumps({
-                'amount': '1000',
+                'amount': 1000,
                 'session_id': '1423',
                 'crypto_currency': 'nanoray'
             }))
@@ -149,7 +144,7 @@ class TestPayProcMQTT(unittest.TestCase):
         message = MQTT_Message(
             topic="/generate_payment_request/device1/request",
             payload=json.dumps({
-                'amount': '1000',
+                'amount': 1000,
                 'session_id': '1423',
                 'crypto_currency': 'BTC'
             }))
