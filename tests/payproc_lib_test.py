@@ -12,7 +12,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 
-from payproclib import PayProc, Destination, PaymentRequestMessage
+from payproclib import PayProc, Destination, PaymentRequestMessage, POSPaymentRequestMessage
 
 PRIV_KEY_DATA = b'''\
 -----BEGIN RSA PRIVATE KEY-----
@@ -100,9 +100,11 @@ class TestPayProcLib(unittest.TestCase):
     def test_generate_payment_request(self):
         pp = PayProc(CERTFICATE_FILENAME)
         pp.get_merchant = lambda x: "merchant1"
-        pp.get_destinations = lambda x: [Destination(amount=5, destination_address="xrb123", crypto_currency="nano")]
+        pp.get_destinations = lambda device, payment_request: [Destination(amount=5, destination_address="xrb123", crypto_currency="nano")]
 
-        envelope = pp.generate_payment_request("device1", amount=10, fiat_currency="euro")
+        payment_request = POSPaymentRequestMessage(amount=10, fiat_currency="euro", session_id="123", crypto_currency="nanoray")
+
+        envelope = pp.generate_payment_request("device1", payment_request)
 
         expected_message = PaymentRequestMessage(merchant="merchant1",
                                                  amount=10,
@@ -118,8 +120,7 @@ class TestPayProcMQTT(unittest.TestCase):
     def setUp(self):
         self.pp = PayProc(CERTFICATE_FILENAME)
         self.pp.get_merchant = lambda x: "merchant1"
-        self.pp.get_destinations = lambda x: [
-            Destination(amount=5, destination_address="xrb123", crypto_currency="nano")]
+        self.pp.get_destinations = lambda device, payment_request: [Destination(amount=5, destination_address="xrb123", crypto_currency="nano")]
 
     def test_generate_payment_request(self):
         client = MagicMock()
@@ -129,7 +130,8 @@ class TestPayProcMQTT(unittest.TestCase):
             payload=json.dumps({
                 'amount': 1000,
                 'session_id': '1423',
-                'crypto_currency': 'nanoray'
+                'crypto_currency': 'nanoray',
+                'fiat_currency': 'euro'
             }))
 
         self.pp.on_message(client, None, message)
@@ -146,7 +148,8 @@ class TestPayProcMQTT(unittest.TestCase):
             payload=json.dumps({
                 'amount': 1000,
                 'session_id': '1423',
-                'crypto_currency': 'BTC'
+                'crypto_currency': 'BTC',
+                'fiat_currency': 'euro'
             }))
 
         self.pp.on_message(client, None, message)

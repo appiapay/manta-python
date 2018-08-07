@@ -1,11 +1,13 @@
 import requests
 import logging
+from flask import Flask, request
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from payproclib import PayProc, POSPaymentRequestMessage , Destination
+from typing import List
 
-from selenium.webdriver.common.keys import Keys
 
 TOKEN = "JzxZnyUEqVa5RbyqXE2ErHGdzJcQxsQEy4ykK2gq"
 
@@ -19,17 +21,41 @@ logger = logging.getLogger(__name__)
 class Coingate:
     coingate_api_url: str = "https://api-sandbox.coingate.com"
     callback_url: str = "http://167.99.89.97/status-change"
+    cert_path: str = "certificates/root/keys/www.brainblocks.com.key"
+    app: Flask
+    pp: PayProc
 
-    def create_order (self, token: str, amount: float):
+    def __init__(self):
+        self.app = Flask(__name__)
+        self.pp = PayProc("certificates/root/keys/www.brainblocks.com.key")
+        self.pp.get_merchant = lambda x: "merchant1"
+        self.pp.get_destinations = self.get_destinations
+
+    def add_routes(self):
+        @self.app.route('/status-change', methods=['POST'])
+        def status_change():
+            logging.info(request.form)
+            self.pp.confirm("123")
+            return ""
+        
+    def run(self):
+        self.pp.run()
+        self.app.run(debug=True, use_reloader=False)
+
+    def get_destinations (self, device: str, payment_request: POSPaymentRequestMessage) -> List[Destination]:
+        amount, address= self.create_order(TOKEN, payment_request.amount, payment_request.fiat_currency, payment_request.session_id)
+        return [Destination(amount, address, 'btc')]
+
+    def create_order (self, token: str, amount: float, fiat_currency: str, session_id: str) -> (float, str):
         headers = {
             "Authorization": "Token {}".format(token)
         }
 
         order_request = {
             "price_amount": amount,
-            "price_currency": "EUR",
+            "price_currency": fiat_currency,
             "receive_currency": "DO_NOT_CONVERT",
-            "order_id": "1234",
+            "order_id":session_id,
             "callback_url": self.callback_url
         }
 
@@ -76,12 +102,15 @@ class Coingate:
 
         logger.info("Amount:{} Address:{}".format(amount, address))
 
+        return amount, address
+
     #driver.close()
 
 
 if __name__ == "__main__":
     cg = Coingate()
-    cg.create_order(TOKEN, 10)
+    #cg.create_order(TOKEN, 10)
+    cg.run()
 
 
 
