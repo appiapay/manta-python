@@ -12,7 +12,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 
-from payproclib import PayProc, Destination
+from payproclib import PayProc, Destination, PaymentRequestMessage
 
 PRIV_KEY_DATA = b'''\
 -----BEGIN RSA PRIVATE KEY-----
@@ -67,7 +67,6 @@ z4TYl3Vuacma4wEMQGqhJSWv0gjRQg==
 -----END CERTIFICATE-----
 '''
 
-
 HELLO_SIGNED = b'''\
 ZdTXOalXWhP20r8C/AMOdTReRg3R0moqF/A4n3adX3tO27SAHzZtx60N6Br78QRO2Y0Gmq21Z9mW\
 mO+x6Ne1QnkHg0mvm2qkISMHHIW4ej+opO5fmD3RlCcSUXuMMC4uOjfhQVCbksOoAf/tV0Ocy2Ma\
@@ -76,6 +75,7 @@ wbsqKgzOG2RvOOJDaPn/xhLs/HlUyNwGePFuQh0EOn1uuqWJPjj8HNbQmfd1/W2p5ldE2Xi2TpX1\
 /mfiZXFtNhn7Su1EkAJE1Jph780HClldRdA5Dw==\
 '''
 
+CERTFICATE_FILENAME = "certificates/root/keys/www.brainblocks.com.key"
 
 class MQTTMessage(NamedTuple):
     topic: any
@@ -94,36 +94,32 @@ class TestPayProcLib(unittest.TestCase):
                                                           encryption_algorithm=serialization.NoEncryption()))
 
     def test_sign(self):
-        pp = PayProc("certificates/keys/root.key")
+        pp = PayProc(CERTFICATE_FILENAME)
         self.assertEqual(HELLO_SIGNED, pp.sign(b"Hello"))
 
     def test_generate_payment_request(self):
-        pp = PayProc("certificates/keys/root.key")
+        pp = PayProc(CERTFICATE_FILENAME)
         pp.get_merchant = lambda x: "merchant1"
         pp.get_destinations = lambda x: [Destination(amount=5, destination_address="xrb123", crypto_currency="nano")]
 
-        pr = pp.generate_payment_request("device1", amount="10", fiat_currency="euro")
+        envelope = pp.generate_payment_request("device1", amount=10, fiat_currency="euro")
 
-        envelope = json.loads(pr)
-        message = json.loads(envelope["message"])
+        expected_message = PaymentRequestMessage(merchant="merchant1",
+                                                 amount=10,
+                                                 fiat_currency="euro",
+                                                 destinations=[Destination(amount=5, destination_address="xrb123",
+                                                                           crypto_currency="nano")]
+                                                 )
 
-        expected_message = {"merchant": "merchant1",
-                            "amount": "10",
-                            "fiat_currency": "euro",
-                            "destinations": [
-                                {"amount": 5, "destination_address": "xrb123", "crypto_currency": "nano"}
-                            ]
-                            }
-
-        self.assertEqual(expected_message, message)
+        self.assertEqual(expected_message, envelope.unpack())
 
 
 class TestPayProcMQTT(unittest.TestCase):
     def setUp(self):
-        self.pp = PayProc("certificates/keys/root.key")
+        self.pp = PayProc(CERTFICATE_FILENAME)
         self.pp.get_merchant = lambda x: "merchant1"
-        self.pp.get_destinations = lambda x: [Destination(amount=5, destination_address="xrb123", crypto_currency="nano")]
-
+        self.pp.get_destinations = lambda x: [
+            Destination(amount=5, destination_address="xrb123", crypto_currency="nano")]
 
     def test_generate_payment_request(self):
         client = MagicMock()
@@ -170,24 +166,22 @@ class TestPayProcMQTT(unittest.TestCase):
 
         client.publish.called_with('123')
     #
-    # def test_txid_increment(self):
-    #     client = MagicMock()
-    #
-    #     message = MQTTMessage(
-    #         topic="/payments/123",
-    #         payload=json.dumps({
-    #             'txhash': '1000'
-    #         }))
-    #
-    #     self.pp.on_message(client, None, message)
-    #
-    #     payload = json.loads(client.publish.call_args[0][1])
-    #     start = payload['txid']
-    #
-    #     self.pp.on_message(client, None, message)
-    #
-    #     payload = json.loads(client.publish.call_args[0][1])
-    #     self.assertEqual(1, payload['txid'] - start)
+    def test_txid_increment(self):
+        client = MagicMock()
+
+        message = MQTTMessage(
+            topic="/confirm/123",
+            payload="")
+
+        self.pp.on_message(client, None, message)
+
+        payload = json.loads(client.publish.call_args[0][1])
+        start = payload['txid']
+
+        self.pp.on_message(client, None, message)
+
+        payload = json.loads(client.publish.call_args[0][1])
+        self.assertEqual(1, payload['txid'] - start)
 
 
 if __name__ == '__main__':
