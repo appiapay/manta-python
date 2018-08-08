@@ -183,7 +183,7 @@ class PayProc:
             session_id = tokens[1]
             self.confirm(session_id, client)
 
-    def confirm(self, session_id: str, client: mqtt.Client):
+    def confirm(self, session_id: str, client: mqtt.Client= None):
         if client is None:
             client = self.mqtt_client
 

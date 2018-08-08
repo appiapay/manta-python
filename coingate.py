@@ -1,10 +1,6 @@
 import requests
 import logging
 from flask import Flask, request
-from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
 from payproclib import PayProc, POSPaymentRequestMessage , Destination
 from typing import List
 
@@ -31,12 +27,13 @@ class Coingate:
         self.pp.get_merchant = lambda x: "merchant1"
         self.pp.get_destinations = self.get_destinations
 
-    def add_routes(self):
-        @self.app.route('/status-change', methods=['POST'])
-        def status_change():
-            logging.info(request.form)
-            self.pp.confirm("123")
-            return ""
+        self.app.add_url_rule('/status-change', 'status-change', self.status_change, methods=['post'])
+
+    def status_change(self):
+        logger.info("Order Status Change")
+        logging.debug(request.form)
+        self.pp.confirm("123")
+        return ""
         
     def run(self):
         self.pp.run()
@@ -47,6 +44,8 @@ class Coingate:
         return [Destination(amount, address, 'btc')]
 
     def create_order (self, token: str, amount: float, fiat_currency: str, session_id: str) -> (float, str):
+        logger.info("Creating New Order")
+
         headers = {
             "Authorization": "Token {}".format(token)
         }
@@ -67,38 +66,17 @@ class Coingate:
 
         logger.info ("Order:{}".format(order))
 
-        driver = webdriver.Chrome()
+        url = "{}/v2/orders/{}/checkout".format(self.coingate_api_url, order["id"])
 
-        driver.get(order["payment_url"])
+        r = requests.post(url, headers=headers, json={"pay_currency":'btc'})
 
-        elements = driver.find_elements_by_xpath("//div[@class='currency-card-currency-title' and text()='Bitcoin']")
-        assert len(elements) == 1, len(elements)
+        checkout = r.json()
 
-        elements[0].click() #BTC Button
+        logger.info("Checkout:{}".format(checkout))
 
-        #Get Pay Button
-        elements = driver.find_elements_by_xpath("//button[@class='ant-btn ant-btn-primary']")
-        assert (len(elements) == 1)
+        amount = float(checkout['pay_amount'])
 
-        elements[0].click()
-
-        #NEW PAGE
-
-        try:
-            element = WebDriverWait(driver, 10).until(
-                EC.presence_of_all_elements_located((By.CLASS_NAME, "send-amount"))
-            )
-
-        except Exception as e:
-            logger.error('Error while loading payment page')
-            return
-
-        elements = driver.find_elements_by_class_name('ant-input')
-        assert (len(elements) == 2)
-
-        amount = float(elements[0].get_attribute('value'))
-
-        address = elements[1].get_attribute('value')
+        address = checkout['payment_address']
 
         logger.info("Amount:{} Address:{}".format(amount, address))
 
