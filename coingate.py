@@ -8,10 +8,15 @@ from typing import List
 TOKEN = "JzxZnyUEqVa5RbyqXE2ErHGdzJcQxsQEy4ykK2gq"
 
 
-logging.basicConfig(level=logging.DEBUG)
-logging.getLogger('selenium').setLevel(logging.INFO)
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(name)s - "%(message)s"')
+# logging.getLogger('selenium').setLevel(logging.INFO)
 logging.getLogger('urllib3').setLevel(logging.INFO)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("root")
+# logger.setLevel(logging.DEBUG)
+# ch = logging.StreamHandler()
+# formatter = logging.Formatter('%(levelname)s:%(name)s - [%(asctime)s] - "%(message)s"')
+# ch.setFormatter(formatter)
+# logger.addHandler(ch)
 
 
 class Coingate:
@@ -31,11 +36,12 @@ class Coingate:
 
     def status_change(self):
         logger.info("Order Status Change")
-        logging.debug(request.form)
+        logger.debug(request.form)
         self.pp.confirm("123")
         return ""
         
     def run(self):
+        logger.info("Starting MQTT and HTTP")
         self.pp.run()
         self.app.run(debug=True, use_reloader=False)
 
@@ -64,7 +70,7 @@ class Coingate:
 
         order = r.json()
 
-        logger.info ("Order:{}".format(order))
+        logger.debug ("Order:{}".format(order))
 
         url = "{}/v2/orders/{}/checkout".format(self.coingate_api_url, order["id"])
 
@@ -72,7 +78,7 @@ class Coingate:
 
         checkout = r.json()
 
-        logger.info("Checkout:{}".format(checkout))
+        logger.debug("Checkout:{}".format(checkout))
 
         amount = float(checkout['pay_amount'])
 

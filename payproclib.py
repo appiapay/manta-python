@@ -20,7 +20,6 @@ import base64
 if TYPE_CHECKING:
     from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
 
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
@@ -65,9 +64,6 @@ class POSPaymentRequestMessage(NamedTuple):
     session_id: str
     fiat_currency: str
     crypto_currency: str
-
-
-logging.basicConfig(level=logging.INFO)
 
 
 def isnamedtupleinstance(x):
