@@ -1,6 +1,7 @@
 import unittest
 import responses
 from coingate import Coingate
+from unittest.mock import MagicMock, patch
 
 CREATE_ORDER_RESPONSE = """
 {
@@ -35,6 +36,21 @@ CHECKOUT_RESPONSE = """
 }
 """
 
+PAYMENT_CALLBACK = {
+    'id' : 343,
+    'order_id' : 14037,
+    'status' : 'paid',
+    'price_amount' : 1050.99,
+    'price_currency' : 'USD',
+    'receive_amount' : 926.73,
+    'receive_currency' : 'EUR',
+    'pay_amount' : 4.81849315,
+    'pay_currency' : 'BTC',
+    'created_at' : '2014-11-03T13:07:28+00:00',
+    'token' : 'ff7a7343-93bf-42b7-b82c-b38687081a4e',
+}
+
+
 class TestCoingate(unittest.TestCase):
     def setUp(self):
         self.coingate = Coingate()
@@ -56,4 +72,28 @@ class TestCoingate(unittest.TestCase):
         self.assertEqual("2MzyF5xfYRAmHVPwG6YPRMY74dojhAVEtmm", address)
         self.assertEqual(0.000023, amount)
 
+
+class TestCoingateFlask(unittest.TestCase):
+    def setUp(self):
+        pass
+        self.coingate = Coingate()
+        self.coingate.app.config['TESTING'] = True
+        self.client = self.coingate.app.test_client()
+        self.mockPP = MagicMock()
+        self.coingate.pp = self.mockPP
+
+ #   @patch('paho.mqtt.client.Client')
+    def test_change_status_paid(self):
+        rv = self.client.post("/status-change", data=PAYMENT_CALLBACK)
+
+        #See https://stackoverflow.com/questions/36067124/python-patch-mock-appears-to-be-called-but-assert-fails
+        #mqtt_mock.return_value.publish.assert_called()
+        self.mockPP.confirm.assert_called()
+        self.mockPP.confirm.assert_called_with("14037")
+        #self.assertEqual(200, rv.status_code)
+
+    def test_change_status_pending(self):
+        PAYMENT_CALLBACK['status'] = 'pending'
+        rv = self.client.post("/status-change", data=PAYMENT_CALLBACK)
+        self.mockPP.confirm.assert_not_called()
 

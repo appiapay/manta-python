@@ -91,7 +91,7 @@ def unpack(obj):
 
 
 class PayProc:
-    mqtt_client: mqtt_client.Client
+    mqtt_client: mqtt.Client
     key: RSAPrivateKey
     get_merchant: Callable[[str], str]
     #device: str, amount: float, fiat_currency: str

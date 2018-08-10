@@ -37,7 +37,10 @@ class Coingate:
     def status_change(self):
         logger.info("Order Status Change")
         logger.debug(request.form)
-        self.pp.confirm("123")
+
+        if request.form['status'] == 'paid':
+            self.pp.confirm(request.form['order_id'])
+
         return ""
         
     def run(self):
