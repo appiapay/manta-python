@@ -41,6 +41,7 @@ class PaymentRequestMessage(NamedTuple):
     amount: float
     fiat_currency: str
     destinations: list[Destination]
+    supported_cryptos: list[str]
 
     @classmethod
     def from_json(cls, json_str:str):
@@ -59,11 +60,16 @@ class PaymentRequestEnvelope(NamedTuple):
         return pr
 
 
-class POSPaymentRequestMessage(NamedTuple):
+class GeneratePaymentRequestMessage(NamedTuple):
     amount: float
     session_id: str
     fiat_currency: str
     crypto_currency: str
+
+
+class SessionData(NamedTuple):
+    device: str
+    payment_request: PaymentRequestMessage
 
 
 def isnamedtupleinstance(x):
@@ -94,10 +100,13 @@ class PayProc:
     mqtt_client: mqtt.Client
     key: RSAPrivateKey
     get_merchant: Callable[[str], str]
+    get_destinations: Callable[[str, GeneratePaymentRequestMessage], List[Destination]] = None
+    get_supported_cryptos: Callable[[str, GeneratePaymentRequestMessage], List[str]] = None
     #device: str, amount: float, fiat_currency: str
     #get_destinations: Callable[[str, float, ], List[Destination]]
     #get_destinations: (device: str, amount: float, fiat_currency: str) -> List [Destination]
-    payment_requests: Dict[str, PaymentRequestMessage] = {}
+    #payment_requests: Dict[str, PaymentRequestMessage] = {}
+    session_data: Dict[str, SessionData] = {}
     txid: int = 0
 
     def __init__(self, key_file: str):
@@ -109,7 +118,6 @@ class PayProc:
             key_data = myfile.read()
 
         self.key = PayProc.key_from_keydata(key_data)
-        self.get_destinations = None
 
     def run(self):
         self.mqtt_client.connect(host='localhost')
@@ -147,14 +155,18 @@ class PayProc:
 
         if tokens[0] == 'generate_payment_request':
             device = tokens[1]
-            p = POSPaymentRequestMessage(**json.loads(msg.payload))
+            p = GeneratePaymentRequestMessage(**json.loads(msg.payload))
 
             if p.crypto_currency == 'nanoray':
                 envelope = self.generate_payment_request(device, p)
-                self.payment_requests[p.session_id] = envelope.unpack()
+                self.session_data[p.session_id] = SessionData(
+                    device=device,
+                    payment_request=envelope.unpack())
+
                 logger.info(envelope)
                 client.publish('payment_requests/{}'.format(p.session_id), json.dumps(envelope),
                                retain=True)
+                client.subscribe('payment_requests/{}/+'.format(p.session_id))
                 client.subscribe('payments/{}'.format(p.session_id))
                 # generate_payment_request reply
                 topic = 'generate_payment_request/{}/reply'.format(device)
@@ -168,6 +180,27 @@ class PayProc:
                            'crypto_currency:': p.crypto_currency,
                            'address': '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2'}
                 client.publish(topic, json.dumps(message))
+
+        elif tokens[0] == 'payment_requests':
+            session_id = tokens[1]
+            session_data = self.session_data[session_id]
+            request = GeneratePaymentRequestMessage(
+                fiat_currency=session_data.payment_request.fiat_currency,
+                amount=session_data.payment_request.amount,
+                session_id=session_id,
+                crypto_currency=tokens[2]
+            )
+            device = session_data.device
+
+            envelope = self.generate_payment_request(session_data.device, request)
+            self.session_data[session_id]= SessionData(
+                device=device,
+                payment_request=envelope.unpack()
+            )
+
+            logger.info(envelope)
+            client.publish('payment_requests/{}'.format(session_id), json.dumps(envelope),
+                           retain=True)
 
         elif tokens[0] == 'payments':
             payment_message = json.loads(msg.payload)
@@ -187,15 +220,17 @@ class PayProc:
 
         client.publish('acks/{}'.format(session_id), json.dumps({'txid': self.txid}))
 
-    def generate_payment_request(self, device: str, payment_request: POSPaymentRequestMessage) -> PaymentRequestEnvelope:
+    def generate_payment_request(self, device: str, payment_request: GeneratePaymentRequestMessage) -> PaymentRequestEnvelope:
 
         merchant = self.get_merchant(device)
-        destinations = self.get_destinations(device=device, payment_request= payment_request)
+        destinations = self.get_destinations(device=device, payment_request=payment_request)
+        supported_cryptos = self.get_supported_cryptos(device=device, payment_request=payment_request)
 
         message = PaymentRequestMessage(merchant=merchant,
                                         amount=payment_request.amount,
                                         fiat_currency=payment_request.fiat_currency,
-                                        destinations=destinations)
+                                        destinations=destinations,
+                                        supported_cryptos=supported_cryptos)
 
         #json_message = json.dumps(unpack(message))
         json_message = json.dumps(message)

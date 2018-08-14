@@ -12,7 +12,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 
-from payproclib import PayProc, Destination, PaymentRequestMessage, POSPaymentRequestMessage
+from payproclib import PayProc, Destination, PaymentRequestMessage, GeneratePaymentRequestMessage, PaymentRequestEnvelope
 
 PRIV_KEY_DATA = b'''\
 -----BEGIN RSA PRIVATE KEY-----
@@ -77,6 +77,7 @@ wbsqKgzOG2RvOOJDaPn/xhLs/HlUyNwGePFuQh0EOn1uuqWJPjj8HNbQmfd1/W2p5ldE2Xi2TpX1\
 
 CERTFICATE_FILENAME = "certificates/root/keys/www.brainblocks.com.key"
 
+
 class MQTTMessage(NamedTuple):
     topic: any
     payload: any
@@ -100,9 +101,12 @@ class TestPayProcLib(unittest.TestCase):
     def test_generate_payment_request(self):
         pp = PayProc(CERTFICATE_FILENAME)
         pp.get_merchant = lambda x: "merchant1"
-        pp.get_destinations = lambda device, payment_request: [Destination(amount=5, destination_address="xrb123", crypto_currency="nano")]
+        pp.get_destinations = lambda device, payment_request: [
+            Destination(amount=5, destination_address="xrb123", crypto_currency="nano")]
+        pp.get_supported_cryptos = lambda device, payment_request: ['btc', 'xmr', 'nano']
 
-        payment_request = POSPaymentRequestMessage(amount=10, fiat_currency="euro", session_id="123", crypto_currency="nanoray")
+        payment_request = GeneratePaymentRequestMessage(amount=10, fiat_currency="euro", session_id="123",
+                                                        crypto_currency="nanoray")
 
         envelope = pp.generate_payment_request("device1", payment_request)
 
@@ -110,7 +114,8 @@ class TestPayProcLib(unittest.TestCase):
                                                  amount=10,
                                                  fiat_currency="euro",
                                                  destinations=[Destination(amount=5, destination_address="xrb123",
-                                                                           crypto_currency="nano")]
+                                                                           crypto_currency="nano")],
+                                                 supported_cryptos=['btc', 'xmr', 'nano']
                                                  )
 
         self.assertEqual(expected_message, envelope.unpack())
@@ -120,7 +125,11 @@ class TestPayProcMQTT(unittest.TestCase):
     def setUp(self):
         self.pp = PayProc(CERTFICATE_FILENAME)
         self.pp.get_merchant = lambda x: "merchant1"
-        self.pp.get_destinations = lambda device, payment_request: [Destination(amount=5, destination_address="xrb123", crypto_currency="nano")]
+        self.pp.get_destinations = lambda device, payment_request: [
+            Destination(amount=5,
+                        destination_address="xrb123",
+                        crypto_currency="nano")]
+        self.pp.get_supported_cryptos = lambda device, payment_request: ['btc', 'xmr', 'nano']
 
     def test_generate_payment_request(self):
         client = MagicMock()
@@ -138,7 +147,47 @@ class TestPayProcMQTT(unittest.TestCase):
 
         client.publish.assert_any_call('generate_payment_request/device1/reply', ANY)
         client.publish.assert_any_call('payment_requests/1423', ANY, retain=True)
-        client.subscribe.assert_called_once_with('payments/1423')
+        client.subscribe.assert_any_call('payments/1423')
+        client.subscribe.assert_any_call('payment_requests/1423/+')
+
+    def test_generate_payment_request_empty_destinations(self):
+        client = MagicMock()
+
+        message = MQTTMessage(
+            topic="generate_payment_request/device1/request",
+            payload=json.dumps({
+                'amount': 1000,
+                'session_id': '1423',
+                'crypto_currency': 'nanoray',
+                'fiat_currency': 'euro'
+            }))
+
+        destination = Destination(amount=10,
+                                  destination_address="fake_address",
+                                  crypto_currency="XMR")
+
+        def get_destinations(device, payment_request: GeneratePaymentRequestMessage):
+            if payment_request.crypto_currency == 'nanoray':
+                return []
+            else:
+                return [destination]
+
+        self.pp.get_destinations = get_destinations
+
+        self.pp.on_message(client, None, message)
+
+        message = MQTTMessage(
+            topic="payment_requests/1423/XMR",
+            payload=None
+        )
+
+        self.pp.on_message(client, None, message)
+        self.assertEqual(3, client.publish.call_count)
+        payload = client.publish.call_args[0][1]
+        decoded = json.loads(payload)
+        envelope = PaymentRequestEnvelope(**decoded)
+
+        self.assertEqual(destination, envelope.unpack().destinations[0])
 
     def test_generate_payment_request_legacy(self):
         client = MagicMock()
