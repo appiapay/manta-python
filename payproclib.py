@@ -135,15 +135,15 @@ class PayProc:
     def on_connect(client, userdata, flags, rc):
         logger.info("Connected with result code " + str(rc))
 
-        client.subscribe('/generate_payment_request/+/request')
-        client.subscribe('/payments/#')
+        client.subscribe('generate_payment_request/+/request')
+        client.subscribe('payments/#')
 
     def on_message(self, client: mqtt.Client, userdata, msg):
         global TXID
 
         logger.info("Got {} on {}".format(msg.payload, msg.topic))
 
-        tokens = msg.topic.strip('/').split('/')
+        tokens = msg.topic.split('/')
 
         if tokens[0] == 'generate_payment_request':
             device = tokens[1]
@@ -153,16 +153,16 @@ class PayProc:
                 envelope = self.generate_payment_request(device, p)
                 self.payment_requests[p.session_id] = envelope.unpack()
                 logger.info(envelope)
-                client.publish('/payment_requests/{}'.format(p.session_id), json.dumps(envelope),
+                client.publish('payment_requests/{}'.format(p.session_id), json.dumps(envelope),
                                retain=True)
-                client.subscribe('/payments/{}'.format(p.session_id))
+                client.subscribe('payments/{}'.format(p.session_id))
                 # generate_payment_request reply
-                topic = '/generate_payment_request/{}/reply'.format(device)
+                topic = 'generate_payment_request/{}/reply'.format(device)
                 message = {'status': 200,
                            'session_id': p.session_id}
                 client.publish(topic, json.dumps(message))
             else:
-                topic = '/generate_payment_request/{}/reply'.format(device)
+                topic = 'generate_payment_request/{}/reply'.format(device)
                 message = {'status': 200,
                            'session_id': p.session_id,
                            'crypto_currency:': p.crypto_currency,
@@ -185,7 +185,7 @@ class PayProc:
 
         self.txid = self.txid + 1
 
-        client.publish('/acks/{}'.format(session_id), json.dumps({'txid': self.txid}))
+        client.publish('acks/{}'.format(session_id), json.dumps({'txid': self.txid}))
 
     def generate_payment_request(self, device: str, payment_request: POSPaymentRequestMessage) -> PaymentRequestEnvelope:
 

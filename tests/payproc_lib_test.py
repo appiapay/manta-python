@@ -126,7 +126,7 @@ class TestPayProcMQTT(unittest.TestCase):
         client = MagicMock()
 
         message = MQTTMessage(
-            topic="/generate_payment_request/device1/request",
+            topic="generate_payment_request/device1/request",
             payload=json.dumps({
                 'amount': 1000,
                 'session_id': '1423',
@@ -136,15 +136,15 @@ class TestPayProcMQTT(unittest.TestCase):
 
         self.pp.on_message(client, None, message)
 
-        client.publish.assert_any_call('/generate_payment_request/device1/reply', ANY)
-        client.publish.assert_any_call('/payment_requests/1423', ANY, retain=True)
-        client.subscribe.assert_called_once_with('/payments/1423')
+        client.publish.assert_any_call('generate_payment_request/device1/reply', ANY)
+        client.publish.assert_any_call('payment_requests/1423', ANY, retain=True)
+        client.subscribe.assert_called_once_with('payments/1423')
 
     def test_generate_payment_request_legacy(self):
         client = MagicMock()
 
         message = MQTTMessage(
-            topic="/generate_payment_request/device1/request",
+            topic="generate_payment_request/device1/request",
             payload=json.dumps({
                 'amount': 1000,
                 'session_id': '1423',
@@ -153,7 +153,7 @@ class TestPayProcMQTT(unittest.TestCase):
             }))
 
         self.pp.on_message(client, None, message)
-        client.publish.assert_called_once_with('/generate_payment_request/device1/reply', ANY)
+        client.publish.assert_called_once_with('generate_payment_request/device1/reply', ANY)
         client.subscribe.assert_not_called()
 
     def test_payment_message(self):
@@ -168,12 +168,12 @@ class TestPayProcMQTT(unittest.TestCase):
         self.pp.on_message(client, None, message)
 
         client.publish.called_with('123')
-    #
+
     def test_txid_increment(self):
         client = MagicMock()
 
         message = MQTTMessage(
-            topic="/confirm/123",
+            topic="confirm/123",
             payload="")
 
         self.pp.on_message(client, None, message)
