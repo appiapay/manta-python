@@ -1,21 +1,20 @@
 from __future__ import annotations
 
-from typing import Any, NamedTuple, TYPE_CHECKING, Callable, List, Dict
-
-
-
-from collections import namedtuple
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.serialization import load_pem_private_key
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import padding
-#from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
-
+import base64
 import logging
+from dataclasses import dataclass
+from typing import NamedTuple, TYPE_CHECKING, Callable, List, Dict
+
 import paho.mqtt.client as mqtt
 import simplejson as json
-import re
-import base64
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
+from manta.messages import PaymentRequestMessage, GeneratePaymentRequestMessage, PaymentRequestEnvelope, Destination, \
+    GeneratePaymentReplyMessage, PaymentMessage, AckMessage
+
+# from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
 
 if TYPE_CHECKING:
     from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
@@ -30,46 +29,11 @@ class Conf(NamedTuple):
     nano_euro: float
 
 
-class Destination(NamedTuple):
-    amount: float
-    destination_address: str
-    crypto_currency: str
-
-
-class PaymentRequestMessage(NamedTuple):
-    merchant: str
-    amount: float
-    fiat_currency: str
-    destinations: list[Destination]
-    supported_cryptos: list[str]
-
-    @classmethod
-    def from_json(cls, json_str:str):
-        dict = json.loads(json_str)
-        destinations = [Destination(**x) for x in dict['destinations']]
-        dict['destinations'] = destinations
-        return cls(**dict)
-
-
-class PaymentRequestEnvelope(NamedTuple):
-    message: str
-    signature: str
-
-    def unpack(self):
-        pr = PaymentRequestMessage.from_json(self.message)
-        return pr
-
-
-class GeneratePaymentRequestMessage(NamedTuple):
-    amount: float
-    session_id: str
-    fiat_currency: str
-    crypto_currency: str
-
-
-class SessionData(NamedTuple):
+@dataclass
+class SessionData:
     device: str
     payment_request: PaymentRequestMessage
+    ack: AckMessage = None
 
 
 def isnamedtupleinstance(x):
@@ -80,7 +44,7 @@ def isnamedtupleinstance(x):
     fields = getattr(_type, '_fields', None)
     if not isinstance(fields, tuple):
         return False
-    return all(type(i)==str for i in fields)
+    return all(type(i) == str for i in fields)
 
 
 def unpack(obj):
@@ -96,23 +60,32 @@ def unpack(obj):
         return obj
 
 
+def generate_crypto_legacy_url(crypto: str, address: str, amount: float) -> str:
+    if crypto == 'btc':
+        return "bitcoin:{}?amount={}".format(address, amount)
+
+
 class PayProc:
     mqtt_client: mqtt.Client
+    host: str
     key: RSAPrivateKey
     get_merchant: Callable[[str], str]
+    _get_pino: Callable[[str], str]
     get_destinations: Callable[[str, GeneratePaymentRequestMessage], List[Destination]] = None
     get_supported_cryptos: Callable[[str, GeneratePaymentRequestMessage], List[str]] = None
-    #device: str, amount: float, fiat_currency: str
-    #get_destinations: Callable[[str, float, ], List[Destination]]
-    #get_destinations: (device: str, amount: float, fiat_currency: str) -> List [Destination]
-    #payment_requests: Dict[str, PaymentRequestMessage] = {}
+    # device: str, amount: float, fiat_currency: str
+    # get_destinations: Callable[[str, float, ], List[Destination]]
+    # get_destinations: (device: str, amount: float, fiat_currency: str) -> List [Destination]
+    # payment_requests: Dict[str, PaymentRequestMessage] = {}
     session_data: Dict[str, SessionData] = {}
     txid: int = 0
 
-    def __init__(self, key_file: str):
+    def __init__(self, key_file: str, host: str = "localhost"):
+
         self.mqtt_client = mqtt.Client()
         self.mqtt_client.on_connect = PayProc.on_connect
         self.mqtt_client.on_message = self.on_message
+        self.host = host
 
         with open(key_file, 'rb') as myfile:
             key_data = myfile.read()
@@ -120,7 +93,7 @@ class PayProc:
         self.key = PayProc.key_from_keydata(key_data)
 
     def run(self):
-        self.mqtt_client.connect(host='localhost')
+        self.mqtt_client.connect(host=self.host)
         self.mqtt_client.loop_start()
 
     @staticmethod
@@ -157,7 +130,8 @@ class PayProc:
             device = tokens[1]
             p = GeneratePaymentRequestMessage(**json.loads(msg.payload))
 
-            if p.crypto_currency == 'nanoray':
+            # This is a manta request
+            if p.crypto_currency is None:
                 envelope = self.generate_payment_request(device, p)
                 self.session_data[p.session_id] = SessionData(
                     device=device,
@@ -170,16 +144,23 @@ class PayProc:
                 client.subscribe('payments/{}'.format(p.session_id))
                 # generate_payment_request reply
                 topic = 'generate_payment_request/{}/reply'.format(device)
-                message = {'status': 200,
-                           'session_id': p.session_id}
-                client.publish(topic, json.dumps(message))
+                reply = GeneratePaymentReplyMessage(
+                    status=200,
+                    session_id=p.session_id,
+                    url="manta://{}/{}".format(self.host, p.session_id)
+                )
+                client.publish(topic, json.dumps(reply))
             else:
                 topic = 'generate_payment_request/{}/reply'.format(device)
-                message = {'status': 200,
-                           'session_id': p.session_id,
-                           'crypto_currency:': p.crypto_currency,
-                           'address': '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2'}
-                client.publish(topic, json.dumps(message))
+                destinations = self.get_destinations(device=device, payment_request=p)
+                d = destinations[0]
+                reply = GeneratePaymentReplyMessage(
+                    status=200,
+                    session_id=p.session_id,
+                    url=generate_crypto_legacy_url(d.crypto_currency, d.destination_address, d.amount)
+                )
+
+                client.publish(topic, json.dumps(reply))
 
         elif tokens[0] == 'payment_requests':
             session_id = tokens[1]
@@ -193,7 +174,7 @@ class PayProc:
             device = session_data.device
 
             envelope = self.generate_payment_request(session_data.device, request)
-            self.session_data[session_id]= SessionData(
+            self.session_data[session_id] = SessionData(
                 device=device,
                 payment_request=envelope.unpack()
             )
@@ -203,24 +184,50 @@ class PayProc:
                            retain=True)
 
         elif tokens[0] == 'payments':
-            payment_message = json.loads(msg.payload)
-            # if check_blockchain(payment_message['txhash']):
-            #     client.publish('/acks/{}'.format(tokens[1]), json.dumps({'txid': TXID}))
-            #     TXID = TXID + 1
+            session_id = tokens[1]
+
+            if session_id in self.session_data:
+                decoded = json.loads(msg.payload)
+
+                # Duplicate message
+                if self.session_data[session_id].ack:
+                    return
+
+                payment_message = PaymentMessage(**decoded)
+
+                reply = AckMessage(
+                    txid=str(self.txid),
+                    transaction_hash=payment_message.transaction_hash,
+                    status='pending'
+                )
+
+                self.session_data[session_id].ack = reply
+
+                self.txid = self.txid + 1
+
+                client.publish('acks/{}'.format(session_id), json.dumps(reply))
 
         elif tokens[0] == 'confirm':
             session_id = tokens[1]
             self.confirm(session_id, client)
 
-    def confirm(self, session_id: str, client: mqtt.Client= None):
+    def confirm(self, session_id: str, client: mqtt.Client = None):
         if client is None:
             client = self.mqtt_client
 
-        self.txid = self.txid + 1
+        if session_id in self.session_data:
+            ack = self.session_data[session_id].ack
 
-        client.publish('acks/{}'.format(session_id), json.dumps({'txid': self.txid}))
+            reply = AckMessage(
+                txid=ack.txid,
+                transaction_hash=ack.transaction_hash,
+                status='paid'
+            )
 
-    def generate_payment_request(self, device: str, payment_request: GeneratePaymentRequestMessage) -> PaymentRequestEnvelope:
+            client.publish('acks/{}'.format(session_id), json.dumps(reply))
+
+    def generate_payment_request(self, device: str,
+                                 payment_request: GeneratePaymentRequestMessage) -> PaymentRequestEnvelope:
 
         merchant = self.get_merchant(device)
         destinations = self.get_destinations(device=device, payment_request=payment_request)
@@ -232,13 +239,10 @@ class PayProc:
                                         destinations=destinations,
                                         supported_cryptos=supported_cryptos)
 
-        #json_message = json.dumps(unpack(message))
+        # json_message = json.dumps(unpack(message))
         json_message = json.dumps(message)
         signature = self.sign(json_message.encode('utf-8')).decode('utf-8')
 
         payment_request_envelope = PaymentRequestEnvelope(json_message, signature)
 
         return payment_request_envelope
-
-
-

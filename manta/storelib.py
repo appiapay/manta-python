@@ -33,14 +33,17 @@ class Store:
         self.mqtt_client = mqtt.Client()
         self.mqtt_client.on_connect = self.on_connect
         self.mqtt_client.on_message = self.on_message
-        self.loop = asyncio.get_event_loop()
+        self.mqtt_client.on_disconnect = self.on_disconnect
+        try:
+            self.loop = asyncio.get_event_loop()
+        except RuntimeError:
+            self.loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(self.loop)
+
         self.mqtt_client.loop_start()
 
-    def run(self):
-        self.mqtt_client.loop_start()
-        t = threading.Thread(target=self.loop.run_forever)
-        t.start()
-        # self.loop.run_until_complete(self.connect())
+    def on_disconnect(self, client, userdata, rc):
+        self.connected = False
 
     def on_connect(self, client, userdata, flags, rc):
         logger.info("Connected")
@@ -66,16 +69,18 @@ class Store:
             ack = AckMessage(**decoded)
             self.ack_callback(session_id, ack)
 
+    async def connect(self):
+        if self.connected:
+            return
 
-    def connect(self):
-
-        if self.connected or self.connect_future:
-            self.connect_future.set_result(None)
-        else:
+        if self.connect_future is None:
             self.connect_future = self.loop.create_future()
             self.mqtt_client.connect("localhost")
 
-        return self.connect_future
+        if self.connect_future.done():
+            self.connect_future = self.loop.create_future()  
+
+        await self.connect_future
 
     def generate_payment_request(self, amount: float, fiat: str, crypto: str = None):
         return self.loop.run_until_complete(self.__generate_payment_request(amount, fiat, crypto))
@@ -93,7 +98,9 @@ class Store:
         self.mqtt_client.publish("generate_payment_request/{}".format(self.device_id),
                                  json.dumps(request))
 
-        return await self.generate_payment_future
+        result = await asyncio.wait_for(self.generate_payment_future, 3)
+
+        return result
 
 
 if __name__ == "__main__":

@@ -8,16 +8,10 @@ import simplejson as json
 
 from manta.storelib import Store
 from manta.messages import GeneratePaymentReplyMessage, AckMessage
+from tests.utils import MQTTMessage, mock_mqtt
 
 BASE64PATTERN = "(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?"
 
-class MQTTMock(MagicMock):
-    def push(self, topic, payload):
-        self.on_message(self, None, MQTTMessage(topic, payload))
-
-class MQTTMessage(NamedTuple):
-    topic: any
-    payload: any
 
 
 def reply(topic, payload):
@@ -32,16 +26,6 @@ def reply(topic, payload):
     )
 
     return MQTTMessage(topic="generate_payment_request/{}/reply".format(device), payload=json.dumps(r))
-
-
-@pytest.fixture
-def mock_mqtt(monkeypatch):
-    mock = MQTTMock()
-    mock.return_value = mock
-    mock.connect.side_effect = lambda host: mock.on_connect(mock, None, None, None)
-
-    monkeypatch.setattr(mqtt, 'Client', mock)
-    return mock
 
 
 @pytest.mark.timeout(2)
@@ -72,6 +56,7 @@ def test_ack(mock_mqtt):
 
     store.ack_callback = on_ack
 
+    print (mock_mqtt.on_connect)
     expected_ack = AckMessage (txid='1234', transaction_hash="hash_1234", status="pending" )
 
     mock_mqtt.push('acks/123', json.dumps(expected_ack))
