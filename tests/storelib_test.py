@@ -7,7 +7,7 @@ import pytest
 import simplejson as json
 
 from manta.storelib import Store
-from manta.messages import GeneratePaymentReplyMessage, AckMessage
+from manta.messages import MerchantOrderReplyMessage, AckMessage
 from tests.utils import MQTTMessage, mock_mqtt
 
 BASE64PATTERN = "(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?"
@@ -19,7 +19,7 @@ def reply(topic, payload):
     tokens = topic.split("/")
     device = tokens[1]
 
-    r = GeneratePaymentReplyMessage(
+    r = MerchantOrderReplyMessage(
         status=200,
         session_id=decoded['session_id'],
         url="manta://testpp.com/{}".format(decoded['session_id'])

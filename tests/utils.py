@@ -29,7 +29,7 @@ class JsonEqual(Matcher):
 
     def __init__(self, d):
         if is_namedtuple_instance(d):
-            self.obj = dict(d._asdict())
+            self.obj = json.loads(json.dumps(d))
         else:
             self.obj = d
 

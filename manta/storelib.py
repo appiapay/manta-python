@@ -7,7 +7,7 @@ import base64, uuid
 
 from typing import Callable
 
-from manta.messages import GeneratePaymentReplyMessage, GeneratePaymentRequestMessage, AckMessage
+from manta.messages import MerchantOrderReplyMessage, MerchantOrderRequestMessage, AckMessage
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +56,7 @@ class Store:
 
         if tokens[0] == 'generate_payment_request':
             decoded = json.loads(msg.payload)
-            reply = GeneratePaymentReplyMessage(**decoded)
+            reply = MerchantOrderReplyMessage(**decoded)
 
             if reply.status == 200:
                 self.loop.call_soon_threadsafe(self.generate_payment_future.set_result, reply.url)
@@ -88,7 +88,7 @@ class Store:
     async def __generate_payment_request(self, amount: float, fiat: str, crypto: str = None):
         await self.connect()
         self.session_id = generate_session_id()
-        request = GeneratePaymentRequestMessage(
+        request = MerchantOrderRequestMessage(
             amount=amount,
             session_id=self.session_id,
             fiat_currency=fiat,

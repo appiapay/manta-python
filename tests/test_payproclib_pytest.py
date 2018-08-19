@@ -1,10 +1,11 @@
 from callee import Matcher, Matching
 from cryptography.hazmat.primitives import serialization
 
-from manta.messages import Destination, GeneratePaymentRequestMessage, PaymentRequestMessage, \
-    GeneratePaymentReplyMessage, PaymentMessage, AckMessage
+from manta.messages import Destination, MerchantOrderRequestMessage, PaymentRequestMessage, \
+    MerchantOrderReplyMessage, PaymentMessage, AckMessage, PaymentRequestEnvelope
 from manta.payproclib import PayProc
 import simplejson as json
+
 # from tests.utils import mock_mqtt, JsonEqual
 from unittest.mock import ANY
 from typing import Dict, NamedTuple
@@ -77,22 +78,35 @@ wbsqKgzOG2RvOOJDaPn/xhLs/HlUyNwGePFuQh0EOn1uuqWJPjj8HNbQmfd1/W2p5ldE2Xi2TpX1\
 
 CERTFICATE_FILENAME = "certificates/root/keys/www.brainblocks.com.key"
 
+DESTINATIONS = [
+    Destination(
+        amount=5,
+        destination_address="btc_daddress",
+        crypto_currency="btc"
+    ),
+    Destination(
+        amount=10,
+        destination_address="nano_daddress",
+        crypto_currency="nano"
+    ),
+
+]
 
 @pytest.fixture
 def payproc():
-    def get_destinations(device, payment_request: GeneratePaymentRequestMessage):
-        d = Destination(
-            amount=5,
-            destination_address="daddress",
-            crypto_currency=payment_request.crypto_currency if payment_request.crypto_currency else "nano",
-        )
-        return [d]
+
+    def get_destinations(device, merchant_order: MerchantOrderRequestMessage):
+        if merchant_order.crypto_currency:
+            destination = next (x for x in DESTINATIONS if x.crypto_currency == merchant_order.crypto_currency)
+            return [destination]
+        else:
+            return DESTINATIONS
 
     pp = PayProc(CERTFICATE_FILENAME)
     pp.get_merchant = lambda x: "merchant1"
 
     pp.get_destinations = get_destinations
-    pp.get_supported_cryptos = lambda device, payment_request: ['btc', 'xmr', 'nano']
+    pp.get_supported_cryptos = lambda device, payment_request: {'btc', 'xmr', 'nano'}
     return pp
 
 
@@ -115,8 +129,8 @@ def test_generate_payment_request():
         Destination(amount=5, destination_address="xrb123", crypto_currency="nano")]
     pp.get_supported_cryptos = lambda device, payment_request: ['btc', 'xmr', 'nano']
 
-    payment_request = GeneratePaymentRequestMessage(amount=10, fiat_currency="euro", session_id="123",
-                                                    crypto_currency="nanoray")
+    payment_request = MerchantOrderRequestMessage(amount=10, fiat_currency="euro", session_id="123",
+                                                  crypto_currency="nanoray")
 
     envelope = pp.generate_payment_request("device1", payment_request)
 
@@ -125,20 +139,20 @@ def test_generate_payment_request():
                                              fiat_currency="euro",
                                              destinations=[Destination(amount=5, destination_address="xrb123",
                                                                        crypto_currency="nano")],
-                                             supported_cryptos=['btc', 'xmr', 'nano']
+                                             supported_cryptos={'btc', 'xmr', 'nano'}
                                              )
 
     assert expected_message, envelope.unpack()
 
 
 def test_receive_generate_payment_request(mock_mqtt, payproc):
-    request = GeneratePaymentRequestMessage(
+    request = MerchantOrderRequestMessage(
         amount=1000,
         session_id='1423',
         fiat_currency='eur',
     )
 
-    expected = dict(GeneratePaymentReplyMessage(
+    expected = dict(MerchantOrderReplyMessage(
         session_id="1423",
         url="manta://localhost/1423",
         status=200
@@ -147,27 +161,85 @@ def test_receive_generate_payment_request(mock_mqtt, payproc):
     mock_mqtt.push("generate_payment_request/device1/request", json.dumps(request))
 
     mock_mqtt.publish.assert_any_call('generate_payment_request/device1/reply', JsonEqual(expected))
-    mock_mqtt.publish.assert_any_call('payment_requests/1423', ANY, retain=True)
     mock_mqtt.subscribe.assert_any_call('payments/1423')
     mock_mqtt.subscribe.assert_any_call('payment_requests/1423/+')
 
 
 def test_receive_generate_payment_request_legacy(mock_mqtt, payproc):
-    request = GeneratePaymentRequestMessage(
+    request = MerchantOrderRequestMessage(
         amount=1000,
         session_id='1423',
         fiat_currency='eur',
         crypto_currency='btc'
     )
 
-    expected = dict(GeneratePaymentReplyMessage(
+    expected = dict(MerchantOrderReplyMessage(
         session_id="1423",
-        url="bitcoin:daddress?amount=5",
+        url="bitcoin:btc_daddress?amount=5",
         status=200
     )._asdict())
 
     mock_mqtt.push("generate_payment_request/device1/request", json.dumps(request))
     mock_mqtt.publish.assert_any_call('generate_payment_request/device1/reply', JsonEqual(expected))
+
+
+def test_get_payment_request(mock_mqtt, payproc):
+    test_receive_generate_payment_request(mock_mqtt, payproc)
+    mock_mqtt.push('payment_requests/1423/btc', '')
+
+    destination = Destination(
+        amount=5,
+        destination_address="btc_daddress",
+        crypto_currency="btc"
+    )
+
+    expected = PaymentRequestMessage(
+        merchant='merchant1',
+        fiat_currency='eur',
+        amount=1000,
+        destinations=[destination],
+        supported_cryptos={'nano', 'btc', 'xmr'}
+    )
+
+    class PMEqual(Matcher):
+        payment_request: PaymentRequestMessage
+
+        def __init__(self, payment_request: PaymentRequestMessage):
+            self.payment_request = payment_request
+
+        def match(self, value):
+            decoded = json.loads(value)
+            message = PaymentRequestMessage.from_json(decoded['message'])
+            assert self.payment_request == message
+            return True
+
+    mock_mqtt.publish.assert_called_with('payment_requests/1423', PMEqual(expected))
+
+def test_get_payment_request_all(mock_mqtt, payproc):
+    test_receive_generate_payment_request(mock_mqtt, payproc)
+    mock_mqtt.push('payment_requests/1423/all', '')
+
+    expected = PaymentRequestMessage(
+        merchant='merchant1',
+        fiat_currency='eur',
+        amount=1000,
+        destinations=DESTINATIONS,
+        supported_cryptos={'nano', 'btc', 'xmr'}
+    )
+
+    class PMEqual(Matcher):
+        payment_request: PaymentRequestMessage
+
+        def __init__(self, payment_request: PaymentRequestMessage):
+            self.payment_request = payment_request
+
+        def match(self, value):
+            decoded = json.loads(value)
+            message = PaymentRequestMessage.from_json(decoded['message'])
+            assert self.payment_request == message
+            return True
+
+    mock_mqtt.publish.assert_called_with('payment_requests/1423', PMEqual(expected))
 
 
 def test_payment_message(mock_mqtt, payproc):

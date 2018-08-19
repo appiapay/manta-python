@@ -1,15 +1,16 @@
-from typing import NamedTuple, List
+from typing import NamedTuple, List, Set
 import simplejson as json
+import attr, cattr
 
 
-class GeneratePaymentRequestMessage(NamedTuple):
+class MerchantOrderRequestMessage(NamedTuple):
     amount: float
     session_id: str
     fiat_currency: str
     crypto_currency: str = None
 
 
-class GeneratePaymentReplyMessage(NamedTuple):
+class MerchantOrderReplyMessage(NamedTuple):
     status: int
     session_id: str
     url: str
@@ -22,25 +23,31 @@ class AckMessage(NamedTuple):
     status: str
 
 
-class Destination(NamedTuple):
+@attr.s(auto_attribs=True)
+class Destination:
     amount: float
     destination_address: str
     crypto_currency: str
 
 
-class PaymentRequestMessage(NamedTuple):
+@attr.s(auto_attribs=True)
+class PaymentRequestMessage:
     merchant: str
     amount: float
     fiat_currency: str
     destinations: List[Destination]
-    supported_cryptos: List[str]
+    supported_cryptos: Set[str]
+
+    def to_json(self) -> str:
+        return json.dumps(attr.asdict(self))
 
     @classmethod
     def from_json(cls, json_str:str):
-        dict = json.loads(json_str)
-        destinations = [Destination(**x) for x in dict['destinations']]
-        dict['destinations'] = destinations
-        return cls(**dict)
+        return cattr.structure(json.loads(json_str), PaymentRequestMessage)
+        # dict = json.loads(json_str)
+        # destinations = [Destination(**x) for x in dict['destinations']]
+        # dict['destinations'] = destinations
+        # return cls(**dict)
 
 
 class PaymentRequestEnvelope(NamedTuple):
