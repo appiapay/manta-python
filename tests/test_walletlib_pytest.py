@@ -1,4 +1,4 @@
-from manta.messages import Destination, PaymentRequestMessage, verify_chain
+from manta.messages import Destination, PaymentRequestMessage, verify_chain, PaymentMessage, AckMessage
 from manta.payproclib import PayProc
 from manta.walletlib import Wallet
 import pytest
@@ -7,6 +7,7 @@ from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from cryptography.hazmat.backends import default_backend
 import simplejson as json
 import logging
+from tests.utils import JsonEqual
 
 DESTINATIONS = [
     Destination(
@@ -92,10 +93,45 @@ def test_get_payment_request(mock_mqtt, payment_request, caplog):
     assert envelope.verify(CERTIFICATE)
 
 
+def test_send_payment(mock_mqtt):
+    wallet = Wallet.factory("manta://localhost:8000/123", "filename")
+
+    wallet.send_payment(transaction_hash="myhash", crypto_currency="nano")
+
+    expected = PaymentMessage(
+        transaction_hash="myhash",
+        crypto_currency="nano"
+    )
+
+    mock_mqtt.subscribe.assert_called_with("acks/123")
+    mock_mqtt.publish.assert_called_with("payments/123", JsonEqual(expected))
+
+def test_on_ack(mock_mqtt):
+    wallet = Wallet.factory("manta://localhost:8000/123", "filename")
+    ack_message = None
+
+    def ack(ack: AckMessage):
+        nonlocal ack_message
+        ack_message = ack
+
+    expected = AckMessage (
+        txid="0",
+        transaction_hash="myhash",
+        status="pending"
+    )
+
+    wallet.on_ack = ack
+
+    mock_mqtt.push("acks/123", expected.to_json())
+
+    assert ack_message == expected
+
+
+
 def test_verify_chain():
 
     path = verify_chain(CERTIFICATE, CA_CERTIFICATE)
-    assert False
+    assert path
 
 
 

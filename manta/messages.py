@@ -30,6 +30,13 @@ class AckMessage(NamedTuple):
     transaction_hash: str
     status: str
 
+    def to_json(self) -> str:
+        return json.dumps(self)
+
+    @classmethod
+    def from_json(cls, json_str: str):
+        return cls(**json.loads(json_str))
+
 
 @attr.s(auto_attribs=True)
 class Destination:
@@ -96,6 +103,9 @@ class PaymentMessage(NamedTuple):
     @classmethod
     def from_json(cls, json_str: str):
         return cls(**json.loads(json_str))
+
+    def to_json(self):
+        return json.dumps(self)
 
 
 def verify_chain(certificate: str, ca: str):
