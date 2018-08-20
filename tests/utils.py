@@ -14,6 +14,7 @@ def is_namedtuple_instance(x):
     if not isinstance(f, tuple): return False
     return all(type(n)==str for n in f)
 
+
 class MQTTMock(MagicMock):
     def push(self, topic, payload):
         self.on_message(self, None, MQTTMessage(topic, payload))
@@ -43,7 +44,12 @@ class JsonEqual(Matcher):
 def mock_mqtt(monkeypatch):
     mock = MQTTMock()
     mock.return_value = mock
-    mock.connect.side_effect = lambda host: mock.on_connect(mock, None, None, None)
+
+    def connect(host, port=1883):
+        nonlocal mock
+        mock.on_connect(mock, None, None, None)
+
+    mock.connect.side_effect = connect
 
     monkeypatch.setattr(mqtt, 'Client', mock)
     return mock
