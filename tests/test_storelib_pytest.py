@@ -8,11 +8,11 @@ import simplejson as json
 
 from manta.storelib import Store
 from manta.messages import MerchantOrderReplyMessage, AckMessage
+import callee
 from tests.utils import MQTTMessage, mock_mqtt
 
 BASE64PATTERN = "(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?"
-
-
+BASE64PATTERNSAFE = "(?:[A-Za-z0-9_-]{4})*(?:[A-Za-z0-9_-]{2}==|[A-Za-z0-9_-]{3}=)?"
 
 def reply(topic, payload):
     decoded = json.loads(payload)
@@ -25,8 +25,7 @@ def reply(topic, payload):
         url="manta://testpp.com/{}".format(decoded['session_id'])
     )
 
-    return MQTTMessage(topic="generate_payment_request/{}/reply".format(device), payload=json.dumps(r))
-
+    return ("generate_payment_request/{}/reply".format(device), json.dumps(r))
 
 @pytest.mark.timeout(2)
 @pytest.mark.asyncio
@@ -38,10 +37,20 @@ async def test_connect(mock_mqtt):
 @pytest.mark.timeout(2)
 def test_generate_payment_request(mock_mqtt):
     store = Store('device1')
-    mock_mqtt.publish.side_effect = lambda topic, payload: mock_mqtt.on_message(mock_mqtt, None, reply(topic, payload))
+
+    def se(topic, payload):
+        nonlocal mock_mqtt
+
+        print(topic)
+
+        if topic == "generate_payment_request/device1/request":
+            mock_mqtt.push(*reply(topic, payload))
+
+    mock_mqtt.publish.side_effect = se
 
     url = store.generate_payment_request(amount=10, fiat='eur')
-    assert re.match("^manta:\/\/testpp\.com\/" + BASE64PATTERN + "$", url)
+    mock_mqtt.subscribe.assert_called_with("generate_payment_request/device1/reply")
+    assert re.match("^manta:\/\/testpp\.com\/" + BASE64PATTERNSAFE + "$", url)
 
 
 def test_ack(mock_mqtt):
@@ -56,7 +65,6 @@ def test_ack(mock_mqtt):
 
     store.ack_callback = on_ack
 
-    print (mock_mqtt.on_connect)
     expected_ack = AckMessage (txid='1234', transaction_hash="hash_1234", status="pending" )
 
     mock_mqtt.push('acks/123', json.dumps(expected_ack))

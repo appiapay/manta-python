@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def generate_session_id() -> str:
-    return base64.b64encode(uuid.uuid4().bytes)
+    return base64.b64encode(uuid.uuid4().bytes, b"-_").decode("utf-8")
     # The following is more secure
     # return base64.b64encode(M2Crypto.m2.rand_bytes(num_bytes))
 
@@ -42,6 +42,10 @@ class Store:
 
         self.mqtt_client.loop_start()
 
+    def close(self):
+        self.mqtt_client.disconnect()
+        self.mqtt_client.loop_stop()
+
     def on_disconnect(self, client, userdata, rc):
         self.connected = False
 
@@ -59,6 +63,7 @@ class Store:
             reply = MerchantOrderReplyMessage(**decoded)
 
             if reply.status == 200:
+                self.mqtt_client.subscribe("acks/{}".format(self.session_id))
                 self.loop.call_soon_threadsafe(self.generate_payment_future.set_result, reply.url)
             else:
                 self.loop.call_soon_threadsafe(self.generate_payment_future.set_exception, Exception(reply.status))
@@ -78,7 +83,7 @@ class Store:
             self.mqtt_client.connect("localhost")
 
         if self.connect_future.done():
-            self.connect_future = self.loop.create_future()  
+            self.connect_future = self.loop.create_future()
 
         await self.connect_future
 
@@ -95,7 +100,8 @@ class Store:
             crypto_currency=crypto
         )
         self.generate_payment_future = self.loop.create_future()
-        self.mqtt_client.publish("generate_payment_request/{}".format(self.device_id),
+        self.mqtt_client.subscribe("generate_payment_request/{}/reply".format(self.device_id))
+        self.mqtt_client.publish("generate_payment_request/{}/request".format(self.device_id),
                                  json.dumps(request))
 
         result = await asyncio.wait_for(self.generate_payment_future, 3)

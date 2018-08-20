@@ -37,6 +37,7 @@ class SessionData:
     ack: AckMessage = None
     payment_request: PaymentRequestMessage = None
 
+
 def isnamedtupleinstance(x):
     _type = type(x)
     bases = _type.__bases__
@@ -80,11 +81,13 @@ class PayProc:
     # payment_requests: Dict[str, PaymentRequestMessage] = {}
     session_data: Dict[str, SessionData] = {}
     txid: int = 0
+    testing: bool = False
 
-    def __init__(self, key_file: str, host: str = "localhost"):
+    def __init__(self, key_file: str, host: str = "localhost", testing: bool = False):
 
+        self.testing = testing
         self.mqtt_client = mqtt.Client()
-        self.mqtt_client.on_connect = PayProc.on_connect
+        self.mqtt_client.on_connect = self.on_connect
         self.mqtt_client.on_message = self.on_message
         self.host = host
 
@@ -113,12 +116,14 @@ class PayProc:
 
         return base64.b64encode(signature)
 
-    @staticmethod
-    def on_connect(client, userdata, flags, rc):
+    def on_connect(self, client, userdata, flags, rc):
         logger.info("Connected with result code " + str(rc))
 
         client.subscribe('generate_payment_request/+/request')
         client.subscribe('payments/#')
+
+        if self.testing:
+            client.subscribe('test/#')
 
     def on_message(self, client: mqtt.Client, userdata, msg):
         global TXID
@@ -128,6 +133,7 @@ class PayProc:
         tokens = msg.topic.split('/')
 
         if tokens[0] == 'generate_payment_request':
+            logger.info("Processing generate_payment_request message")
             device = tokens[1]
             p = MerchantOrderRequestMessage(**json.loads(msg.payload))
 
@@ -135,8 +141,8 @@ class PayProc:
             if p.crypto_currency is None:
                 # envelope = self.generate_payment_request(device, p)
                 self.session_data[p.session_id] = SessionData(
-                     device=device,
-                     merchant_order=p)
+                    device=device,
+                    merchant_order=p)
                 #
                 # logger.info(envelope)
                 # client.publish('payment_requests/{}'.format(p.session_id), json.dumps(envelope),
@@ -192,21 +198,43 @@ class PayProc:
 
                 payment_message = PaymentMessage(**decoded)
 
-                reply = AckMessage(
+                reply = self.ack(
                     txid=str(self.txid),
                     transaction_hash=payment_message.transaction_hash,
-                    status='pending'
+                    status='pending',
+                    session_id=session_id
                 )
 
                 self.session_data[session_id].ack = reply
 
                 self.txid = self.txid + 1
 
-                client.publish('acks/{}'.format(session_id), json.dumps(reply))
-
         elif tokens[0] == 'confirm':
             session_id = tokens[1]
             self.confirm(session_id, client)
+
+        if not self.testing:
+            return
+
+        if tokens[0] == 'test':
+            logger.info('Got test message')
+            if tokens[1] == 'ack':
+                decode = json.loads(msg.payload)
+
+                self.ack(**decode)
+
+    def ack(self, status: str, txid: int, transaction_hash: str, session_id: str) -> AckMessage:
+        logger.info("Publishing ack for {} as {}".format(session_id, status))
+
+        ack_message = AckMessage(
+            txid=str(txid),
+            transaction_hash=transaction_hash,
+            status=status
+        )
+
+        self.mqtt_client.publish('acks/{}'.format(session_id), json.dumps(ack_message))
+
+        return ack_message
 
     def confirm(self, session_id: str, client: mqtt.Client = None):
         if client is None:
@@ -215,13 +243,12 @@ class PayProc:
         if session_id in self.session_data:
             ack = self.session_data[session_id].ack
 
-            reply = AckMessage(
+            self.ack(
                 txid=ack.txid,
                 transaction_hash=ack.transaction_hash,
-                status='paid'
+                status='paid',
+                session_id=session_id
             )
-
-            client.publish('acks/{}'.format(session_id), json.dumps(reply))
 
     def generate_payment_request(self, device: str,
                                  payment_request: MerchantOrderRequestMessage) -> PaymentRequestEnvelope:
