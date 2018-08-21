@@ -7,7 +7,6 @@ from typing import NamedTuple, TYPE_CHECKING, Callable, List, Dict, Set
 
 import paho.mqtt.client as mqtt
 import simplejson as json
-from callee import Matcher
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding

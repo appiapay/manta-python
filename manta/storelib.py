@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import paho.mqtt.client as mqtt
 import asyncio
 import logging
@@ -6,6 +8,7 @@ import simplejson as json
 import base64, uuid
 
 from typing import Callable
+
 
 from manta.messages import MerchantOrderReplyMessage, MerchantOrderRequestMessage, AckMessage
 
@@ -18,6 +21,13 @@ def generate_session_id() -> str:
     # return base64.b64encode(M2Crypto.m2.rand_bytes(num_bytes))
 
 
+def wrap_callback(f):
+    def wrapper(self: Store, *args):
+        self.loop.call_soon_threadsafe(f, self, *args)
+
+    return wrapper
+
+
 class Store:
     mqtt_client: mqtt.Client
     loop: asyncio.AbstractEventLoop
@@ -26,7 +36,7 @@ class Store:
     generate_payment_future: asyncio.Future = None
     device_id: str
     session_id: str = None
-    ack_callback: Callable[[str, AckMessage], None]
+    acks = asyncio.Queue
 
     def __init__(self, device_id: str):
         self.device_id = device_id
@@ -40,20 +50,25 @@ class Store:
             self.loop = asyncio.new_event_loop()
             asyncio.set_event_loop(self.loop)
 
+        self.acks = asyncio.Queue(loop=self.loop)
+
         self.mqtt_client.loop_start()
 
     def close(self):
         self.mqtt_client.disconnect()
         self.mqtt_client.loop_stop()
 
+    @wrap_callback
     def on_disconnect(self, client, userdata, rc):
         self.connected = False
 
+    @wrap_callback
     def on_connect(self, client, userdata, flags, rc):
         logger.info("Connected")
         self.connected = True
         self.loop.call_soon_threadsafe(self.connect_future.set_result, None)
 
+    @wrap_callback
     def on_message(self, client: mqtt.Client, userdata, msg):
         logger.info("Got {} on {}".format(msg.payload, msg.topic))
         tokens = msg.topic.split('/')
@@ -70,9 +85,9 @@ class Store:
         elif tokens[0] == 'acks':
             session_id = tokens[1]
             logger.info("Got ack message")
-            decoded = json.loads(msg.payload)
-            ack = AckMessage(**decoded)
-            self.ack_callback(session_id, ack)
+            ack = AckMessage.from_json(msg.payload)
+            self.acks.put_nowait(ack)
+            #self.loop.call_soon_threadsafe(self.acks.put, ack)
 
     async def connect(self):
         if self.connected:
@@ -87,10 +102,10 @@ class Store:
 
         await self.connect_future
 
-    def generate_payment_request(self, amount: float, fiat: str, crypto: str = None):
-        return self.loop.run_until_complete(self.__generate_payment_request(amount, fiat, crypto))
+    # def generate_payment_request(self, amount: float, fiat: str, crypto: str = None):
+    #     return self.loop.run_until_complete(self.__generate_payment_request(amount, fiat, crypto))
 
-    async def __generate_payment_request(self, amount: float, fiat: str, crypto: str = None):
+    async def generate_payment_request(self, amount: float, fiat: str, crypto: str = None):
         await self.connect()
         self.session_id = generate_session_id()
         request = MerchantOrderRequestMessage(

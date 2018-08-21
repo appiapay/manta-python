@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import logging
 import re
@@ -11,16 +13,22 @@ from certvalidator import CertificateValidator
 logger = logging.getLogger(__name__)
 
 
+def wrap_callback(f):
+    def wrapper(self: Wallet, *args):
+        self.loop.call_soon_threadsafe(f, self, *args)
+
+    return wrapper
+
+
 class Wallet:
     mqtt_client: mqtt.Client
     loop: asyncio.AbstractEventLoop
-    connected: bool = False
+    connected: asyncio.Event
     host: str
     port: int
     session_id: str
     payment_request_future: asyncio.Future = None
-    connect_future: asyncio.Future = None
-    on_ack = Callable[[AckMessage], None]
+    acks: asyncio.Queue
 
     @classmethod
     def factory(cls, url: str, certificate: str):
@@ -47,20 +55,26 @@ class Wallet:
             self.loop = asyncio.new_event_loop()
             asyncio.set_event_loop(self.loop)
 
+        self.acks = asyncio.Queue(loop=self.loop)
+        self.connected = asyncio.Event(loop=self.loop)
+
         self.mqtt_client.loop_start()
 
     def close(self):
         self.mqtt_client.disconnect()
         self.mqtt_client.loop_stop()
 
+    @wrap_callback
     def on_disconnect(self, client, userdata, rc):
-        self.connected = False
+        self.connected.clear()
 
+    @wrap_callback
     def on_connect(self, client, userdata, flags, rc):
         logger.info("Connected")
-        self.connected = True
+        self.connected.set()
         self.loop.call_soon_threadsafe(self.connect_future.set_result, None)
 
+    @wrap_callback
     def on_message(self, client: mqtt.Client, userdata, msg):
         logger.info("Got {} on {}".format(msg.payload, msg.topic))
         tokens = msg.topic.split('/')
@@ -70,27 +84,18 @@ class Wallet:
             self.loop.call_soon_threadsafe(self.payment_request_future.set_result, envelope)
         elif tokens[0] == "acks":
             ack = AckMessage.from_json(msg.payload)
-            self.on_ack(ack)
-
-    async def connect(self):
-        if self.connected:
-            return
-
-        if self.connect_future is None:
-            self.connect_future = self.loop.create_future()
-            self.mqtt_client.connect(self.host, port=self.port)
-
-            if self.connect_future.done():
-                self.connect_future = self.loop.create_future()
-
-            await self.connect_future
+            self.acks.put_nowait(ack)
 
     @staticmethod
     def parse_url(url: str) -> Optional[re.Match]:
         pattern = "^manta:\\/\\/((?:\\w|\\.)+)(?::(\\d+))?\\/(\\d+)$"
         return re.match(pattern, url)
 
-    async def __get_payment_request(self, crypto_currency: str) -> PaymentRequestEnvelope:
+    async def connect(self):
+        self.mqtt_client.connect(self.host, port=self.port)
+        await self.connected.wait()
+
+    async def get_payment_request(self, crypto_currency: str) -> PaymentRequestEnvelope:
         await self.connect()
 
         self.payment_request_future = self.loop.create_future()
@@ -99,9 +104,6 @@ class Wallet:
 
         result = await asyncio.wait_for(self.payment_request_future, 3)
         return result
-
-    def get_payment_request(self, crypto_currency: str) -> PaymentRequestEnvelope:
-        return self.loop.run_until_complete(self.__get_payment_request(crypto_currency))
 
     def send_payment(self, transaction_hash: str, crypto_currency: str):
         message = PaymentMessage(

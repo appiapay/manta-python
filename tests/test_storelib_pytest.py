@@ -27,6 +27,7 @@ def reply(topic, payload):
 
     return ("generate_payment_request/{}/reply".format(device), json.dumps(r))
 
+
 @pytest.mark.timeout(2)
 @pytest.mark.asyncio
 async def test_connect(mock_mqtt):
@@ -35,7 +36,8 @@ async def test_connect(mock_mqtt):
 
 
 @pytest.mark.timeout(2)
-def test_generate_payment_request(mock_mqtt):
+@pytest.mark.asyncio
+async def test_generate_payment_request(mock_mqtt):
     store = Store('device1')
 
     def se(topic, payload):
@@ -48,26 +50,20 @@ def test_generate_payment_request(mock_mqtt):
 
     mock_mqtt.publish.side_effect = se
 
-    url = store.generate_payment_request(amount=10, fiat='eur')
-    mock_mqtt.subscribe.assert_called_with("generate_payment_request/device1/reply")
+    url = await store.generate_payment_request(amount=10, fiat='eur')
+    mock_mqtt.subscribe.assert_any_call("generate_payment_request/device1/reply")
+    mock_mqtt.subscribe.assert_any_call("acks/{}".format(store.session_id))
     assert re.match("^manta:\/\/testpp\.com\/" + BASE64PATTERNSAFE + "$", url)
 
 
-def test_ack(mock_mqtt):
+@pytest.mark.asyncio
+async def test_ack(mock_mqtt):
     store = Store('device1')
     ack_message: AckMessage = None
-    session_id: str = None
-
-    def on_ack (session: str, ack: AckMessage):
-        nonlocal ack_message, session_id
-        ack_message = ack
-        session_id = session
-
-    store.ack_callback = on_ack
 
     expected_ack = AckMessage (txid='1234', transaction_hash="hash_1234", status="pending" )
 
     mock_mqtt.push('acks/123', json.dumps(expected_ack))
 
-    assert "123" == session_id
+    ack_message = await store.acks.get()
     assert expected_ack == ack_message

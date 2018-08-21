@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+simplejson = "*"
+cattrs = "*"
+cryptography = "*"
+certvalidator = "*"
+paho-mqtt = "*"
+
+[dev-packages]
+pytest = "*"
+callee = "*"
+pytest-asyncio = "*"
+pytest-timeout = "*"
+
+[requires]
+python_version = "3.7"

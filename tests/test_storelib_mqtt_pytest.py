@@ -4,6 +4,7 @@ import simplejson as json
 import pytest
 import logging
 
+#logging.basicConfig(level=logging.INFO)
 
 @pytest.mark.timeout(2)
 @pytest.mark.asyncio
@@ -14,26 +15,24 @@ async def test_connect():
 
 
 @pytest.mark.timeout(2)
-def test_generate_payment_request():
+@pytest.mark.asyncio
+async def test_generate_payment_request():
     store = Store('device1')
-    url = store.generate_payment_request(amount=10, fiat='eur')
+    url = await store.generate_payment_request(amount=10, fiat='eur')
     assert url.startswith("manta://")
     store.close()
 
 
 @pytest.mark.timeout(5)
-def test_ack():
+@pytest.mark.asyncio
+async def test_ack(caplog):
+    caplog.set_level(logging.INFO)
+
     store = Store('device1')
     ack_message: AckMessage = None
     session_id: str = None
 
-    def on_ack (session: str, ack: AckMessage):
-        nonlocal ack_message, session_id
-        ack_message = ack
-        session_id = session
-
-    store.ack_callback = on_ack
-    url = store.generate_payment_request(amount=10, fiat='eur')
+    url = await store.generate_payment_request(amount=10, fiat='eur')
 
     ack_request = {
         "session_id": store.session_id,
@@ -42,10 +41,14 @@ def test_ack():
         "txid":"0"
     }
 
+    # store.loop.call_soon_threadsafe(
+    #     store.mqtt_client.publish,
+    #     "test/ack",
+    #     json.dumps(ack_request)
+    # )
     store.mqtt_client.publish("test/ack", json.dumps(ack_request))
 
-    while ack_message is None:
-        pass
+    ack_message = await store.acks.get()
 
-    assert store.session_id == session_id
     assert "pending" == ack_message.status
+

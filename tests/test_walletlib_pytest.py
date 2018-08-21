@@ -35,7 +35,7 @@ def payment_request():
 
         key = load_pem_private_key(key_data, password=None, backend=default_backend())
 
-        message = PaymentRequestMessage (
+        message = PaymentRequestMessage(
             merchant="merchant1",
             amount=10,
             fiat_currency="euro",
@@ -45,6 +45,7 @@ def payment_request():
         )
 
         return message.get_envelope(key)
+
 
 def test_parse_url():
     match = Wallet.parse_url("manta://127.0.0.1/123")
@@ -74,7 +75,8 @@ def test_factory(mock_mqtt):
 
 
 @pytest.mark.timeout(2)
-def test_get_payment_request(mock_mqtt, payment_request, caplog):
+@pytest.mark.asyncio
+async def test_get_payment_request(mock_mqtt, payment_request, caplog):
     caplog.set_level(logging.INFO)
     wallet = Wallet.factory("manta://localhost:8000/123", "filename")
 
@@ -88,7 +90,7 @@ def test_get_payment_request(mock_mqtt, payment_request, caplog):
 
     mock_mqtt.publish.side_effect = se
 
-    envelope = wallet.get_payment_request("btc")
+    envelope = await wallet.get_payment_request("btc")
     assert envelope.unpack() == payment_request.unpack()
     assert envelope.verify(CERTIFICATE)
 
@@ -106,32 +108,24 @@ def test_send_payment(mock_mqtt):
     mock_mqtt.subscribe.assert_called_with("acks/123")
     mock_mqtt.publish.assert_called_with("payments/123", JsonEqual(expected))
 
-def test_on_ack(mock_mqtt):
+
+@pytest.mark.asyncio
+async def test_on_ack(mock_mqtt):
     wallet = Wallet.factory("manta://localhost:8000/123", "filename")
-    ack_message = None
 
-    def ack(ack: AckMessage):
-        nonlocal ack_message
-        ack_message = ack
-
-    expected = AckMessage (
+    expected = AckMessage(
         txid="0",
         transaction_hash="myhash",
         status="pending"
     )
 
-    wallet.on_ack = ack
-
     mock_mqtt.push("acks/123", expected.to_json())
+
+    ack_message = await wallet.acks.get()
 
     assert ack_message == expected
 
 
-
 def test_verify_chain():
-
     path = verify_chain(CERTIFICATE, CA_CERTIFICATE)
     assert path
-
-
-
