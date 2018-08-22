@@ -152,13 +152,13 @@ def test_receive_generate_payment_request(mock_mqtt, payproc):
         fiat_currency='eur',
     )
 
-    expected = dict(MerchantOrderReplyMessage(
+    expected = MerchantOrderReplyMessage(
         session_id="1423",
         url="manta://localhost/1423",
         status=200
-    )._asdict())
+    )
 
-    mock_mqtt.push("generate_payment_request/device1/request", json.dumps(request))
+    mock_mqtt.push("generate_payment_request/device1/request", request.to_json())
 
     mock_mqtt.publish.assert_any_call('generate_payment_request/device1/reply', JsonEqual(expected))
     mock_mqtt.subscribe.assert_any_call('payments/1423')
@@ -173,13 +173,13 @@ def test_receive_generate_payment_request_legacy(mock_mqtt, payproc):
         crypto_currency='btc'
     )
 
-    expected = dict(MerchantOrderReplyMessage(
+    expected = MerchantOrderReplyMessage(
         session_id="1423",
         url="bitcoin:btc_daddress?amount=5",
         status=200
-    )._asdict())
+    )
 
-    mock_mqtt.push("generate_payment_request/device1/request", json.dumps(request))
+    mock_mqtt.push("generate_payment_request/device1/request", request.to_json())
     mock_mqtt.publish.assert_any_call('generate_payment_request/device1/reply', JsonEqual(expected))
 
 
@@ -255,7 +255,7 @@ def test_payment_message(mock_mqtt, payproc):
         transaction_hash="myhash"
     )
 
-    mock_mqtt.push("payments/1423", json.dumps(message))
+    mock_mqtt.push("payments/1423", message.to_json())
 
     mock_mqtt.publish.assert_any_call('acks/1423', JsonEqual(ack))
 

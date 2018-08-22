@@ -25,7 +25,7 @@ def reply(topic, payload):
         url="manta://testpp.com/{}".format(decoded['session_id'])
     )
 
-    return ("generate_payment_request/{}/reply".format(device), json.dumps(r))
+    return ("generate_payment_request/{}/reply".format(device), r.to_json())
 
 
 @pytest.mark.timeout(2)
@@ -50,7 +50,7 @@ async def test_generate_payment_request(mock_mqtt):
 
     mock_mqtt.publish.side_effect = se
 
-    url = await store.generate_payment_request(amount=10, fiat='eur')
+    url = await store.merchant_order_request(amount=10, fiat='eur')
     mock_mqtt.subscribe.assert_any_call("generate_payment_request/device1/reply")
     mock_mqtt.subscribe.assert_any_call("acks/{}".format(store.session_id))
     assert re.match("^manta:\/\/testpp\.com\/" + BASE64PATTERNSAFE + "$", url)
@@ -63,7 +63,7 @@ async def test_ack(mock_mqtt):
 
     expected_ack = AckMessage (txid='1234', transaction_hash="hash_1234", status="pending" )
 
-    mock_mqtt.push('acks/123', json.dumps(expected_ack))
+    mock_mqtt.push('acks/123', expected_ack.to_json())
 
     ack_message = await store.acks.get()
     assert expected_ack == ack_message

@@ -9,6 +9,8 @@ cattrs = "*"
 cryptography = "*"
 certvalidator = "*"
 paho-mqtt = "*"
+aiohttp = "*"
+requests = "*"
 
 [dev-packages]
 pytest = "*"

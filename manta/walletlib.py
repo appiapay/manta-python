@@ -29,6 +29,7 @@ class Wallet:
     session_id: str
     payment_request_future: asyncio.Future = None
     acks: asyncio.Queue
+    first_connect= False
 
     @classmethod
     def factory(cls, url: str, certificate: str):
@@ -72,7 +73,6 @@ class Wallet:
     def on_connect(self, client, userdata, flags, rc):
         logger.info("Connected")
         self.connected.set()
-        self.loop.call_soon_threadsafe(self.connect_future.set_result, None)
 
     @wrap_callback
     def on_message(self, client: mqtt.Client, userdata, msg):
@@ -88,11 +88,15 @@ class Wallet:
 
     @staticmethod
     def parse_url(url: str) -> Optional[re.Match]:
-        pattern = "^manta:\\/\\/((?:\\w|\\.)+)(?::(\\d+))?\\/(\\d+)$"
+        # TODO: What is session format?
+        pattern = "^manta:\\/\\/((?:\\w|\\.)+)(?::(\\d+))?\\/(.+)$"
         return re.match(pattern, url)
 
     async def connect(self):
-        self.mqtt_client.connect(self.host, port=self.port)
+        if not self.first_connect:
+            self.mqtt_client.connect(self.host, port=self.port)
+            self.first_connect = True
+
         await self.connected.wait()
 
     async def get_payment_request(self, crypto_currency: str) -> PaymentRequestEnvelope:
@@ -101,6 +105,8 @@ class Wallet:
         self.payment_request_future = self.loop.create_future()
         self.mqtt_client.subscribe("payment_requests/{}".format(self.session_id))
         self.mqtt_client.publish("payment_requests/{}/{}".format(self.session_id, crypto_currency))
+
+        logger.info("Published on payment_requests")
 
         result = await asyncio.wait_for(self.payment_request_future, 3)
         return result

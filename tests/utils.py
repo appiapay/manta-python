@@ -1,9 +1,11 @@
 import pytest
+import attr
 from unittest.mock import MagicMock
 from typing import NamedTuple, Dict
 from callee import Matcher
 import paho.mqtt.client as mqtt
 import simplejson as json
+from manta.messages import Message
 
 
 def is_namedtuple_instance(x):
@@ -29,8 +31,8 @@ class JsonEqual(Matcher):
     obj: Dict
 
     def __init__(self, d):
-        if is_namedtuple_instance(d):
-            self.obj = json.loads(json.dumps(d))
+        if isinstance(d, Message):
+            self.obj = attr.asdict(d)
         else:
             self.obj = d
 

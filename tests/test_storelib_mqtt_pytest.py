@@ -18,7 +18,7 @@ async def test_connect():
 @pytest.mark.asyncio
 async def test_generate_payment_request():
     store = Store('device1')
-    url = await store.generate_payment_request(amount=10, fiat='eur')
+    url = await store.merchant_order_request(amount=10, fiat='eur')
     assert url.startswith("manta://")
     store.close()
 
@@ -32,7 +32,7 @@ async def test_ack(caplog):
     ack_message: AckMessage = None
     session_id: str = None
 
-    url = await store.generate_payment_request(amount=10, fiat='eur')
+    url = await store.merchant_order_request(amount=10, fiat='eur')
 
     ack_request = {
         "session_id": store.session_id,

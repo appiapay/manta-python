@@ -48,9 +48,9 @@ def payment_request():
 
 
 def test_parse_url():
-    match = Wallet.parse_url("manta://127.0.0.1/123")
-    assert "127.0.0.1" == match[1]
-    assert "123" == match[3]
+    match = Wallet.parse_url("manta://localhost/JqhCQ64gTYi02xu4GhBzZg==")
+    assert "localhost" == match[1]
+    assert "JqhCQ64gTYi02xu4GhBzZg==" == match[3]
 
 
 def test_parse_url_with_port():
@@ -84,7 +84,7 @@ async def test_get_payment_request(mock_mqtt, payment_request, caplog):
         nonlocal mock_mqtt, payment_request
 
         if topic == "payment_requests/123/btc":
-            mock_mqtt.push("payment_requests/123", json.dumps(payment_request))
+            mock_mqtt.push("payment_requests/123", payment_request.to_json())
         else:
             assert True, "Unknown topic"
 

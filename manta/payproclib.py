@@ -155,7 +155,7 @@ class PayProc:
                     session_id=p.session_id,
                     url="manta://{}/{}".format(self.host, p.session_id)
                 )
-                client.publish(topic, json.dumps(reply))
+                client.publish(topic, reply.to_json())
             else:
                 topic = 'generate_payment_request/{}/reply'.format(device)
                 destinations = self.get_destinations(device, p)
@@ -166,7 +166,7 @@ class PayProc:
                     url=generate_crypto_legacy_url(d.crypto_currency, d.destination_address, d.amount)
                 )
 
-                client.publish(topic, json.dumps(reply))
+                client.publish(topic, reply.to_json())
 
         elif tokens[0] == 'payment_requests':
             session_id = tokens[1]
@@ -183,7 +183,7 @@ class PayProc:
             session_data.payment_request = envelope.unpack()
 
             logger.info(envelope)
-            client.publish('payment_requests/{}'.format(session_id), json.dumps(envelope))
+            client.publish('payment_requests/{}'.format(session_id), envelope.to_json())
 
         elif tokens[0] == 'payments':
             session_id = tokens[1]
@@ -231,7 +231,7 @@ class PayProc:
             status=status
         )
 
-        self.mqtt_client.publish('acks/{}'.format(session_id), json.dumps(ack_message))
+        self.mqtt_client.publish('acks/{}'.format(session_id), ack_message.to_json())
 
         return ack_message
 

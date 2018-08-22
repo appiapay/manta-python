@@ -31,12 +31,12 @@ def wrap_callback(f):
 class Store:
     mqtt_client: mqtt.Client
     loop: asyncio.AbstractEventLoop
-    connected: bool = False
-    connect_future: asyncio.Future = None
+    connected: asyncio.Event
     generate_payment_future: asyncio.Future = None
     device_id: str
     session_id: str = None
     acks = asyncio.Queue
+    first_connect = False
 
     def __init__(self, device_id: str):
         self.device_id = device_id
@@ -51,8 +51,7 @@ class Store:
             asyncio.set_event_loop(self.loop)
 
         self.acks = asyncio.Queue(loop=self.loop)
-
-        self.mqtt_client.loop_start()
+        self.connected = asyncio.Event(loop=self.loop)
 
     def close(self):
         self.mqtt_client.disconnect()
@@ -60,13 +59,12 @@ class Store:
 
     @wrap_callback
     def on_disconnect(self, client, userdata, rc):
-        self.connected = False
+        self.connected.clear()
 
     @wrap_callback
     def on_connect(self, client, userdata, flags, rc):
         logger.info("Connected")
-        self.connected = True
-        self.loop.call_soon_threadsafe(self.connect_future.set_result, None)
+        self.connected.set()
 
     @wrap_callback
     def on_message(self, client: mqtt.Client, userdata, msg):
@@ -87,25 +85,19 @@ class Store:
             logger.info("Got ack message")
             ack = AckMessage.from_json(msg.payload)
             self.acks.put_nowait(ack)
-            #self.loop.call_soon_threadsafe(self.acks.put, ack)
 
     async def connect(self):
-        if self.connected:
-            return
-
-        if self.connect_future is None:
-            self.connect_future = self.loop.create_future()
+        if not self.first_connect:
             self.mqtt_client.connect("localhost")
+            self.mqtt_client.loop_start()
+            self.first_connect = True
 
-        if self.connect_future.done():
-            self.connect_future = self.loop.create_future()
-
-        await self.connect_future
+        await self.connected.wait()
 
     # def generate_payment_request(self, amount: float, fiat: str, crypto: str = None):
     #     return self.loop.run_until_complete(self.__generate_payment_request(amount, fiat, crypto))
 
-    async def generate_payment_request(self, amount: float, fiat: str, crypto: str = None):
+    async def merchant_order_request(self, amount: float, fiat: str, crypto: str = None):
         await self.connect()
         self.session_id = generate_session_id()
         request = MerchantOrderRequestMessage(
@@ -117,7 +109,9 @@ class Store:
         self.generate_payment_future = self.loop.create_future()
         self.mqtt_client.subscribe("generate_payment_request/{}/reply".format(self.device_id))
         self.mqtt_client.publish("generate_payment_request/{}/request".format(self.device_id),
-                                 json.dumps(request))
+                                 request.to_json())
+
+        logger.info("Publishing generate_payment_request")
 
         result = await asyncio.wait_for(self.generate_payment_future, 3)
 
@@ -127,4 +121,4 @@ class Store:
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     store = Store("device1")
-    store.generate_payment_request()
+    store.merchant_order_request()
