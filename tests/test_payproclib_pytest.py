@@ -2,7 +2,7 @@ from callee import Matcher, Matching
 from cryptography.hazmat.primitives import serialization
 
 from manta.messages import Destination, MerchantOrderRequestMessage, PaymentRequestMessage, \
-    MerchantOrderReplyMessage, PaymentMessage, AckMessage, PaymentRequestEnvelope
+    PaymentMessage, AckMessage, PaymentRequestEnvelope, Status
 from manta.payproclib import PayProc
 import simplejson as json
 
@@ -92,12 +92,12 @@ DESTINATIONS = [
 
 ]
 
+
 @pytest.fixture
 def payproc():
-
     def get_destinations(device, merchant_order: MerchantOrderRequestMessage):
         if merchant_order.crypto_currency:
-            destination = next (x for x in DESTINATIONS if x.crypto_currency == merchant_order.crypto_currency)
+            destination = next(x for x in DESTINATIONS if x.crypto_currency == merchant_order.crypto_currency)
             return [destination]
         else:
             return DESTINATIONS
@@ -152,15 +152,15 @@ def test_receive_generate_payment_request(mock_mqtt, payproc):
         fiat_currency='eur',
     )
 
-    expected = MerchantOrderReplyMessage(
-        session_id="1423",
+    expected = AckMessage(
+        txid="0",
         url="manta://localhost/1423",
-        status=200
+        status=Status.NEW
     )
 
     mock_mqtt.push("generate_payment_request/device1/request", request.to_json())
 
-    mock_mqtt.publish.assert_any_call('generate_payment_request/device1/reply', JsonEqual(expected))
+    mock_mqtt.publish.assert_any_call('acks/1423', JsonEqual(expected))
     mock_mqtt.subscribe.assert_any_call('payments/1423')
     mock_mqtt.subscribe.assert_any_call('payment_requests/1423/+')
 
@@ -173,14 +173,14 @@ def test_receive_generate_payment_request_legacy(mock_mqtt, payproc):
         crypto_currency='btc'
     )
 
-    expected = MerchantOrderReplyMessage(
-        session_id="1423",
+    expected = AckMessage(
+        txid="0",
         url="bitcoin:btc_daddress?amount=5",
-        status=200
+        status=Status.NEW
     )
 
     mock_mqtt.push("generate_payment_request/device1/request", request.to_json())
-    mock_mqtt.publish.assert_any_call('generate_payment_request/device1/reply', JsonEqual(expected))
+    mock_mqtt.publish.assert_any_call("acks/1423", JsonEqual(expected))
 
 
 def test_get_payment_request(mock_mqtt, payproc):
@@ -214,6 +214,7 @@ def test_get_payment_request(mock_mqtt, payproc):
             return True
 
     mock_mqtt.publish.assert_called_with('payment_requests/1423', PMEqual(expected))
+
 
 def test_get_payment_request_all(mock_mqtt, payproc):
     test_receive_generate_payment_request(mock_mqtt, payproc)
@@ -251,13 +252,13 @@ def test_payment_message(mock_mqtt, payproc):
 
     ack = AckMessage(
         txid='0',
-        status="pending",
+        status=Status.PENDING,
         transaction_hash="myhash"
     )
 
     mock_mqtt.push("payments/1423", message.to_json())
 
-    mock_mqtt.publish.assert_any_call('acks/1423', JsonEqual(ack))
+    mock_mqtt.publish.assert_called_with('acks/1423', JsonEqual(ack))
 
 
 def test_confirm(mock_mqtt, payproc):
@@ -265,8 +266,8 @@ def test_confirm(mock_mqtt, payproc):
     payproc.confirm("1423")
 
     ack = AckMessage(
-        txid='0',
-        status="paid",
+        txid="0",
+        status=Status.PAID,
         transaction_hash="myhash"
     )
 

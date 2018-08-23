@@ -1,54 +1,58 @@
-from manta.messages import AckMessage
+from manta.messages import AckMessage, Status
 from manta.storelib import Store
 import simplejson as json
 import pytest
 import logging
+import requests
 
-#logging.basicConfig(level=logging.INFO)
+# logging.basicConfig(level=logging.INFO)
+
+PP_HOST = "http://localhost:8081"
+WALLET_HOST = "http://localhost:8082"
+
+
+@pytest.fixture
+async def store() -> Store:
+    return Store('device1')
+
 
 @pytest.mark.timeout(2)
 @pytest.mark.asyncio
-async def test_connect():
-    store = Store('device1')
+async def test_connect(store):
     await store.connect()
     store.close()
 
 
 @pytest.mark.timeout(2)
 @pytest.mark.asyncio
-async def test_generate_payment_request():
-    store = Store('device1')
-    url = await store.merchant_order_request(amount=10, fiat='eur')
-    assert url.startswith("manta://")
-    store.close()
+async def test_generate_payment_request(store):
+    ack = await store.merchant_order_request(amount=10, fiat='eur')
+    assert ack.url.startswith("manta://")
 
 
 @pytest.mark.timeout(5)
 @pytest.mark.asyncio
-async def test_ack(caplog):
-    caplog.set_level(logging.INFO)
-
-    store = Store('device1')
+async def test_ack(store):
     ack_message: AckMessage = None
     session_id: str = None
 
-    url = await store.merchant_order_request(amount=10, fiat='eur')
+    ack = await store.merchant_order_request(amount=10, fiat='eur')
 
-    ack_request = {
-        "session_id": store.session_id,
-        "status": "pending",
-        "transaction_hash": "txhash",
-        "txid":"0"
-    }
-
-    # store.loop.call_soon_threadsafe(
-    #     store.mqtt_client.publish,
-    #     "test/ack",
-    #     json.dumps(ack_request)
-    # )
-    store.mqtt_client.publish("test/ack", json.dumps(ack_request))
+    r = requests.post(WALLET_HOST + "/scan", json={"url": ack.url})
 
     ack_message = await store.acks.get()
 
-    assert "pending" == ack_message.status
+    assert Status.PENDING == ack_message.status
 
+
+@pytest.mark.timeout(5)
+@pytest.mark.asyncio
+async def test_ack_paid(store):
+    await test_ack(store)
+
+    requests.post(PP_HOST + "/confirm",
+                  json={'session_id': store.session_id})
+
+    ack_message = await store.acks.get()
+
+    assert Status.PAID == ack_message.status

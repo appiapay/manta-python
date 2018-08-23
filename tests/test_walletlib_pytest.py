@@ -1,4 +1,4 @@
-from manta.messages import Destination, PaymentRequestMessage, verify_chain, PaymentMessage, AckMessage
+from manta.messages import Destination, PaymentRequestMessage, verify_chain, PaymentMessage, AckMessage, Status
 from manta.payproclib import PayProc
 from manta.walletlib import Wallet
 import pytest
@@ -67,13 +67,6 @@ def test_factory(mock_mqtt):
     assert wallet.session_id == "123"
 
 
-def test_factory(mock_mqtt):
-    wallet = Wallet.factory("manta://localhost:8000/123", "filename")
-    assert wallet.host == "localhost"
-    assert wallet.port == 8000
-    assert wallet.session_id == "123"
-
-
 @pytest.mark.timeout(2)
 @pytest.mark.asyncio
 async def test_get_payment_request(mock_mqtt, payment_request, caplog):
@@ -116,7 +109,7 @@ async def test_on_ack(mock_mqtt):
     expected = AckMessage(
         txid="0",
         transaction_hash="myhash",
-        status="pending"
+        status=Status.PENDING
     )
 
     mock_mqtt.push("acks/123", expected.to_json())

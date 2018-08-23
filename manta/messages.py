@@ -1,5 +1,8 @@
+# from __future__ import annotations
+
 import base64
-from typing import NamedTuple, List, Set
+from enum import Enum
+from typing import NamedTuple, List, Set, TypeVar, Type, Optional
 
 import attr
 import cattr
@@ -13,14 +16,26 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
 
 
+class Status(Enum):
+    NEW = "new"
+    PENDING = "pending"
+    PAID = "paid"
+
+
+T = TypeVar('T', bound='Message')
+
+
 @attr.s
 class Message:
     def to_json(self) -> str:
-        return json.dumps(attr.asdict(self))
+        d = cattr.unstructure(self)
+        return json.dumps(d, iterable_as_array=True)
 
     @classmethod
-    def from_json(cls, json_str: str):
-        return cls(**json.loads(json_str))
+    # def from_json(cls, json_str: str):
+    def from_json(cls: Type[T], json_str: str) -> T:
+        d = json.loads(json_str)
+        return cattr.structure(d, cls)
 
 
 @attr.s(auto_attribs=True)
@@ -28,22 +43,16 @@ class MerchantOrderRequestMessage(Message):
     amount: float
     session_id: str
     fiat_currency: str
-    crypto_currency: str = None
-
-
-@attr.s(auto_attribs=True)
-class MerchantOrderReplyMessage(Message):
-    status: int
-    session_id: str
-    url: str
-    amount: float = None
+    crypto_currency: Optional[str] = None
 
 
 @attr.s(auto_attribs=True)
 class AckMessage(Message):
     txid: str
-    transaction_hash: str
-    status: str
+    status: Status
+    url: Optional[str] = None
+    amount: Optional[float] = None
+    transaction_hash: Optional[str] = None
 
 
 @attr.s(auto_attribs=True)
@@ -60,10 +69,6 @@ class PaymentRequestMessage(Message):
     fiat_currency: str
     destinations: List[Destination]
     supported_cryptos: Set[str]
-
-    @classmethod
-    def from_json(cls, json_str:str):
-        return cattr.structure(json.loads(json_str), PaymentRequestMessage)
 
     def get_envelope(self, key: RSAPrivateKey):
         json_message = self.to_json()
@@ -84,7 +89,7 @@ class PaymentRequestEnvelope(Message):
     def verify(self, certificate) -> bool:
         with open(certificate, 'rb') as myfile:
             pem = myfile.read()
-        cert= x509.load_pem_x509_certificate(pem, default_backend())
+        cert = x509.load_pem_x509_certificate(pem, default_backend())
 
         try:
             cert.public_key().verify(

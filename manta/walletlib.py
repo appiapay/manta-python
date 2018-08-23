@@ -29,7 +29,7 @@ class Wallet:
     session_id: str
     payment_request_future: asyncio.Future = None
     acks: asyncio.Queue
-    first_connect= False
+    first_connect = False
 
     @classmethod
     def factory(cls, url: str, certificate: str):
@@ -59,8 +59,6 @@ class Wallet:
         self.acks = asyncio.Queue(loop=self.loop)
         self.connected = asyncio.Event(loop=self.loop)
 
-        self.mqtt_client.loop_start()
-
     def close(self):
         self.mqtt_client.disconnect()
         self.mqtt_client.loop_stop()
@@ -76,7 +74,7 @@ class Wallet:
 
     @wrap_callback
     def on_message(self, client: mqtt.Client, userdata, msg):
-        logger.info("Got {} on {}".format(msg.payload, msg.topic))
+        logger.info("New message {} on {}".format(msg.payload, msg.topic))
         tokens = msg.topic.split('/')
 
         if tokens[0] == "payment_requests":
@@ -95,11 +93,12 @@ class Wallet:
     async def connect(self):
         if not self.first_connect:
             self.mqtt_client.connect(self.host, port=self.port)
+            self.mqtt_client.loop_start()
             self.first_connect = True
 
         await self.connected.wait()
 
-    async def get_payment_request(self, crypto_currency: str) -> PaymentRequestEnvelope:
+    async def get_payment_request(self, crypto_currency: str = "all") -> PaymentRequestEnvelope:
         await self.connect()
 
         self.payment_request_future = self.loop.create_future()

@@ -1,16 +1,14 @@
 from __future__ import annotations
 
-import paho.mqtt.client as mqtt
 import asyncio
+import base64
 import logging
-import threading
-import simplejson as json
-import base64, uuid
+import uuid
+from typing import List
 
-from typing import Callable
+import paho.mqtt.client as mqtt
 
-
-from manta.messages import MerchantOrderReplyMessage, MerchantOrderRequestMessage, AckMessage
+from manta.messages import MerchantOrderRequestMessage, AckMessage, Status
 
 logger = logging.getLogger(__name__)
 
@@ -32,11 +30,11 @@ class Store:
     mqtt_client: mqtt.Client
     loop: asyncio.AbstractEventLoop
     connected: asyncio.Event
-    generate_payment_future: asyncio.Future = None
     device_id: str
     session_id: str = None
     acks = asyncio.Queue
     first_connect = False
+    subscriptions: List[str] = []
 
     def __init__(self, device_id: str):
         self.device_id = device_id
@@ -57,34 +55,38 @@ class Store:
         self.mqtt_client.disconnect()
         self.mqtt_client.loop_stop()
 
+    # noinspection PyUnusedLocal
     @wrap_callback
     def on_disconnect(self, client, userdata, rc):
         self.connected.clear()
 
+    # noinspection PyUnusedLocal
     @wrap_callback
     def on_connect(self, client, userdata, flags, rc):
         logger.info("Connected")
         self.connected.set()
 
+    # noinspection PyUnusedLocal
     @wrap_callback
     def on_message(self, client: mqtt.Client, userdata, msg):
         logger.info("Got {} on {}".format(msg.payload, msg.topic))
         tokens = msg.topic.split('/')
 
-        if tokens[0] == 'generate_payment_request':
-            decoded = json.loads(msg.payload)
-            reply = MerchantOrderReplyMessage(**decoded)
-
-            if reply.status == 200:
-                self.mqtt_client.subscribe("acks/{}".format(self.session_id))
-                self.loop.call_soon_threadsafe(self.generate_payment_future.set_result, reply.url)
-            else:
-                self.loop.call_soon_threadsafe(self.generate_payment_future.set_exception, Exception(reply.status))
-        elif tokens[0] == 'acks':
+        if tokens[0] == 'acks':
             session_id = tokens[1]
             logger.info("Got ack message")
             ack = AckMessage.from_json(msg.payload)
             self.acks.put_nowait(ack)
+
+    def subscribe(self, topic: str):
+        self.mqtt_client.subscribe(topic)
+        self.subscriptions.append(topic)
+
+    def clean(self):
+        self.acks = asyncio.Queue()
+
+        if len(self.subscriptions) > 0:
+            self.mqtt_client.unsubscribe(self.subscriptions)
 
     async def connect(self):
         if not self.first_connect:
@@ -97,8 +99,9 @@ class Store:
     # def generate_payment_request(self, amount: float, fiat: str, crypto: str = None):
     #     return self.loop.run_until_complete(self.__generate_payment_request(amount, fiat, crypto))
 
-    async def merchant_order_request(self, amount: float, fiat: str, crypto: str = None):
+    async def merchant_order_request(self, amount: float, fiat: str, crypto: str = None) -> AckMessage:
         await self.connect()
+        self.clean()
         self.session_id = generate_session_id()
         request = MerchantOrderRequestMessage(
             amount=amount,
@@ -106,19 +109,16 @@ class Store:
             fiat_currency=fiat,
             crypto_currency=crypto
         )
-        self.generate_payment_future = self.loop.create_future()
-        self.mqtt_client.subscribe("generate_payment_request/{}/reply".format(self.device_id))
+
+        self.subscribe("acks/{}".format(self.session_id))
         self.mqtt_client.publish("generate_payment_request/{}/request".format(self.device_id),
                                  request.to_json())
 
-        logger.info("Publishing generate_payment_request")
+        logger.info("Publishing merchant_order_request for session {}".format(self.session_id))
 
-        result = await asyncio.wait_for(self.generate_payment_future, 3)
+        result: AckMessage = await asyncio.wait_for(self.acks.get(), 3)
+
+        if result.status != Status.NEW:
+            raise Exception("Invalid ack")
 
         return result
-
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-    store = Store("device1")
-    store.merchant_order_request()
