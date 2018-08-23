@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from manta.messages import PaymentRequestEnvelope, Status
-from manta.walletlib import Wallet
+from manta.wallet import Wallet
 import pytest
 import logging
 import asyncio

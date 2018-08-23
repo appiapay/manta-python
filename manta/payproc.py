@@ -11,8 +11,9 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
+
 from manta.messages import PaymentRequestMessage, MerchantOrderRequestMessage, PaymentRequestEnvelope, Destination, \
-    PaymentMessage, AckMessage, Status
+    PaymentMessage, AckMessage, Status, Merchant
 
 # from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
 
@@ -37,17 +38,6 @@ class SessionData:
     payment_request: PaymentRequestMessage = None
 
 
-def isnamedtupleinstance(x):
-    _type = type(x)
-    bases = _type.__bases__
-    if len(bases) != 1 or bases[0] != tuple:
-        return False
-    fields = getattr(_type, '_fields', None)
-    if not isinstance(fields, tuple):
-        return False
-    return all(type(i) == str for i in fields)
-
-
 def generate_crypto_legacy_url(crypto: str, address: str, amount: float) -> str:
     if crypto == 'btc':
         return "bitcoin:{}?amount={}".format(address, amount)
@@ -57,8 +47,7 @@ class PayProc:
     mqtt_client: mqtt.Client
     host: str
     key: RSAPrivateKey
-    get_merchant: Callable[[str], str]
-    _get_pino: Callable[[str], str]
+    get_merchant: Callable[[str], Merchant]
     get_destinations: Callable[[str, MerchantOrderRequestMessage], List[Destination]] = None
     get_supported_cryptos: Callable[[str, MerchantOrderRequestMessage], Set[str]] = None
     # device: str, amount: float, fiat_currency: str
@@ -67,11 +56,9 @@ class PayProc:
     # payment_requests: Dict[str, PaymentRequestMessage] = {}
     session_data: Dict[str, SessionData] = {}
     txid: int = 0
-    testing: bool = False
 
-    def __init__(self, key_file: str, host: str = "localhost", testing: bool = False):
+    def __init__(self, key_file: str, host: str = "localhost"):
 
-        self.testing = testing
         self.mqtt_client = mqtt.Client()
         self.mqtt_client.on_connect = self.on_connect
         self.mqtt_client.on_message = self.on_message
@@ -102,21 +89,19 @@ class PayProc:
 
         return base64.b64encode(signature)
 
+    # noinspection PyUnusedLocal,PyMethodMayBeStatic
     def on_connect(self, client, userdata, flags, rc):
         logger.info("Connected with result code " + str(rc))
 
-        client.subscribe('generate_payment_request/+/request')
-        client.subscribe('payments/#')
+        client.subscribe("merchant_order_request/+")
 
-        if self.testing:
-            client.subscribe('test/#')
-
+    # noinspection PyUnusedLocal
     def on_message(self, client: mqtt.Client, userdata, msg):
         logger.info("New Message {} on {}".format(msg.payload, msg.topic))
 
         tokens = msg.topic.split('/')
 
-        if tokens[0] == 'generate_payment_request':
+        if tokens[0] == "merchant_order_request":
             logger.info("Processing merchant_order message")
             device = tokens[1]
             p = MerchantOrderRequestMessage(**json.loads(msg.payload))
@@ -187,28 +172,12 @@ class PayProc:
 
                 self.ack(session_id, ack)
 
-        elif tokens[0] == 'confirm':
-            session_id = tokens[1]
-            self.confirm(session_id, client)
-
-        if not self.testing:
-            return
-
-        if tokens[0] == 'test':
-            logger.info('Got test message')
-            if tokens[1] == 'ack':
-                decode = json.loads(msg.payload)
-
-                self.ack(**decode)
-
     def ack(self, session_id: str, ack: AckMessage):
         logger.info("Publishing ack for {} as {}".format(session_id, ack.status.value))
 
         self.mqtt_client.publish('acks/{}'.format(session_id), ack.to_json())
 
-    def confirm(self, session_id: str, client: mqtt.Client = None):
-        if client is None:
-            client = self.mqtt_client
+    def confirm(self, session_id: str):
 
         if session_id in self.session_data:
             ack = self.session_data[session_id].ack

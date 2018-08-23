@@ -6,7 +6,7 @@ import paho.mqtt.client as mqtt
 import pytest
 import simplejson as json
 
-from manta.storelib import Store
+from manta.store import Store
 from manta.messages import AckMessage, Status, MerchantOrderRequestMessage
 import callee
 from tests.utils import MQTTMessage, mock_mqtt
@@ -32,7 +32,7 @@ def reply(topic, payload):
 @pytest.mark.timeout(2)
 @pytest.mark.asyncio
 async def test_connect(mock_mqtt):
-    store = Store('device1')
+    store = Store("device1")
     await store.connect()
 
 
@@ -43,7 +43,7 @@ async def test_generate_payment_request(mock_mqtt):
     def se(topic, payload):
         nonlocal mock_mqtt
 
-        if topic == "generate_payment_request/device1/request":
+        if topic == "merchant_order_request/device1":
             order = MerchantOrderRequestMessage.from_json(payload)
             reply = AckMessage(
                 status=Status.NEW,

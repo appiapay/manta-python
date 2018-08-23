@@ -1,13 +1,16 @@
-from manta.messages import Destination, PaymentRequestMessage, verify_chain, PaymentMessage, AckMessage, Status
-from manta.payproclib import PayProc
-from manta.walletlib import Wallet
-import pytest
-from tests.utils import MQTTMessage, mock_mqtt
-from cryptography.hazmat.primitives.serialization import load_pem_private_key
-from cryptography.hazmat.backends import default_backend
-import simplejson as json
 import logging
-from tests.utils import JsonEqual
+
+import pytest
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
+
+from manta.messages import Destination, PaymentRequestMessage, verify_chain, PaymentMessage, AckMessage, Status, \
+    Merchant
+from manta.wallet import Wallet
+
+pytest.register_assert_rewrite("tests.utils")
+# noinspection PyUnresolvedReferences
+from tests.utils import mock_mqtt, JsonEqual
 
 DESTINATIONS = [
     Destination(
@@ -23,6 +26,11 @@ DESTINATIONS = [
 
 ]
 
+MERCHANT = Merchant(
+    name="Merchant 1",
+    address="5th Avenue"
+)
+
 PRIVATE_KEY = "certificates/root/keys/www.brainblocks.com.key"
 CERTIFICATE = "certificates/root/certs/www.brainblocks.com.crt"
 CA_CERTIFICATE = "certificates/root/certs/root.crt"
@@ -36,7 +44,7 @@ def payment_request():
         key = load_pem_private_key(key_data, password=None, backend=default_backend())
 
         message = PaymentRequestMessage(
-            merchant="merchant1",
+            merchant=MERCHANT,
             amount=10,
             fiat_currency="euro",
             destinations=DESTINATIONS,
@@ -73,6 +81,7 @@ async def test_get_payment_request(mock_mqtt, payment_request, caplog):
     caplog.set_level(logging.INFO)
     wallet = Wallet.factory("manta://localhost:8000/123", "filename")
 
+    # noinspection PyUnusedLocal
     def se(topic, payload=None):
         nonlocal mock_mqtt, payment_request
 

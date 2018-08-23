@@ -111,7 +111,7 @@ class Store:
         )
 
         self.subscribe("acks/{}".format(self.session_id))
-        self.mqtt_client.publish("generate_payment_request/{}/request".format(self.device_id),
+        self.mqtt_client.publish("merchant_order_request/{}".format(self.device_id),
                                  request.to_json())
 
         logger.info("Publishing merchant_order_request for session {}".format(self.session_id))

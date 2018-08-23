@@ -1,9 +1,8 @@
-from manta.messages import AckMessage, Status
-from manta.storelib import Store
-import simplejson as json
 import pytest
-import logging
 import requests
+
+from manta.messages import Status
+from manta.store import Store
 
 # logging.basicConfig(level=logging.INFO)
 
@@ -19,6 +18,7 @@ async def store() -> Store:
 @pytest.mark.timeout(2)
 @pytest.mark.asyncio
 async def test_connect(store):
+    # noinspection PyUnresolvedReferences
     await store.connect()
     store.close()
 
@@ -26,19 +26,19 @@ async def test_connect(store):
 @pytest.mark.timeout(2)
 @pytest.mark.asyncio
 async def test_generate_payment_request(store):
+    # noinspection PyUnresolvedReferences
     ack = await store.merchant_order_request(amount=10, fiat='eur')
     assert ack.url.startswith("manta://")
 
 
+# noinspection PyUnresolvedReferences
 @pytest.mark.timeout(5)
 @pytest.mark.asyncio
 async def test_ack(store):
-    ack_message: AckMessage = None
-    session_id: str = None
 
     ack = await store.merchant_order_request(amount=10, fiat='eur')
 
-    r = requests.post(WALLET_HOST + "/scan", json={"url": ack.url})
+    requests.post(WALLET_HOST + "/scan", json={"url": ack.url})
 
     ack_message = await store.acks.get()
 
@@ -47,6 +47,7 @@ async def test_ack(store):
 
 @pytest.mark.timeout(5)
 @pytest.mark.asyncio
+# noinspection PyUnresolvedReferences
 async def test_ack_paid(store):
     await test_ack(store)
 

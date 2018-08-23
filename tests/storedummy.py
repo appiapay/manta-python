@@ -1,4 +1,4 @@
-from manta.storelib import Store
+from manta.store import Store
 from aiohttp import web
 import traceback
 import logging

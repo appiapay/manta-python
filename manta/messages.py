@@ -63,8 +63,14 @@ class Destination(Message):
 
 
 @attr.s(auto_attribs=True)
+class Merchant:
+    name: str
+    address: Optional[str] = None
+
+
+@attr.s(auto_attribs=True)
 class PaymentRequestMessage(Message):
-    merchant: str
+    merchant: Merchant
     amount: float
     fiat_currency: str
     destinations: List[Destination]

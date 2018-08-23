@@ -1,6 +1,6 @@
 import traceback
 
-from manta.walletlib import Wallet
+from manta.wallet import Wallet
 from aiohttp import web
 import logging
 

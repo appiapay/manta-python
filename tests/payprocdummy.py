@@ -1,5 +1,5 @@
-from manta.messages import MerchantOrderRequestMessage, Destination
-from manta.payproclib import PayProc
+from manta.messages import MerchantOrderRequestMessage, Destination, Merchant
+from manta.payproc import PayProc
 from aiohttp import web
 import logging
 
@@ -20,6 +20,11 @@ DESTINATIONS = [
 
 ]
 
+MERCHANT = Merchant(
+    name="Merchant 1",
+    address="5th Avenue"
+)
+
 
 def get_destinations(device, merchant_order: MerchantOrderRequestMessage):
     if merchant_order.crypto_currency:
@@ -30,7 +35,7 @@ def get_destinations(device, merchant_order: MerchantOrderRequestMessage):
 
 
 pp = PayProc(KEYFILE)
-pp.get_merchant = lambda x: "merchant1"
+pp.get_merchant = lambda x: MERCHANT
 pp.get_destinations = get_destinations
 pp.get_supported_cryptos = lambda device, payment_request: {'btc', 'xmr', 'nano'}
 
