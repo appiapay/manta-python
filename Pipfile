@@ -17,6 +17,9 @@ pytest = "*"
 callee = "*"
 pytest-asyncio = "*"
 pytest-timeout = "*"
+sphinx = "*"
+sphinx-autodoc-typehints = "*"
+sphinx-jsonschema = "*"
 
 [requires]
 python_version = "3.7"
