@@ -6,3 +6,10 @@ tests/.pytest_cache/v/cache/lastfailed
 tests/.pytest_cache/v/cache/nodeids
 tests/.pytest_cache/README.md
 tests/__pycache__/utils.cpython-37.pyc
+manta/__pycache__
+notebooks/.ipynb_checkpoints
+.python-version
+.DS_Store
+.dmypy.json
+.idea
+notebooks
