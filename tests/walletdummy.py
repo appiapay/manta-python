@@ -2,6 +2,7 @@ import traceback
 
 from manta.wallet import Wallet
 from aiohttp import web
+from aiohttp_swagger import *
 import logging
 
 logger = logging.getLogger(__name__)
@@ -17,7 +18,7 @@ async def scan(request: web.Request):
         wallet = Wallet.factory(json['url'], "file")
 
         if not wallet:
-            raise web.HTTPInternalServerError()
+            raise web.HTTPMethodNotAllowed
 
         envelope = await wallet.get_payment_request()
         pr = envelope.unpack()
@@ -36,4 +37,5 @@ async def scan(request: web.Request):
 logging.basicConfig(level=logging.INFO)
 
 app.add_routes(routes)
+setup_swagger(app, swagger_from_file="swagger/wallet.yaml")
 web.run_app(app, port=8082)

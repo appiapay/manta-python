@@ -1,0 +1,29 @@
+swagger: "2.0"
+info:
+  description: "Manta Dummy Wallet for Integration Testing"
+  version: "1.0.0"
+  title: "Manta Dummy Wallet"
+
+paths:
+  /scan:
+    post:
+      description: Simulate scan QR
+      consumes:
+        - application/json
+      produces:
+        - application/xml
+      parameters:
+        - in: body
+          name: url
+          schema:
+            type: object
+            required:
+              - url
+            properties:
+              url:
+                type: string
+
+
+      responses:
+        405:
+          description: "Invalid input"

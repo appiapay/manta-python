@@ -1,0 +1,73 @@
+from unittest.mock import MagicMock
+from manta.dispatcher import Dispatcher
+
+
+# def test_dispatcher():
+#     d = Dispatcher()
+#     m = MagicMock()
+#     d.callbacks.append(("^payment_requests/(.*)", m))
+#     d.dispatch("payment_requests/leonardo")
+#
+#     m.assert_called_with("leonardo")
+
+
+def test_mqtt_to_regex():
+    r = Dispatcher.mqtt_to_regex("payment_requests/+")
+    assert "payment_requests/(.*)" == r
+
+
+def test_register_topic():
+    d = Dispatcher()
+    m = MagicMock()
+
+    @d.topic("payment_requests/+")
+    def my_callback(arg1):
+        m(arg1)
+
+    d.dispatch("payment_requests/leonardo")
+    m.assert_called_with("leonardo")
+
+
+def test_register_topic_multiple_args():
+    d = Dispatcher()
+    m = MagicMock()
+
+    assert d.callbacks == []
+
+    @d.topic("payment_requests/+/subtopic/+")
+    def my_callback2(*args):
+        m(*args)
+
+    d.dispatch("payment_requests/arg1/subtopic/arg2")
+    m.assert_called_with("arg1", "arg2")
+
+
+def test_register_topic_multiple_args_pound():
+    d = Dispatcher()
+    m = MagicMock()
+
+    assert d.callbacks == []
+
+    @d.topic("payment_requests/+/subtopic/+/subtopic2/#")
+    def my_callback3(*args):
+        m(*args)
+
+    d.dispatch("payment_requests/arg1/subtopic/arg2/subtopic2/arg3/arg4")
+    m.assert_called_with("arg1", "arg2", "arg3", "arg4")
+
+
+def test_register_in_class():
+    m = MagicMock()
+
+    class MyClass():
+        def __init__(self):
+            self.d = Dispatcher(self)
+
+        @Dispatcher.method_topic("payment_requests/+/subtopic/+")
+        def my_method(self, *args):
+            m(*args)
+
+    c = MyClass()
+    c.d.dispatch("payment_requests/arg1/subtopic/arg2")
+    m.assert_called_with("arg1", "arg2")
+

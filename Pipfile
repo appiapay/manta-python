@@ -11,6 +11,7 @@ certvalidator = "*"
 paho-mqtt = "*"
 aiohttp = "*"
 requests = "*"
+aiohttp-swagger = "*"
 
 [dev-packages]
 pytest = "*"
@@ -20,6 +21,7 @@ pytest-timeout = "*"
 sphinx = "*"
 sphinx-autodoc-typehints = "*"
 sphinx-jsonschema = "*"
+aiohttp-swagger = "*"
 
 [requires]
 python_version = "3.7"
