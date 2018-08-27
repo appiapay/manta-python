@@ -11,6 +11,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
+from manta.dispatcher import Dispatcher
 
 from manta.messages import PaymentRequestMessage, MerchantOrderRequestMessage, PaymentRequestEnvelope, Destination, \
     PaymentMessage, AckMessage, Status, Merchant
@@ -55,10 +56,12 @@ class PayProc:
     # get_destinations: (device: str, amount: float, fiat_currency: str) -> List [Destination]
     # payment_requests: Dict[str, PaymentRequestMessage] = {}
     session_data: Dict[str, SessionData] = {}
+    dispatcher: Dispatcher
     txid: int = 0
 
     def __init__(self, key_file: str, host: str = "localhost"):
 
+        self.dispatcher = Dispatcher(self)
         self.mqtt_client = mqtt.Client()
         self.mqtt_client.on_connect = self.on_connect
         self.mqtt_client.on_message = self.on_message
@@ -95,82 +98,85 @@ class PayProc:
 
         client.subscribe("merchant_order_request/+")
 
+    @Dispatcher.method_topic("merchant_order_request/+")
+    def on_merchant_order_request(self, device, payload):
+
+        logger.info("Processing merchant_order message")
+
+        p = MerchantOrderRequestMessage(**json.loads(payload))
+
+        # This is a manta request
+        if p.crypto_currency is None:
+            # envelope = self.generate_payment_request(device, p)
+
+            self.mqtt_client.subscribe('payment_requests/{}/+'.format(p.session_id))
+            self.mqtt_client.subscribe('payments/{}'.format(p.session_id))
+
+            ack = AckMessage(
+                status=Status.NEW,
+                url="manta://{}/{}".format(self.host, p.session_id),
+                txid=str(self.txid)
+            )
+
+            self.ack(p.session_id, ack)
+
+            self.session_data[p.session_id] = SessionData(
+                device=device,
+                merchant_order=p,
+                ack=ack
+            )
+
+            self.txid = self.txid + 1
+
+        else:
+            destinations = self.get_destinations(device, p)
+            d = destinations[0]
+
+            ack = AckMessage(
+                txid=str(self.txid),
+                status=Status.NEW,
+                url=generate_crypto_legacy_url(d.crypto_currency, d.destination_address, d.amount)
+            )
+
+            self.ack(p.session_id, ack)
+
+    # noinspection PyUnusedLocal
+    @Dispatcher.method_topic("payment_requests/+/+")
+    def on_get_payment_request(self, session_id: str, crypto_currency: str, payload: str):
+        logger.info("Processing payment request message")
+        session_data = self.session_data[session_id]
+        request = MerchantOrderRequestMessage(
+            fiat_currency=session_data.merchant_order.fiat_currency,
+            amount=session_data.merchant_order.amount,
+            session_id=session_id,
+            crypto_currency=None if crypto_currency == 'all' else crypto_currency
+        )
+        device = session_data.device
+
+        envelope = self.generate_payment_request(session_data.device, request)
+        session_data.payment_request = envelope.unpack()
+
+        logger.info(envelope)
+        self.mqtt_client.publish('payment_requests/{}'.format(session_id), envelope.to_json())
+
+    @Dispatcher.method_topic("payments/+")
+    def on_payment(self, session_id: str, payload: str):
+
+        if session_id in self.session_data:
+            payment_message = PaymentMessage.from_json(payload)
+            ack = self.session_data[session_id].ack
+
+            ack.status = Status.PENDING
+            ack.transaction_hash = payment_message.transaction_hash
+            ack.url = None
+
+            self.ack(session_id, ack)
+
     # noinspection PyUnusedLocal
     def on_message(self, client: mqtt.Client, userdata, msg):
         logger.info("New Message {} on {}".format(msg.payload, msg.topic))
 
-        tokens = msg.topic.split('/')
-
-        if tokens[0] == "merchant_order_request":
-            logger.info("Processing merchant_order message")
-            device = tokens[1]
-            p = MerchantOrderRequestMessage(**json.loads(msg.payload))
-
-            # This is a manta request
-            if p.crypto_currency is None:
-                # envelope = self.generate_payment_request(device, p)
-
-                client.subscribe('payment_requests/{}/+'.format(p.session_id))
-                client.subscribe('payments/{}'.format(p.session_id))
-
-                ack = AckMessage(
-                    status=Status.NEW,
-                    url="manta://{}/{}".format(self.host, p.session_id),
-                    txid=str(self.txid)
-                )
-
-                self.ack(p.session_id, ack)
-
-                self.session_data[p.session_id] = SessionData(
-                    device=device,
-                    merchant_order=p,
-                    ack=ack
-                )
-
-                self.txid = self.txid + 1
-
-            else:
-                destinations = self.get_destinations(device, p)
-                d = destinations[0]
-
-                ack = AckMessage(
-                    txid=str(self.txid),
-                    status=Status.NEW,
-                    url=generate_crypto_legacy_url(d.crypto_currency, d.destination_address, d.amount)
-                )
-
-                self.ack(p.session_id, ack)
-
-        elif tokens[0] == 'payment_requests':
-            logger.info("Processing payment request message")
-            session_id = tokens[1]
-            session_data = self.session_data[session_id]
-            request = MerchantOrderRequestMessage(
-                fiat_currency=session_data.merchant_order.fiat_currency,
-                amount=session_data.merchant_order.amount,
-                session_id=session_id,
-                crypto_currency=None if tokens[2] == 'all' else tokens[2]
-            )
-            device = session_data.device
-
-            envelope = self.generate_payment_request(session_data.device, request)
-            session_data.payment_request = envelope.unpack()
-
-            logger.info(envelope)
-            client.publish('payment_requests/{}'.format(session_id), envelope.to_json())
-
-        elif tokens[0] == 'payments':
-            session_id = tokens[1]
-
-            if session_id in self.session_data:
-                payment_message = PaymentMessage.from_json(msg.payload)
-                ack = self.session_data[session_id].ack
-
-                ack.status = Status.PENDING
-                ack.transaction_hash = payment_message.transaction_hash
-                ack.url = None
-
-                self.ack(session_id, ack)
+        self.dispatcher.dispatch(msg.topic, payload=msg.payload)
 
     def ack(self, session_id: str, ack: AckMessage):
         logger.info("Publishing ack for {} as {}".format(session_id, ack.status.value))

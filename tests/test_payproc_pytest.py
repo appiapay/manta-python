@@ -8,7 +8,6 @@ from manta.messages import Destination, MerchantOrderRequestMessage, PaymentRequ
 from manta.payproc import PayProc
 
 pytest.register_assert_rewrite("tests.utils")
-# noinspection PyUnresolvedReferences
 from tests.utils import mock_mqtt, JsonEqual
 
 
@@ -166,7 +165,7 @@ def test_receive_merchant_order_request(mock_mqtt, payproc):
         status=Status.NEW
     )
 
-    mock_mqtt.push("merchant_order_request/device1/request", request.to_json())
+    mock_mqtt.push("merchant_order_request/device1", request.to_json())
 
     mock_mqtt.publish.assert_any_call('acks/1423', JsonEqual(expected))
     mock_mqtt.subscribe.assert_any_call('payments/1423')
@@ -187,7 +186,7 @@ def test_receive_merchant_order_request_legacy(mock_mqtt, payproc):
         status=Status.NEW
     )
 
-    mock_mqtt.push("merchant_order_request/device1/request", request.to_json())
+    mock_mqtt.push("merchant_order_request/device1", request.to_json())
     mock_mqtt.publish.assert_any_call("acks/1423", JsonEqual(expected))
 
 

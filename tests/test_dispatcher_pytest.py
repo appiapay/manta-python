@@ -13,7 +13,7 @@ from manta.dispatcher import Dispatcher
 
 def test_mqtt_to_regex():
     r = Dispatcher.mqtt_to_regex("payment_requests/+")
-    assert "payment_requests/(.*)" == r
+    assert "payment_requests/([^/]+)$" == r
 
 
 def test_register_topic():
@@ -26,6 +26,17 @@ def test_register_topic():
 
     d.dispatch("payment_requests/leonardo")
     m.assert_called_with("leonardo")
+
+def test_register_topic_b():
+    d = Dispatcher()
+    m = MagicMock()
+
+    @d.topic("merchant_order_request/+")
+    def my_callback(arg1):
+        m(arg1)
+
+    d.dispatch("merchant_order_request/leonardo/123")
+    m.assert_not_called()
 
 
 def test_register_topic_multiple_args():
@@ -40,6 +51,21 @@ def test_register_topic_multiple_args():
 
     d.dispatch("payment_requests/arg1/subtopic/arg2")
     m.assert_called_with("arg1", "arg2")
+
+
+
+def test_register_topic_multiple_args_kwargs():
+    d = Dispatcher()
+    m = MagicMock()
+
+    assert d.callbacks == []
+
+    @d.topic("payment_requests/+/subtopic/+")
+    def my_callback2(arg1, arg2, payload):
+        m(arg1, arg2, payload)
+
+    d.dispatch("payment_requests/arg1/subtopic/arg2", payload= "my_payload")
+    m.assert_called_with("arg1", "arg2", "my_payload")
 
 
 def test_register_topic_multiple_args_pound():
@@ -70,4 +96,20 @@ def test_register_in_class():
     c = MyClass()
     c.d.dispatch("payment_requests/arg1/subtopic/arg2")
     m.assert_called_with("arg1", "arg2")
+
+
+def test_register_in_class_with_kwargs():
+    m = MagicMock()
+
+    class MyClass():
+        def __init__(self):
+            self.d = Dispatcher(self)
+
+        @Dispatcher.method_topic("payment_requests/+/subtopic/+")
+        def my_method(self, arg1, arg2, payload):
+            m(arg1, arg2, payload)
+
+    c = MyClass()
+    c.d.dispatch("payment_requests/arg1/subtopic/arg2", payload="mypayload")
+    m.assert_called_with("arg1", "arg2", "mypayload")
 

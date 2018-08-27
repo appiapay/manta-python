@@ -1,7 +1,7 @@
 from __future__ import annotations
 import re
 from dataclasses import dataclass, field
-from typing import List, Callable, Tuple
+from typing import List, Callable, Tuple, Dict
 import inspect
 
 
@@ -19,7 +19,7 @@ class Dispatcher:
                 if hasattr(value, "dispatcher"):
                     self.callbacks.append((value.dispatcher, value.__get__(obj)))
 
-    def dispatch(self, topic: str):
+    def dispatch(self, topic: str, **kwargs):
         for callback in self.callbacks:
             result = re.match(callback[0], topic)
             if result:
@@ -27,13 +27,13 @@ class Dispatcher:
                 args = list(groups[:-1])
                 #To match #
                 args = args + groups[-1].split("/")
-                callback[1](*args)
+                callback[1](*args, **kwargs)
 
     @staticmethod
     def mqtt_to_regex(topic: str):
         # escaped = re.escape(topic)
 
-        return topic.replace("+", "(.*)").replace("#", "(.*)")
+        return topic.replace("+", "([^/]+)").replace("#", "(.*)")+"$"
 
     @staticmethod
     def method_topic(topic):
