@@ -3,7 +3,7 @@ from __future__ import annotations
 import base64
 import logging
 from dataclasses import dataclass
-from typing import NamedTuple, TYPE_CHECKING, Callable, List, Dict, Set
+from typing import NamedTuple, TYPE_CHECKING, Callable, List, Dict, Set, Optional
 
 import paho.mqtt.client as mqtt
 import simplejson as json
@@ -35,13 +35,15 @@ class Conf(NamedTuple):
 class SessionData:
     device: str
     merchant_order: MerchantOrderRequestMessage
-    ack: AckMessage = None
-    payment_request: PaymentRequestMessage = None
+    ack: Optional[AckMessage] = None
+    payment_request: Optional[PaymentRequestMessage] = None
 
 
 def generate_crypto_legacy_url(crypto: str, address: str, amount: float) -> str:
     if crypto == 'btc':
         return "bitcoin:{}?amount={}".format(address, amount)
+    
+    return ""
 
 
 class PayProc:
@@ -49,8 +51,8 @@ class PayProc:
     host: str
     key: RSAPrivateKey
     get_merchant: Callable[[str], Merchant]
-    get_destinations: Callable[[str, MerchantOrderRequestMessage], List[Destination]] = None
-    get_supported_cryptos: Callable[[str, MerchantOrderRequestMessage], Set[str]] = None
+    get_destinations: Callable[[str, MerchantOrderRequestMessage], List[Destination]]
+    get_supported_cryptos: Callable[[str, MerchantOrderRequestMessage], Set[str]] 
     # device: str, amount: float, fiat_currency: str
     # get_destinations: Callable[[str, float, ], List[Destination]]
     # get_destinations: (device: str, amount: float, fiat_currency: str) -> List [Destination]
@@ -59,7 +61,7 @@ class PayProc:
     dispatcher: Dispatcher
     txid: int = 0
 
-    def __init__(self, key_file: str, host: str = "localhost"):
+    def __init__(self, key_file: str, host: str = "localhost") -> None:
 
         self.dispatcher = Dispatcher(self)
         self.mqtt_client = mqtt.Client()
