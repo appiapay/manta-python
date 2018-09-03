@@ -13,3 +13,7 @@ notebooks/.ipynb_checkpoints
 .dmypy.json
 .idea
 notebooks
+.mypy_cache
+.pyre
+.vscode
+manta.egg-info
