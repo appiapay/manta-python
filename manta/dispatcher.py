@@ -1,7 +1,7 @@
 from __future__ import annotations
 import re
 from dataclasses import dataclass, field
-from typing import List, Callable, Tuple, Dict
+from typing import List, Callable, Tuple, Dict, Type
 import inspect
 
 
@@ -14,10 +14,11 @@ class Dispatcher:
         if obj is None:
             return
 
-        for key, value in obj.__class__.__dict__.items():
-            if inspect.isfunction(value):
-                if hasattr(value, "dispatcher"):
-                    self.callbacks.append((value.dispatcher, value.__get__(obj)))
+        for cls in inspect.getmro(obj.__class__): #Register all subclasses methods
+            for key, value in cls.__dict__.items():
+                if inspect.isfunction(value):
+                    if hasattr(value, "dispatcher"):
+                        self.callbacks.append((value.dispatcher, value.__get__(obj)))
 
     def dispatch(self, topic: str, **kwargs):
         for callback in self.callbacks:
