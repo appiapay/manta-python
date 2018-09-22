@@ -14,6 +14,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
+from decimal import Decimal
 
 
 class Status(Enum):
@@ -21,8 +22,12 @@ class Status(Enum):
     Status for ack messages
     """
     NEW = "new"  #: Created after accepting Merchant Order
+    INVALID = "invalid"  #: Not possible to create order
     PENDING = "pending"  #: Created after receiving payment from wallet
+    CONFIRMING = "confirming"  #: Paid received by Payment Processor but not yet confirmed
     PAID = "paid"  #: Created after blockchain confirmation
+    CANCELED = "canceled"  #: Order has been canceled
+
 
 
 T = TypeVar('T', bound='Message')
@@ -38,6 +43,7 @@ class Message:
     # def from_json(cls, json_str: str):
     def from_json(cls: Type[T], json_str: str) -> T:
         d = json.loads(json_str)
+        cattr.register_structure_hook(Decimal, lambda d, t: Decimal(d))
         return cattr.structure(d, cls)
 
 
@@ -55,7 +61,7 @@ class MerchantOrderRequestMessage(Message):
         crypto_currency: None for manta protocol. Specified for legacy
     """
 
-    amount: float
+    amount: Decimal
     session_id: str
     fiat_currency: str
     crypto_currency: Optional[str] = None
@@ -76,12 +82,15 @@ class AckMessage(Message):
         url: url to be used for QR Code or NFC. Used in NEW
         amount: amount in crypto currency. Used in NEW
         transaction_hash: hash of transaction. After PENDING
+        memo: extra text field
     """
     txid: str
     status: Status
     url: Optional[str] = None
-    amount: Optional[float] = None
+    amount: Optional[Decimal] = None
     transaction_hash: Optional[str] = None
+    transaction_currency: Optional[str] = None
+    memo: Optional[str] = None
 
 
 @attr.s(auto_attribs=True)
@@ -92,9 +101,9 @@ class Destination(Message):
     Args:
         amount: amount in crypto currency
         destination_address: destination address for payment
-        crypto_currency: crypto_currency (ex. NANO, BTC...)
+        crypto_currency: crypto_currency (ex. NANO, BTC...)mo
     """
-    amount: float
+    amount: Decimal
     destination_address: str
     crypto_currency: str
 
@@ -130,7 +139,7 @@ class PaymentRequestMessage(Message):
 
     """
     merchant: Merchant
-    amount: float
+    amount: Decimal
     fiat_currency: str
     destinations: List[Destination]
     supported_cryptos: Set[str]
