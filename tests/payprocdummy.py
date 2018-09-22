@@ -2,20 +2,16 @@ from manta.messages import MerchantOrderRequestMessage, Destination, Merchant
 from manta.payproc import PayProc
 from aiohttp import web
 import logging
+from decimal import Decimal
 
 logger = logging.getLogger(__name__)
 
 KEYFILE = "certificates/root/keys/www.brainblocks.com.key"
 DESTINATIONS = [
     Destination(
-        amount=5,
-        destination_address="btc_daddress",
-        crypto_currency="btc"
-    ),
-    Destination(
-        amount=10,
-        destination_address="nano_daddress",
-        crypto_currency="nano"
+        amount=Decimal("0.01"),
+        destination_address="xrb_3d1ab61eswzsgx5arwqc3gw8xjcsxd7a5egtr69jixa5it9yu9fzct9nyjyx",
+        crypto_currency="NANO"
     ),
 
 ]
@@ -34,7 +30,7 @@ def get_destinations(device, merchant_order: MerchantOrderRequestMessage):
         return DESTINATIONS
 
 
-pp = PayProc(KEYFILE)
+pp = PayProc(KEYFILE, host="192.168.20.105")
 pp.get_merchant = lambda x: MERCHANT
 pp.get_destinations = get_destinations
 pp.get_supported_cryptos = lambda device, payment_request: {'btc', 'xmr', 'nano'}

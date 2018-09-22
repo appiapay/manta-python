@@ -9,6 +9,7 @@ from manta.payproc import PayProc
 
 pytest.register_assert_rewrite("tests.utils")
 from tests.utils import mock_mqtt, JsonEqual
+from decimal import Decimal
 
 
 PRIV_KEY_DATA = b'''\
@@ -76,12 +77,12 @@ CERTFICATE_FILENAME = "certificates/root/keys/www.brainblocks.com.key"
 
 DESTINATIONS = [
     Destination(
-        amount=5,
+        amount=Decimal("5"),
         destination_address="btc_daddress",
         crypto_currency="btc"
     ),
     Destination(
-        amount=10,
+        amount=Decimal("10"),
         destination_address="nano_daddress",
         crypto_currency="nano"
     ),
@@ -195,7 +196,7 @@ def test_get_payment_request(mock_mqtt, payproc):
     mock_mqtt.push('payment_requests/1423/btc', '')
 
     destination = Destination(
-        amount=5,
+        amount=Decimal("5"),
         destination_address="btc_daddress",
         crypto_currency="btc"
     )
@@ -203,7 +204,7 @@ def test_get_payment_request(mock_mqtt, payproc):
     expected = PaymentRequestMessage(
         merchant=MERCHANT,
         fiat_currency='eur',
-        amount=1000,
+        amount=Decimal("1000"),
         destinations=[destination],
         supported_cryptos={'nano', 'btc', 'xmr'}
     )
@@ -230,7 +231,7 @@ def test_get_payment_request_all(mock_mqtt, payproc):
     expected = PaymentRequestMessage(
         merchant=MERCHANT,
         fiat_currency='eur',
-        amount=1000,
+        amount=Decimal("1000"),
         destinations=DESTINATIONS,
         supported_cryptos={'nano', 'btc', 'xmr'}
     )
@@ -253,14 +254,15 @@ def test_get_payment_request_all(mock_mqtt, payproc):
 def test_payment_message(mock_mqtt, payproc):
     test_receive_merchant_order_request(mock_mqtt, payproc)
     message = PaymentMessage(
-        crypto_currency="nano",
+        crypto_currency="NANO",
         transaction_hash="myhash"
     )
 
     ack = AckMessage(
         txid='0',
         status=Status.PENDING,
-        transaction_hash="myhash"
+        transaction_hash="myhash",
+        transaction_currency="NANO"
     )
 
     mock_mqtt.push("payments/1423", message.to_json())
@@ -275,7 +277,8 @@ def test_confirm(mock_mqtt, payproc):
     ack = AckMessage(
         txid="0",
         status=Status.PAID,
-        transaction_hash="myhash"
+        transaction_hash="myhash",
+        transaction_currency="NANO"
     )
 
     mock_mqtt.publish.assert_called_with('acks/1423', JsonEqual(ack))

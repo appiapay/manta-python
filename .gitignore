@@ -17,3 +17,5 @@ notebooks
 .pyre
 .vscode
 manta.egg-info
+.pytest_cache
+tests/__pycache__

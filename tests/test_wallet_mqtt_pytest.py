@@ -42,18 +42,18 @@ async def session_data():
 class TestWallet:
     @pytest.mark.asyncio
     async def test_get_payment_request(self, session_data):
-        r = requests.post(STORE_URL + "merchant_order", json={"amount": 10, "fiat": "eur"})
+        r = requests.post(STORE_URL + "merchant_order", json={"amount": "10", "fiat": "EUR"})
         logging.info(r)
         ack_message = r.json()
         url = ack_message['url']
         logging.info(url)
         wallet = Wallet.factory(url, "filename")
 
-        envelope = await wallet.get_payment_request('btc')
+        envelope = await wallet.get_payment_request('NANO')
         self.pr = envelope.unpack()
 
         assert 10 == self.pr.amount
-        assert "eur" == self.pr.fiat_currency
+        assert "EUR" == self.pr.fiat_currency
 
         session_data.wallet = wallet
         session_data.envelope = envelope
@@ -63,7 +63,7 @@ class TestWallet:
         # noinspection PyUnresolvedReferences
         wallet = session_data.wallet
 
-        wallet.send_payment(crypto_currency="nano", transaction_hash="myhash")
+        wallet.send_payment(crypto_currency="NANO", transaction_hash="myhash")
         ack = await wallet.acks.get()
 
         assert Status.PENDING == ack.status
