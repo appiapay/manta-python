@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import base64
 import logging
-from dataclasses import dataclass
-from typing import NamedTuple, TYPE_CHECKING, Callable, List, Dict, Set, Optional
+from dataclasses import dataclass,replace
+from typing import NamedTuple, TYPE_CHECKING, Callable, List, Dict, Set, Optional, MutableMapping
 
 import paho.mqtt.client as mqtt
 import simplejson as json
@@ -12,6 +12,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from manta.dispatcher import Dispatcher
+from abc import abstractmethod
 
 from manta.messages import PaymentRequestMessage, MerchantOrderRequestMessage, PaymentRequestEnvelope, Destination, \
     PaymentMessage, AckMessage, Status, Merchant
@@ -31,13 +32,21 @@ class Conf(NamedTuple):
     nano_euro: float
 
 
-@dataclass
+@dataclass()
 class SessionData:
-    device: str
+    application: str
     merchant_order: MerchantOrderRequestMessage
     ack: Optional[AckMessage] = None
     payment_request: Optional[PaymentRequestMessage] = None
 
+    #RetroComp
+    @property
+    def device(self):
+        return self.application
+
+    @device.setter
+    def device(self, value):
+        self.application = value
 
 def generate_crypto_legacy_url(crypto: str, address: str, amount: float) -> str:
     if crypto == 'btc':
@@ -53,11 +62,19 @@ class PayProc:
     get_merchant: Callable[[str], Merchant]
     get_destinations: Callable[[str, MerchantOrderRequestMessage], List[Destination]]
     get_supported_cryptos: Callable[[str, MerchantOrderRequestMessage], Set[str]] 
-    # device: str, amount: float, fiat_currency: str
-    # get_destinations: Callable[[str, float, ], List[Destination]]
-    # get_destinations: (device: str, amount: float, fiat_currency: str) -> List [Destination]
-    # payment_requests: Dict[str, PaymentRequestMessage] = {}
-    session_data: Dict[str, SessionData] = {}
+
+    # str is txid
+    on_processed_order: Optional[Callable[[str, MerchantOrderRequestMessage, AckMessage], None]] = None
+
+    # on_processed_get_payment(txid, crypto, payment_request_message)
+    on_processed_get_payment: Optional[Callable[[str, str, PaymentRequestMessage], None]] = None
+
+    # str is txid
+    on_processed_payment: Optional[Callable[[str, PaymentMessage, AckMessage], None]] = None
+
+    on_processed_confirmation: Optional[Callable[[str, AckMessage], None]] = None
+
+    session_data: MutableMapping[str, SessionData] = {}
     dispatcher: Dispatcher
     txid: int = 0
 
@@ -107,6 +124,8 @@ class PayProc:
 
         p = MerchantOrderRequestMessage(**json.loads(payload))
 
+        ack: AckMessage = None
+
         # This is a manta request
         if p.crypto_currency is None:
             # envelope = self.generate_payment_request(device, p)
@@ -123,10 +142,11 @@ class PayProc:
             self.ack(p.session_id, ack)
 
             self.session_data[p.session_id] = SessionData(
-                device=device,
+                application=device,
                 merchant_order=p,
                 ack=ack
             )
+
 
             self.txid = self.txid + 1
 
@@ -142,6 +162,11 @@ class PayProc:
 
             self.ack(p.session_id, ack)
 
+            self.txid = self.txid + 1
+
+        if self.on_processed_order:
+            self.on_processed_order(ack.txid, p, ack)
+
     # noinspection PyUnusedLocal
     @Dispatcher.method_topic("payment_requests/+/+")
     def on_get_payment_request(self, session_id: str, crypto_currency: str, payload: str):
@@ -156,23 +181,33 @@ class PayProc:
         device = session_data.device
 
         envelope = self.generate_payment_request(session_data.device, request)
-        session_data.payment_request = envelope.unpack()
+        self.session_data[session_id] = replace(session_data, payment_request=envelope.unpack())
 
-        logger.info(envelope)
+
+        logger.info("Publishing {}".format(envelope))
         self.mqtt_client.publish('payment_requests/{}'.format(session_id), envelope.to_json())
+
+        if self.on_processed_get_payment:
+            self.on_processed_get_payment(session_data.ack.txid, crypto_currency, envelope.unpack())
 
     @Dispatcher.method_topic("payments/+")
     def on_payment(self, session_id: str, payload: str):
 
         if session_id in self.session_data:
             payment_message = PaymentMessage.from_json(payload)
-            ack = self.session_data[session_id].ack
+            session = self.session_data[session_id]
 
-            ack.status = Status.PENDING
-            ack.transaction_hash = payment_message.transaction_hash
-            ack.url = None
+            session.ack.status = Status.PENDING
+            session.ack.transaction_hash = payment_message.transaction_hash
+            session.ack.transaction_currency = payment_message.crypto_currency
+            session.ack.url = None
 
-            self.ack(session_id, ack)
+            self.session_data[session_id] = session
+
+            self.ack(session_id, session.ack)
+
+            if self.on_processed_payment:
+                self.on_processed_payment(session.ack.txid, payment_message, session.ack)
 
     # noinspection PyUnusedLocal
     def on_message(self, client: mqtt.Client, userdata, msg):
@@ -188,9 +223,13 @@ class PayProc:
     def confirm(self, session_id: str):
 
         if session_id in self.session_data:
-            ack = self.session_data[session_id].ack
-            ack.status = Status.PAID
-            self.ack(session_id, ack)
+            session = self.session_data[session_id]
+            session.ack.status = Status.PAID
+            self.session_data[session_id] = session
+            self.ack(session_id, session.ack)
+
+            if self.on_processed_confirmation:
+                self.on_processed_confirmation(session.ack.txid, session.ack)
 
     def generate_payment_request(self, device: str,
                                  payment_request: MerchantOrderRequestMessage) -> PaymentRequestEnvelope:
