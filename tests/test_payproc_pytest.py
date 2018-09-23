@@ -129,10 +129,10 @@ def test_generate_payment_request():
     pp = PayProc(CERTFICATE_FILENAME)
     pp.get_merchant = lambda x: "merchant1"
     pp.get_destinations = lambda device, payment_request: [
-        Destination(amount=5, destination_address="xrb123", crypto_currency="nano")]
+        Destination(amount=Decimal(5), destination_address="xrb123", crypto_currency="nano")]
     pp.get_supported_cryptos = lambda device, payment_request: ['btc', 'xmr', 'nano']
 
-    payment_request = MerchantOrderRequestMessage(amount=10, fiat_currency="euro", session_id="123",
+    payment_request = MerchantOrderRequestMessage(amount=Decimal(10), fiat_currency="euro", session_id="123",
                                                   crypto_currency="nanoray")
 
     envelope = pp.generate_payment_request("device1", payment_request)
@@ -155,7 +155,7 @@ def test_on_connect(mock_mqtt, payproc):
 
 def test_receive_merchant_order_request(mock_mqtt, payproc):
     request = MerchantOrderRequestMessage(
-        amount=1000,
+        amount=Decimal("1000"),
         session_id='1423',
         fiat_currency='eur',
     )
@@ -175,7 +175,7 @@ def test_receive_merchant_order_request(mock_mqtt, payproc):
 
 def test_receive_merchant_order_request_legacy(mock_mqtt, payproc):
     request = MerchantOrderRequestMessage(
-        amount=1000,
+        amount=Decimal("1000"),
         session_id='1423',
         fiat_currency='eur',
         crypto_currency='btc'

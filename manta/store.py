@@ -9,6 +9,7 @@ from typing import List
 import paho.mqtt.client as mqtt
 
 from manta.messages import MerchantOrderRequestMessage, AckMessage, Status
+from decimal import Decimal
 
 logger = logging.getLogger(__name__)
 
@@ -99,7 +100,7 @@ class Store:
     # def generate_payment_request(self, amount: float, fiat: str, crypto: str = None):
     #     return self.loop.run_until_complete(self.__generate_payment_request(amount, fiat, crypto))
 
-    async def merchant_order_request(self, amount: float, fiat: str, crypto: str = None) -> AckMessage:
+    async def merchant_order_request(self, amount: Decimal, fiat: str, crypto: str = None) -> AckMessage:
         await self.connect()
         self.clean()
         self.session_id = generate_session_id()

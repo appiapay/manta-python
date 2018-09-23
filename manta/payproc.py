@@ -12,7 +12,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from manta.dispatcher import Dispatcher
-from abc import abstractmethod
+from decimal import Decimal
 
 from manta.messages import PaymentRequestMessage, MerchantOrderRequestMessage, PaymentRequestEnvelope, Destination, \
     PaymentMessage, AckMessage, Status, Merchant
@@ -60,8 +60,12 @@ class PayProc:
     host: str
     key: RSAPrivateKey
     get_merchant: Callable[[str], Merchant]
+
+    #get_destinations(application: str, merchant_order: MerchantOrderRequestMessage)
     get_destinations: Callable[[str, MerchantOrderRequestMessage], List[Destination]]
-    get_supported_cryptos: Callable[[str, MerchantOrderRequestMessage], Set[str]] 
+
+    # get_supported_cryptos(application: str, merchant_order: MerchantOrderRequestMessage)
+    get_supported_cryptos: Callable[[str, MerchantOrderRequestMessage], Set[str]]
 
     # str is txid
     on_processed_order: Optional[Callable[[str, MerchantOrderRequestMessage, AckMessage], None]] = None
@@ -76,10 +80,11 @@ class PayProc:
 
     session_data: MutableMapping[str, SessionData] = {}
     dispatcher: Dispatcher
-    txid: int = 0
+    txid: int
 
-    def __init__(self, key_file: str, host: str = "localhost") -> None:
+    def __init__(self, key_file: str, host: str = "localhost", starting_txid: int = 0) -> None:
 
+        self.txid = starting_txid
         self.dispatcher = Dispatcher(self)
         self.mqtt_client = mqtt.Client()
         self.mqtt_client.on_connect = self.on_connect
@@ -157,7 +162,7 @@ class PayProc:
             ack = AckMessage(
                 txid=str(self.txid),
                 status=Status.NEW,
-                url=generate_crypto_legacy_url(d.crypto_currency, d.destination_address, d.amount)
+                url=generate_crypto_legacy_url(d.crypto_currency, d.destination_address, Decimal(d.amount))
             )
 
             self.ack(p.session_id, ack)
@@ -236,7 +241,7 @@ class PayProc:
 
         merchant = self.get_merchant(device)
         destinations = self.get_destinations(device, payment_request)
-        supported_cryptos = self.get_supported_cryptos(device=device, payment_request=payment_request)
+        supported_cryptos = self.get_supported_cryptos(device, payment_request)
 
         message = PaymentRequestMessage(merchant=merchant,
                                         amount=payment_request.amount,

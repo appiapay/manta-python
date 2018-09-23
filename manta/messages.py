@@ -36,7 +36,9 @@ T = TypeVar('T', bound='Message')
 @attr.s
 class Message:
     def to_json(self) -> str:
+        cattr.register_unstructure_hook(Decimal, lambda d: str(d))
         d = cattr.unstructure(self)
+
         return json.dumps(d, iterable_as_array=True)
 
     @classmethod
