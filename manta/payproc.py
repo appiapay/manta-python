@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import base64
 import logging
+import traceback
 from dataclasses import dataclass
 from typing import NamedTuple, TYPE_CHECKING, Callable, List, Dict, Set, Optional
-
 import paho.mqtt.client as mqtt
 import simplejson as json
 from cryptography.hazmat.backends import default_backend
@@ -35,6 +35,10 @@ class Conf(NamedTuple):
     nano_euro: float
 
 
+class SessionDoesNotExist(Exception):
+    pass
+
+
 @dataclass()
 class TransactionState:
     txid: int
@@ -55,7 +59,7 @@ class TransactionState:
         super().__setattr__(key, value)
 
 
-class TXStorage:
+class TXStorage():
     @abstractmethod
     def create(self, txid: int,
                session_id: str,
@@ -70,6 +74,16 @@ class TXStorage:
 
     @abstractmethod
     def session_exists(self, session_id: str) -> bool:
+        pass
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        pass
+
+    @abstractmethod
+    def __len__(self):
         pass
 
 
@@ -100,6 +114,12 @@ class TXStorageMemory(TXStorage):
 
     def session_exists(self, session_id: str) -> bool:
         return session_id in self.states
+
+    def __iter__(self):
+        return iter(self.states.items())
+
+    def __len__(self):
+        return len(self.states)
 
 def generate_crypto_legacy_url(crypto: str, address: str, amount: float) -> str:
     if crypto == 'btc':
@@ -139,7 +159,7 @@ class PayProc:
                  tx_storage: TXStorage = None, mqtt_options: Dict[str:any]= None) -> None:
 
         self.txid = starting_txid
-        self.tx_storage = tx_storage if tx_storage else TXStorageMemory()
+        self.tx_storage = tx_storage if tx_storage is not None else TXStorageMemory()
         self.dispatcher = Dispatcher(self)
         mqtt_options = mqtt_options if mqtt_options else {}
         self.mqtt_client = mqtt.Client(**mqtt_options)
@@ -177,7 +197,16 @@ class PayProc:
     def on_connect(self, client, userdata, flags, rc):
         logger.info("Connected with result code " + str(rc))
 
-        client.subscribe("merchant_order_request/+")
+        self._subscribe("merchant_order_request/+")
+
+        for session, value in self.tx_storage:
+            self._subscribe("acks/{}".format(session))
+            self._subscribe("payment_requests/{}/+".format(session))
+            self._subscribe("payments/{}".format(session))
+
+    def _subscribe(self, topic):
+        self.mqtt_client.subscribe(topic)
+        logger.info('Subscribed to {}'.format(topic))
 
     @Dispatcher.method_topic("merchant_order_request/+")
     def on_merchant_order_request(self, device, payload):
@@ -277,7 +306,10 @@ class PayProc:
     def on_message(self, client: mqtt.Client, userdata, msg):
         logger.info("New Message {} on {}".format(msg.payload, msg.topic))
 
-        self.dispatcher.dispatch(msg.topic, payload=msg.payload)
+        try:
+            self.dispatcher.dispatch(msg.topic, payload=msg.payload)
+        except:
+            traceback.print_exc()
 
     def ack(self, session_id: str, ack: AckMessage):
         logger.info("Publishing ack for {} as {}".format(session_id, ack.status.value))
