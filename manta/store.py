@@ -36,9 +36,11 @@ class Store:
     acks = asyncio.Queue
     first_connect = False
     subscriptions: List[str] = []
+    host: str
 
-    def __init__(self, device_id: str):
+    def __init__(self, device_id: str, host: str= "localhost"):
         self.device_id = device_id
+        self.host = host
         self.mqtt_client = mqtt.Client()
         self.mqtt_client.on_connect = self.on_connect
         self.mqtt_client.on_message = self.on_message
@@ -91,7 +93,7 @@ class Store:
 
     async def connect(self):
         if not self.first_connect:
-            self.mqtt_client.connect("localhost")
+            self.mqtt_client.connect(self.host)
             self.mqtt_client.loop_start()
             self.first_connect = True
 
