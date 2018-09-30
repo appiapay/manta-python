@@ -12,7 +12,6 @@ from certvalidator import CertificateValidator
 
 logger = logging.getLogger(__name__)
 
-
 def wrap_callback(f):
     def wrapper(self: Wallet, *args):
         self.loop.call_soon_threadsafe(f, self, *args)
@@ -105,7 +104,7 @@ class Wallet:
         self.mqtt_client.subscribe("payment_requests/{}".format(self.session_id))
         self.mqtt_client.publish("payment_requests/{}/{}".format(self.session_id, crypto_currency))
 
-        logger.info("Published on payment_requests")
+        logger.info("Published payment_requests/{}".format(self.session_id))
 
         result = await asyncio.wait_for(self.payment_request_future, 3)
         return result

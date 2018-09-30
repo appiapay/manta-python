@@ -1,19 +1,26 @@
 import traceback
 import nano
 import argparse
+import configparser
 
 from manta.wallet import Wallet
 from aiohttp import web
-from aiohttp_swagger import *
+# from aiohttp_swagger import *
 import logging
 import os
 import sys
 import asyncio
+from concurrent.futures._base import TimeoutError
 
+#sys.path.append('.')
+
+ONCE = False
 
 logger = logging.getLogger(__name__)
 routes = web.RouteTableDef()
 app = web.Application()
+
+
 
 
 def query_yes_no(question, default="yes"):
@@ -52,7 +59,15 @@ def query_yes_no(question, default="yes"):
 async def get_payment(url: str, nano_wallet: str = None, account: str = None):
     wallet = Wallet.factory(url, "file")
 
-    envelope = await wallet.get_payment_request()
+    try:
+        envelope = await wallet.get_payment_request()
+    except TimeoutError as e:
+        if ONCE:
+            print("Timeout exception in waiting for payment")
+            sys.exit(1)
+        else:
+            raise(e)
+
     pr = envelope.unpack()
 
     logger.info("Payment request: {}".format(pr))
@@ -103,23 +118,35 @@ async def scan(request: web.Request):
 
 logging.basicConfig(level=logging.INFO)
 
+config = configparser.ConfigParser()
+
+folder = os.path.dirname(os.path.realpath(__file__))
+
+file = os.path.join(folder, 'walletdummy.conf')
+
+config.read(file)
+default=config['DEFAULT']
+
 parser = argparse.ArgumentParser(description="Wallet Dummy for Testing")
 parser.add_argument('url', metavar="url", type=str, nargs="?")
-parser.add_argument('--wallet', type=str)
-parser.add_argument('--account', type=str)
+parser.add_argument('--wallet', type=str, default=default.get('wallet', None))
+parser.add_argument('--account', type=str, default=default.get('account', None))
 
 ns = parser.parse_args()
+
+print(ns)
 
 if len([x for x in (ns.wallet, ns.account) if x is not None]) == 1:
     parser.error("--wallet and --account must be given together")
 
 if ns.url:
+    ONCE = True
     loop = asyncio.get_event_loop()
 
     loop.run_until_complete(get_payment(ns.url, ns.wallet, ns.account))
 
 else:
     app.add_routes(routes)
-    swagger_file = os.path.join(os.path.dirname(__file__), 'swagger/wallet.yaml')
-    setup_swagger(app, swagger_from_file=swagger_file)
+    #swagger_file = os.path.join(os.path.dirname(__file__), 'swagger/wallet.yaml')
+    #setup_swagger(app, swagger_from_file=swagger_file)
     web.run_app(app, port=8082)
