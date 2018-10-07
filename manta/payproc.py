@@ -308,7 +308,8 @@ class PayProc:
 
         try:
             self.dispatcher.dispatch(msg.topic, payload=msg.payload)
-        except:
+        except Exception as e:
+            logger.error(e)
             traceback.print_exc()
 
     def ack(self, session_id: str, ack: AckMessage):

@@ -4,7 +4,7 @@ import asyncio
 import base64
 import logging
 import uuid
-from typing import List
+from typing import List, Dict
 
 import paho.mqtt.client as mqtt
 
@@ -38,10 +38,12 @@ class Store:
     subscriptions: List[str] = []
     host: str
 
-    def __init__(self, device_id: str, host: str= "localhost"):
+    def __init__(self, device_id: str, host: str= "localhost", client_options: Dict = None):
+        client_options = {} if client_options is None else client_options
+
         self.device_id = device_id
         self.host = host
-        self.mqtt_client = mqtt.Client()
+        self.mqtt_client = mqtt.Client(**client_options)
         self.mqtt_client.on_connect = self.on_connect
         self.mqtt_client.on_message = self.on_message
         self.mqtt_client.on_disconnect = self.on_disconnect
