@@ -23,10 +23,10 @@ Payment Processor
 
 1.  Subscribes to **MERCHANT_ORDER_REQUEST/+**
 
-2.  On message **MERCHANT_ORDER_REQUEST/{DEVICE_ID}**
+2.  On message **MERCHANT_ORDER_REQUEST/{APPLICATION_ID}**
 
     Generate **ACK_MESSAGE** with "new" status.
-    URL is manta format if crypto_currency is null (manta protocol), otherwise URL will be crypo_currency legacy format
+    URL is manta format if crypto_currency is null (manta protocol), otherwise URL will be crypto_currency legacy format
 
     *publish* on **ACKS/{SESSION_ID}**
 

@@ -59,9 +59,9 @@
 <ol class="arabic">
 <li><p class="first">Subscribes to <strong>MERCHANT_ORDER_REQUEST/+</strong></p>
 </li>
-<li><p class="first">On message <strong>MERCHANT_ORDER_REQUEST/{DEVICE_ID}</strong></p>
+<li><p class="first">On message <strong>MERCHANT_ORDER_REQUEST/{APPLICATION_ID}</strong></p>
 <p>Generate <strong>ACK_MESSAGE</strong> with “new” status.
-URL is manta format if crypto_currency is null (manta protocol), otherwise URL will be crypo_currency legacy format</p>
+URL is manta format if crypto_currency is null (manta protocol), otherwise URL will be crypto_currency legacy format</p>
 <p><em>publish</em> on <strong>ACKS/{SESSION_ID}</strong></p>
 <p>If manta protocol:</p>
 <p>Subscribes to <strong>PAYMENTS/{SESSION_ID}/+</strong></p>
