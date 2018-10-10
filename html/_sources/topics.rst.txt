@@ -1,8 +1,8 @@
 TOPICS
 ======
-MERCHANT_ORDER_REQUEST/{DEVICE_ID}
+MERCHANT_ORDER_REQUEST/{APPLICATION_ID}
 ----------------------------------
-**DEVICE_ID** unique POS identifier
+**APPLICATION_ID** unique POS identifier
 
 **PUBLISHERS** POS
 

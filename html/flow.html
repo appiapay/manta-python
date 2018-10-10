@@ -13,6 +13,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="MESSAGES" href="messages.html" />
@@ -41,9 +42,9 @@
 <ol class="arabic">
 <li><p class="first">POS generates a random SESSION_ID</p>
 </li>
-<li><p class="first">POS <em>subscibe</em> to <strong>ACKS/{SESSION_ID}</strong></p>
+<li><p class="first">POS <em>subscribe</em> to <strong>ACKS/{SESSION_ID}</strong></p>
 </li>
-<li><p class="first">POS create a <strong>MERCHANT_ORDER_REQUEST_MESSAGE</strong> and <em>publish</em> on <strong>MERCHANT_ORDER_REQUEST/{DEVICE_ID}</strong></p>
+<li><p class="first">POS create a <strong>MERCHANT_ORDER_REQUEST_MESSAGE</strong> and <em>publish</em> on <strong>MERCHANT_ORDER_REQUEST/{APPLICATION_ID}</strong></p>
 <p>crypto_currency should be empty if customer wants to pay with Manta</p>
 </li>
 <li><p class="first">POS receives <strong>ACK_MESSAGE</strong> with status == “new”</p>
@@ -147,6 +148,14 @@ If <em>destinations</em> does not contain desired crypto, check <em>supported_cr
     </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
         </div>
       </div>
       <div class="clearer"></div>
@@ -155,8 +164,8 @@ If <em>destinations</em> does not contain desired crypto, check <em>supported_cr
       &copy;2018, Alessandro Viganò.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.7</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
       <a href="_sources/flow.rst.txt"
