@@ -6,9 +6,9 @@ POS
 ---
 1.  POS generates a random SESSION_ID
 
-2.  POS *subscibe* to **ACKS/{SESSION_ID}**
+2.  POS *subscribe* to **ACKS/{SESSION_ID}**
 
-3.  POS create a **MERCHANT_ORDER_REQUEST_MESSAGE** and *publish* on **MERCHANT_ORDER_REQUEST/{DEVICE_ID}**
+3.  POS create a **MERCHANT_ORDER_REQUEST_MESSAGE** and *publish* on **MERCHANT_ORDER_REQUEST/{APPLICATION_ID}**
 
     crypto_currency should be empty if customer wants to pay with Manta
 
@@ -23,10 +23,10 @@ Payment Processor
 
 1.  Subscribes to **MERCHANT_ORDER_REQUEST/+**
 
-2.  On message **MERCHANT_ORDER_REQUEST/{DEVICE_ID}**
+2.  On message **MERCHANT_ORDER_REQUEST/{APPLICATION_ID}**
 
     Generate **ACK_MESSAGE** with "new" status.
-    URL is manta format if crypto_currency is null (manta protocol), otherwise URL will be crypo_currency legacy format
+    URL is manta format if crypto_currency is null (manta protocol), otherwise URL will be crypto_currency legacy format
 
     *publish* on **ACKS/{SESSION_ID}**
 

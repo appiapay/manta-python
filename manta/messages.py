@@ -22,7 +22,7 @@ class Status(Enum):
     Status for ack messages
     """
     NEW = "new"  #: Created after accepting Merchant Order
-    INVALID = "invalid"  #: Not possible to create order
+    INVALID = "invalid"  #: Order invalid - Ex timeout. Additional info can be specified in Ack Memo field
     PENDING = "pending"  #: Created after receiving payment from wallet
     CONFIRMING = "confirming"  #: Paid received by Payment Processor but not yet confirmed
     PAID = "paid"  #: Created after blockchain confirmation

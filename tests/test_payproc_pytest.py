@@ -115,37 +115,37 @@ def payproc():
 
 def test_key_from_keydata():
     key = PayProc.key_from_keydata(PRIV_KEY_DATA)
-    assert PRIV_KEY_DATA, key.private_bytes(encoding=serialization.Encoding.PEM,
+    assert PRIV_KEY_DATA == key.private_bytes(encoding=serialization.Encoding.PEM,
                                             format=serialization.PrivateFormat.TraditionalOpenSSL,
                                             encryption_algorithm=serialization.NoEncryption())
 
 
 def test_sign():
     pp = PayProc(CERTFICATE_FILENAME)
-    assert HELLO_SIGNED, pp.sign(b"Hello")
+    assert HELLO_SIGNED == pp.sign(b"Hello")
 
 
 def test_generate_payment_request():
     pp = PayProc(CERTFICATE_FILENAME)
-    pp.get_merchant = lambda x: "merchant1"
+    pp.get_merchant = lambda x: MERCHANT
     pp.get_destinations = lambda device, payment_request: [
-        Destination(amount=Decimal(5), destination_address="xrb123", crypto_currency="nano")]
-    pp.get_supported_cryptos = lambda device, payment_request: ['btc', 'xmr', 'nano']
+        Destination(amount=Decimal(5), destination_address="xrb123", crypto_currency="NANO")]
+    pp.get_supported_cryptos = lambda device, payment_request: ['BTC', 'XMR', 'NANO']
 
-    payment_request = MerchantOrderRequestMessage(amount=Decimal(10), fiat_currency="euro", session_id="123",
-                                                  crypto_currency="nanoray")
+    payment_request = MerchantOrderRequestMessage(amount=Decimal(10), fiat_currency="EURO", session_id="123",
+                                                  crypto_currency="NANO")
 
     envelope = pp.generate_payment_request("device1", payment_request)
 
     expected_message = PaymentRequestMessage(merchant=MERCHANT,
-                                             amount=10,
-                                             fiat_currency="euro",
-                                             destinations=[Destination(amount=5, destination_address="xrb123",
-                                                                       crypto_currency="nano")],
-                                             supported_cryptos={'btc', 'xmr', 'nano'}
+                                             amount=Decimal(10),
+                                             fiat_currency="EURO",
+                                             destinations=[Destination(amount=Decimal(5), destination_address="xrb123",
+                                                                       crypto_currency="NANO")],
+                                             supported_cryptos={'BTC', 'XMR', 'NANO'}
                                              )
 
-    assert expected_message, envelope.unpack()
+    assert expected_message == envelope.unpack()
 
 
 def test_on_connect(mock_mqtt, payproc):
