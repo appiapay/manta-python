@@ -12,10 +12,10 @@ notebooks/.ipynb_checkpoints
 .DS_Store
 .dmypy.json
 .idea
-notebooks
 .mypy_cache
 .pyre
 .vscode
 manta.egg-info
 .pytest_cache
 tests/__pycache__
+Untitled.ipynb
