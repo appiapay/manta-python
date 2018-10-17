@@ -65,15 +65,12 @@ z4TYl3Vuacma4wEMQGqhJSWv0gjRQg==
 -----END CERTIFICATE-----
 '''
 
-HELLO_SIGNED = b'''\
-ZdTXOalXWhP20r8C/AMOdTReRg3R0moqF/A4n3adX3tO27SAHzZtx60N6Br78QRO2Y0Gmq21Z9mW\
-mO+x6Ne1QnkHg0mvm2qkISMHHIW4ej+opO5fmD3RlCcSUXuMMC4uOjfhQVCbksOoAf/tV0Ocy2Ma\
-owxKQmUsBCHK1U5NykPpqJ+d6nLHoxVJ5mPrda6tbm7dzL1uUsTThe47haTzDCPzGY+/8SHRcL8v\
-wbsqKgzOG2RvOOJDaPn/xhLs/HlUyNwGePFuQh0EOn1uuqWJPjj8HNbQmfd1/W2p5ldE2Xi2TpX1\
-/mfiZXFtNhn7Su1EkAJE1Jph780HClldRdA5Dw==\
-'''
+HELLO_SIGNED = b'LJH1BHPP/KmEnqyz24eb3ph8nyhS9TjVT1jnw7oSU3vbwoj9MMePwBifBbnpvFHl6KSUnTcX0I3OK6MSdF' \
+               b'm6/1I+i7RkyNeAIkN/boF46xRucuaaevfk5PWuHKJSPsQt6QLs3TyQUet+WLTu8sxIs29+wLTn71dzFfAe45YesIOoKhboyiPO23' \
+               b'Di8sLuFQCiW4uau4SttMK8+MCHMmQzShdu922JMHFv1l2sbqfnM0LNFzWIbVs35Q4pNow0P6gzECSOpREwdy5S793YJdA7goZNCM' \
+               b'QB6LpOEnuXBeA1wJ5t3fnSANUvXewyaMiNIXz93vh9UrDel7NITHo46dVKXw=='
 
-CERTFICATE_FILENAME = "certificates/root/keys/www.brainblocks.com.key"
+CERTFICATE_FILENAME = "certificates/root/keys/test.key"
 
 DESTINATIONS = [
     Destination(
@@ -122,6 +119,7 @@ def test_key_from_keydata():
 
 def test_sign():
     pp = PayProc(CERTFICATE_FILENAME)
+    print (pp.sign(b"Hello"))
     assert HELLO_SIGNED == pp.sign(b"Hello")
 
 

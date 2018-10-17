@@ -31,9 +31,9 @@ MERCHANT = Merchant(
     address="5th Avenue"
 )
 
-PRIVATE_KEY = "certificates/root/keys/www.brainblocks.com.key"
-CERTIFICATE = "certificates/root/certs/www.brainblocks.com.crt"
-CA_CERTIFICATE = "certificates/root/certs/root.crt"
+PRIVATE_KEY = "certificates/root/keys/test.key"
+CERTIFICATE = "certificates/root/certs/test.crt"
+CA_CERTIFICATE = "certificates/root/certs/AppiaDeveloperCA.crt"
 
 
 @pytest.fixture
