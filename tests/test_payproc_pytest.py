@@ -70,7 +70,8 @@ HELLO_SIGNED = b'LJH1BHPP/KmEnqyz24eb3ph8nyhS9TjVT1jnw7oSU3vbwoj9MMePwBifBbnpvFH
                b'Di8sLuFQCiW4uau4SttMK8+MCHMmQzShdu922JMHFv1l2sbqfnM0LNFzWIbVs35Q4pNow0P6gzECSOpREwdy5S793YJdA7goZNCM' \
                b'QB6LpOEnuXBeA1wJ5t3fnSANUvXewyaMiNIXz93vh9UrDel7NITHo46dVKXw=='
 
-CERTFICATE_FILENAME = "certificates/root/keys/test.key"
+KEY_FILENAME = "certificates/root/keys/test.key"
+CERTIFICATE_FILENAME = "certificates/root/certs/AppiaDeveloperCA.crt"
 
 DESTINATIONS = [
     Destination(
@@ -102,7 +103,7 @@ def payproc():
         else:
             return DESTINATIONS
 
-    pp = PayProc(CERTFICATE_FILENAME)
+    pp = PayProc(KEY_FILENAME, cert_file=CERTIFICATE_FILENAME)
     pp.get_merchant = lambda x: MERCHANT
 
     pp.get_destinations = get_destinations
@@ -118,13 +119,13 @@ def test_key_from_keydata():
 
 
 def test_sign():
-    pp = PayProc(CERTFICATE_FILENAME)
+    pp = PayProc(KEY_FILENAME)
     print (pp.sign(b"Hello"))
     assert HELLO_SIGNED == pp.sign(b"Hello")
 
 
 def test_generate_payment_request():
-    pp = PayProc(CERTFICATE_FILENAME)
+    pp = PayProc(KEY_FILENAME, cert_file=CERTIFICATE_FILENAME)
     pp.get_merchant = lambda x: MERCHANT
     pp.get_destinations = lambda device, payment_request: [
         Destination(amount=Decimal(5), destination_address="xrb123", crypto_currency="NANO")]
@@ -148,7 +149,12 @@ def test_generate_payment_request():
 
 def test_on_connect(mock_mqtt, payproc):
     payproc.run()
+
+    with open(CERTIFICATE_FILENAME, 'r') as myfile:
+        certificate = myfile.read()
+
     mock_mqtt.subscribe.assert_any_call("merchant_order_request/+")
+    mock_mqtt.publish.assert_called_with("certificate", certificate, retain=True)
 
 
 def test_receive_merchant_order_request(mock_mqtt, payproc):

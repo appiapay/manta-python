@@ -121,6 +121,7 @@ class TXStorageMemory(TXStorage):
     def __len__(self):
         return len(self.states)
 
+
 def generate_crypto_legacy_url(crypto: str, address: str, amount: float) -> str:
     if crypto == 'btc':
         return "bitcoin:{}?amount={}".format(address, amount)
@@ -132,6 +133,7 @@ class PayProc:
     mqtt_client: mqtt.Client
     host: str
     key: RSAPrivateKey
+    certificate: str
     get_merchant: Callable[[str], Merchant]
 
     # get_destinations(application: str, merchant_order: MerchantOrderRequestMessage)
@@ -155,7 +157,7 @@ class PayProc:
     dispatcher: Dispatcher
     txid: int
 
-    def __init__(self, key_file: str, host: str = "localhost", starting_txid: int = 0,
+    def __init__(self, key_file: str, cert_file: str=None, host: str = "localhost", starting_txid: int = 0,
                  tx_storage: TXStorage = None, mqtt_options: Dict[str:any]= None) -> None:
 
         self.txid = starting_txid
@@ -172,6 +174,12 @@ class PayProc:
             key_data = myfile.read()
 
         self.key = PayProc.key_from_keydata(key_data)
+
+        if cert_file is not None:
+            with open(cert_file, 'r') as myfile:
+                self.certificate = myfile.read()
+        else:
+            self.certificate = ""
 
     def run(self):
         self.mqtt_client.connect(host=self.host)
@@ -203,6 +211,8 @@ class PayProc:
             self._subscribe("acks/{}".format(session))
             self._subscribe("payment_requests/{}/+".format(session))
             self._subscribe("payments/{}".format(session))
+
+        self.mqtt_client.publish("certificate", self.certificate, retain=True)
 
     def _subscribe(self, topic):
         self.mqtt_client.subscribe(topic)
