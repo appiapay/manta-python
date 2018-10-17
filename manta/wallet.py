@@ -9,6 +9,8 @@ import paho.mqtt.client as mqtt
 
 from manta.messages import PaymentRequestMessage, PaymentRequestEnvelope, PaymentMessage, AckMessage
 from certvalidator import CertificateValidator
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend
 
 logger = logging.getLogger(__name__)
 
@@ -103,10 +105,10 @@ class Wallet:
 
         await self.connected.wait()
 
-    async def get_certificate(self) -> str:
+    async def get_certificate(self) -> x509.Certificate:
         await self.connect()
         certificate = await self.certificate_future
-        return certificate if isinstance(certificate, str) else certificate.decode()
+        return x509.load_pem_x509_certificate(certificate, default_backend())
 
     async def get_payment_request(self, crypto_currency: str = "all") -> PaymentRequestEnvelope:
         await self.connect()

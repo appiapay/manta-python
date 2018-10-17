@@ -3,6 +3,8 @@ import nano
 import argparse
 import configparser
 
+from cryptography.x509 import NameOID
+
 from manta.wallet import Wallet
 from aiohttp import web
 # from aiohttp_swagger import *
@@ -78,6 +80,8 @@ async def get_payment(url: str, nano_wallet: str = None, account: str = None, ca
             if envelope.verify(certificate):
                 verified = True
                 logger.info ("Verified Request")
+                logger.info("Certificate issued to {}".format(
+                    certificate.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value))
             else:
                 logger.error("Invalid Signature")
         else:

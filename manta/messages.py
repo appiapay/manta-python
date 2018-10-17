@@ -2,7 +2,7 @@
 
 import base64
 from enum import Enum
-from typing import NamedTuple, List, Set, TypeVar, Type, Optional
+from typing import NamedTuple, List, Set, TypeVar, Type, Optional, Union
 
 import attr
 import cattr
@@ -11,7 +11,7 @@ from certvalidator import CertificateValidator, ValidationContext
 from cryptography import x509
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
 from decimal import Decimal
@@ -173,14 +173,17 @@ class PaymentRequestEnvelope(Message):
         pr = PaymentRequestMessage.from_json(self.message)
         return pr
 
-    def verify(self, certificate) -> bool:
-        if certificate.startswith("-----BEGIN CERTIFICATE-----"):
-            pem = certificate.encode()
+    def verify(self, certificate: Union[str, x509.Certificate]) -> bool:
+        if isinstance(certificate, x509.Certificate):
+            cert = certificate
         else:
-            with open(certificate, 'rb') as my_file:
-                pem = my_file.read()
+            if certificate.startswith("-----BEGIN CERTIFICATE-----"):
+                pem = certificate.encode()
+            else:
+                with open(certificate, 'rb') as my_file:
+                    pem = my_file.read()
 
-        cert = x509.load_pem_x509_certificate(pem, default_backend())
+            cert = x509.load_pem_x509_certificate(pem, default_backend())
 
         try:
             cert.public_key().verify(
@@ -210,18 +213,21 @@ class PaymentMessage(Message):
     transaction_hash: str
 
 
-def verify_chain(certificate: str, ca: str):
-    if certificate.startswith("-----BEGIN CERTIFICATE-----"):
-        pem = certificate.encode()
-    else:
-        with open(certificate, 'rb') as my_file:
-            pem = my_file.read()
+def verify_chain(certificate: Union[str, x509.Certificate], ca: str):
 
-    cert = x509.load_pem_x509_certificate(pem, default_backend())
+    if isinstance(certificate, x509.Certificate):
+        pem = certificate.public_bytes(serialization.Encoding.PEM)
+    else:
+        if certificate.startswith("-----BEGIN CERTIFICATE-----"):
+            pem = certificate.encode()
+        else:
+            with open(certificate, 'rb') as my_file:
+                pem = my_file.read()
+        # cert = x509.load_pem_x509_certificate(pem, default_backend())
 
     with open(ca, 'rb') as my_file:
         pem_ca = my_file.read()
-    ca = x509.load_pem_x509_certificate(pem, default_backend())
+    # ca = x509.load_pem_x509_certificate(pem_ca, default_backend())
 
     trust_roots = [pem_ca]
     context = ValidationContext(trust_roots=trust_roots)

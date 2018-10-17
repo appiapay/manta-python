@@ -4,6 +4,7 @@ from decimal import Decimal
 import pytest
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
+from cryptography.x509 import NameOID
 
 from manta.messages import Destination, PaymentRequestMessage, verify_chain, PaymentMessage, AckMessage, Status, \
     Merchant
@@ -76,14 +77,16 @@ def test_factory(mock_mqtt):
     assert wallet.session_id == "123"
 
 
-@pytest.mark.timeout(2)
 @pytest.mark.asyncio
 async def test_get_certificate(mock_mqtt):
+    with open(CERTIFICATE, 'rb') as myfile:
+        pem = myfile.read()
+
     def se(topic):
-        nonlocal mock_mqtt
+        nonlocal mock_mqtt, pem
 
         if topic == "certificate":
-            mock_mqtt.push("certificate", "fake_certificate")
+            mock_mqtt.push("certificate", pem)
         else:
             assert True, "Unknown Topic"
 
@@ -93,7 +96,7 @@ async def test_get_certificate(mock_mqtt):
     certificate = await wallet.get_certificate()
 
     mock_mqtt.subscribe.assert_called_with("certificate")
-    assert "fake_certificate" == certificate
+    assert "test" == certificate.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
 
 
 @pytest.mark.timeout(2)
