@@ -22,6 +22,7 @@ sphinx-autodoc-typehints = "*"
 sphinx-jsonschema = "*"
 aiohttp-swagger = "*"
 nano-python = "*"
+coverage = "*"
 
 [requires]
 python_version = "3.7"

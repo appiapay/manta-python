@@ -286,3 +286,18 @@ def test_confirm(mock_mqtt, payproc):
     )
 
     mock_mqtt.publish.assert_called_with('acks/1423', JsonEqual(ack))
+
+
+def test_invalidate(mock_mqtt, payproc):
+    test_payment_message(mock_mqtt, payproc)
+    payproc.invalidate("1423", "Timeout")
+
+    ack = AckMessage(
+        txid="0",
+        status=Status.INVALID,
+        transaction_hash="myhash",
+        transaction_currency="NANO",
+        memo="Timeout"
+    )
+
+    mock_mqtt.publish.assert_called_with('acks/1423', JsonEqual(ack))

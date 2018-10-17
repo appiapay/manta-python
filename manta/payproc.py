@@ -59,7 +59,7 @@ class TransactionState:
         super().__setattr__(key, value)
 
 
-class TXStorage():
+class TXStorage:
     @abstractmethod
     def create(self, txid: int,
                session_id: str,
@@ -283,7 +283,7 @@ class PayProc:
         application = state.application
 
         envelope = self.generate_payment_request(application, request)
-        state.payment_request=envelope.unpack()
+        state.payment_request = envelope.unpack()
 
         logger.info("Publishing {}".format(envelope))
         self.mqtt_client.publish('payment_requests/{}'.format(session_id), envelope.to_json())
@@ -339,6 +339,15 @@ class PayProc:
 
             if self.on_processed_confirmation:
                 self.on_processed_confirmation(state.ack.txid, new_ack)
+
+    def invalidate(self, session_id: str, reason: str=""):
+        if self.tx_storage.session_exists(session_id):
+            state = self.tx_storage.get_state_for_session(session_id)
+
+            new_ack = attr.evolve(state.ack, status=Status.INVALID, memo=reason)
+
+            state.ack = new_ack
+            self.ack(session_id, new_ack)
 
     def generate_payment_request(self, device: str,
                                  payment_request: MerchantOrderRequestMessage) -> PaymentRequestEnvelope:
