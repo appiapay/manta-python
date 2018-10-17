@@ -1,4 +1,5 @@
 import logging
+from decimal import Decimal
 
 import pytest
 from cryptography.hazmat.backends import default_backend
@@ -45,7 +46,7 @@ def payment_request():
 
         message = PaymentRequestMessage(
             merchant=MERCHANT,
-            amount=10,
+            amount=Decimal(10),
             fiat_currency="euro",
             destinations=DESTINATIONS,
             supported_cryptos={'btc', 'xmr', 'nano'}
