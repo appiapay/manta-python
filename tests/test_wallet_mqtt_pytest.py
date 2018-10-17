@@ -14,7 +14,7 @@ PP_HOST = "http://localhost:8081"
 @pytest.mark.timeout(2)
 @pytest.mark.asyncio
 async def test_connect():
-    wallet = Wallet.factory('manta://localhost/123', 'file')
+    wallet = Wallet.factory('manta://localhost/123')
     await wallet.connect()
     wallet.close()
 
@@ -47,7 +47,7 @@ class TestWallet:
         ack_message = r.json()
         url = ack_message['url']
         logging.info(url)
-        wallet = Wallet.factory(url, "filename")
+        wallet = Wallet.factory(url)
 
         envelope = await wallet.get_payment_request('NANO')
         self.pr = envelope.unpack()

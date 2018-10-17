@@ -174,8 +174,12 @@ class PaymentRequestEnvelope(Message):
         return pr
 
     def verify(self, certificate) -> bool:
-        with open(certificate, 'rb') as myfile:
-            pem = myfile.read()
+        if certificate.startswith("-----BEGIN CERTIFICATE-----"):
+            pem = certificate.encode()
+        else:
+            with open(certificate, 'rb') as my_file:
+                pem = my_file.read()
+
         cert = x509.load_pem_x509_certificate(pem, default_backend())
 
         try:
@@ -207,12 +211,16 @@ class PaymentMessage(Message):
 
 
 def verify_chain(certificate: str, ca: str):
-    with open(certificate, 'rb') as myfile:
-        pem = myfile.read()
+    if certificate.startswith("-----BEGIN CERTIFICATE-----"):
+        pem = certificate.encode()
+    else:
+        with open(certificate, 'rb') as my_file:
+            pem = my_file.read()
+
     cert = x509.load_pem_x509_certificate(pem, default_backend())
 
-    with open(ca, 'rb') as myfile:
-        pem_ca = myfile.read()
+    with open(ca, 'rb') as my_file:
+        pem_ca = my_file.read()
     ca = x509.load_pem_x509_certificate(pem, default_backend())
 
     trust_roots = [pem_ca]

@@ -12,6 +12,7 @@ from certvalidator import CertificateValidator
 
 logger = logging.getLogger(__name__)
 
+
 def wrap_callback(f):
     def wrapper(self: Wallet, *args):
         self.loop.call_soon_threadsafe(f, self, *args)
@@ -27,11 +28,12 @@ class Wallet:
     port: int
     session_id: str
     payment_request_future: asyncio.Future = None
+    certificate_future: asyncio.Future = None
     acks: asyncio.Queue
     first_connect = False
 
     @classmethod
-    def factory(cls, url: str, certificate: str):
+    def factory(cls, url: str):
         match = cls.parse_url(url)
         if match:
             port = 1883 if match[2] is None else int(match[2])
@@ -67,8 +69,10 @@ class Wallet:
         self.connected.clear()
 
     @wrap_callback
-    def on_connect(self, client, userdata, flags, rc):
+    def on_connect(self, client: mqtt.Client, userdata, flags, rc):
         logger.info("Connected")
+        self.certificate_future = self.loop.create_future()
+        client.subscribe("certificate")
         self.connected.set()
 
     @wrap_callback
@@ -82,6 +86,8 @@ class Wallet:
         elif tokens[0] == "acks":
             ack = AckMessage.from_json(msg.payload)
             self.acks.put_nowait(ack)
+        elif tokens[0] == "certificate":
+            self.loop.call_soon_threadsafe(self.certificate_future.set_result, msg.payload)
 
     @staticmethod
     def parse_url(url: str) -> Optional[re.Match]:
@@ -96,6 +102,11 @@ class Wallet:
             self.first_connect = True
 
         await self.connected.wait()
+
+    async def get_certificate(self) -> str:
+        await self.connect()
+        certificate = await self.certificate_future
+        return certificate if isinstance(certificate, str) else certificate.decode()
 
     async def get_payment_request(self, crypto_currency: str = "all") -> PaymentRequestEnvelope:
         await self.connect()

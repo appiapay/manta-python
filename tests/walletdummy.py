@@ -11,6 +11,7 @@ import os
 import sys
 import asyncio
 from concurrent.futures._base import TimeoutError
+from manta.messages import verify_chain
 
 #sys.path.append('.')
 
@@ -19,8 +20,6 @@ ONCE = False
 logger = logging.getLogger(__name__)
 routes = web.RouteTableDef()
 app = web.Application()
-
-
 
 
 def query_yes_no(question, default="yes"):
@@ -56,8 +55,8 @@ def query_yes_no(question, default="yes"):
                              "(or 'y' or 'n').\n")
 
 
-async def get_payment(url: str, nano_wallet: str = None, account: str = None):
-    wallet = Wallet.factory(url, "file")
+async def get_payment(url: str, nano_wallet: str = None, account: str = None, ca_certificate: str = None):
+    wallet = Wallet.factory(url)
 
     try:
         envelope = await wallet.get_payment_request()
@@ -66,7 +65,23 @@ async def get_payment(url: str, nano_wallet: str = None, account: str = None):
             print("Timeout exception in waiting for payment")
             sys.exit(1)
         else:
-            raise(e)
+            raise e
+
+    # Verify signature chain
+    verified = False
+
+    if ca_certificate:
+        certificate = await wallet.get_certificate()
+        path = verify_chain(certificate, ca_certificate)
+
+        if path:
+            if envelope.verify(certificate):
+                verified = True
+                logger.info ("Verified Request")
+            else:
+                logger.error("Invalid Signature")
+        else:
+            logger.error("Invalid Certification Path")
 
     pr = envelope.unpack()
 
@@ -79,6 +94,10 @@ async def get_payment(url: str, nano_wallet: str = None, account: str = None):
         print("Actual balance: {}".format(
             str(nano.convert(from_unit="raw", to_unit="XRB", value=balance['balance']))
         ))
+
+        if not verified:
+            print("WARNING!!!! THIS IS NOT VERIFIED REQUEST")
+
         if query_yes_no("Pay {} {} ({} {}) to {}".format(pr.destinations[0].amount,
                                                          pr.destinations[0].crypto_currency,
                                                          pr.amount,
@@ -125,12 +144,13 @@ folder = os.path.dirname(os.path.realpath(__file__))
 file = os.path.join(folder, 'walletdummy.conf')
 
 config.read(file)
-default=config['DEFAULT']
+default = config['DEFAULT']
 
 parser = argparse.ArgumentParser(description="Wallet Dummy for Testing")
 parser.add_argument('url', metavar="url", type=str, nargs="?")
 parser.add_argument('--wallet', type=str, default=default.get('wallet', None))
 parser.add_argument('--account', type=str, default=default.get('account', None))
+parser.add_argument('--certificate', type=str, default=default.get('certificate', None))
 
 ns = parser.parse_args()
 
@@ -143,7 +163,7 @@ if ns.url:
     ONCE = True
     loop = asyncio.get_event_loop()
 
-    loop.run_until_complete(get_payment(ns.url, ns.wallet, ns.account))
+    loop.run_until_complete(get_payment(ns.url, ns.wallet, ns.account, ca_certificate=ns.certificate))
 
 else:
     app.add_routes(routes)

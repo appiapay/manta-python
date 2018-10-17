@@ -15,12 +15,12 @@ from tests.utils import mock_mqtt, JsonEqual
 
 DESTINATIONS = [
     Destination(
-        amount=5,
+        amount=Decimal(5),
         destination_address="btc_daddress",
         crypto_currency="btc"
     ),
     Destination(
-        amount=10,
+        amount=Decimal(10),
         destination_address="nano_daddress",
         crypto_currency="nano"
     ),
@@ -70,7 +70,7 @@ def test_parse_url_with_port():
 
 
 def test_factory(mock_mqtt):
-    wallet = Wallet.factory("manta://127.0.0.1/123", "filename")
+    wallet = Wallet.factory("manta://127.0.0.1/123")
     assert wallet.host == "127.0.0.1"
     assert wallet.port == 1883
     assert wallet.session_id == "123"
@@ -78,9 +78,29 @@ def test_factory(mock_mqtt):
 
 @pytest.mark.timeout(2)
 @pytest.mark.asyncio
+async def test_get_certificate(mock_mqtt):
+    def se(topic):
+        nonlocal mock_mqtt
+
+        if topic == "certificate":
+            mock_mqtt.push("certificate", "fake_certificate")
+        else:
+            assert True, "Unknown Topic"
+
+    wallet = Wallet.factory("manta://localhost:8000/123")
+
+    mock_mqtt.subscribe.side_effect = se
+    certificate = await wallet.get_certificate()
+
+    mock_mqtt.subscribe.assert_called_with("certificate")
+    assert "fake_certificate" == certificate
+
+
+@pytest.mark.timeout(2)
+@pytest.mark.asyncio
 async def test_get_payment_request(mock_mqtt, payment_request, caplog):
     caplog.set_level(logging.INFO)
-    wallet = Wallet.factory("manta://localhost:8000/123", "filename")
+    wallet = Wallet.factory("manta://localhost:8000/123")
 
     # noinspection PyUnusedLocal
     def se(topic, payload=None):
@@ -99,7 +119,7 @@ async def test_get_payment_request(mock_mqtt, payment_request, caplog):
 
 
 def test_send_payment(mock_mqtt):
-    wallet = Wallet.factory("manta://localhost:8000/123", "filename")
+    wallet = Wallet.factory("manta://localhost:8000/123")
 
     wallet.send_payment(transaction_hash="myhash", crypto_currency="nano")
 
@@ -114,7 +134,7 @@ def test_send_payment(mock_mqtt):
 
 @pytest.mark.asyncio
 async def test_on_ack(mock_mqtt):
-    wallet = Wallet.factory("manta://localhost:8000/123", "filename")
+    wallet = Wallet.factory("manta://localhost:8000/123")
 
     expected = AckMessage(
         txid="0",
@@ -131,4 +151,12 @@ async def test_on_ack(mock_mqtt):
 
 def test_verify_chain():
     path = verify_chain(CERTIFICATE, CA_CERTIFICATE)
+    assert path
+
+
+def test_verify_chain_str():
+    with open(CERTIFICATE, 'r') as myfile:
+        pem = myfile.read()
+
+    path = verify_chain(pem, CA_CERTIFICATE)
     assert path
