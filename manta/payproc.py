@@ -88,10 +88,18 @@ class TXStorage:
 
 
 class TXStorageMemory(TXStorage):
-    states: Dict[str, TransactionState] = {}
+    states: Dict[str, TransactionState]
+
+    def __init__(self):
+        self.states = {}
 
     def _on_notify(self, txid, key, value):
-        pass
+        if key == 'ack':
+            value: AckMessage
+            if value.status in [Status.PAID, Status.INVALID]:
+                session_id = next(key for key, state in self.states.items()
+                                  if state.txid == int(value.txid))
+                del self.states[session_id]
 
     def create(self, txid: int,
                session_id: str,
@@ -103,7 +111,8 @@ class TXStorageMemory(TXStorage):
                               session_id=session_id,
                               application=application,
                               order=order,
-                              ack=ack)
+                              ack=ack,
+                              notify=self._on_notify)
 
         self.states[session_id] = tx
 

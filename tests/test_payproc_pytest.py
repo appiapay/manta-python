@@ -1,11 +1,12 @@
 import pytest
 import simplejson as json
+import attr
 from callee import Matcher
 from cryptography.hazmat.primitives import serialization
 
 from manta.messages import Destination, MerchantOrderRequestMessage, PaymentRequestMessage, \
     PaymentMessage, AckMessage, Status, Merchant
-from manta.payproc import PayProc
+from manta.payproc import PayProc, TXStorageMemory
 
 pytest.register_assert_rewrite("tests.utils")
 from tests.utils import mock_mqtt, JsonEqual
@@ -301,3 +302,62 @@ def test_invalidate(mock_mqtt, payproc):
     )
 
     mock_mqtt.publish.assert_called_with('acks/1423', JsonEqual(ack))
+
+
+@pytest.fixture()
+def tx_storage() -> TXStorageMemory:
+    return TXStorageMemory()
+
+
+class TestTXStorageMemory:
+    def test_create(self, tx_storage: TXStorageMemory):
+        ack = AckMessage(amount=Decimal("10"), status=Status.NEW, txid="0")
+        order = MerchantOrderRequestMessage(amount=Decimal("10"), session_id="123", fiat_currency="EUR")
+
+        tx_storage.create(0, "123", "app0@user0", order, ack)
+
+        assert 1 == len(tx_storage)
+
+    def test_get_state(self, tx_storage: TXStorageMemory):
+        self.test_create(tx_storage)
+        state = tx_storage.get_state_for_session("123")
+        assert Status.NEW == state.ack.status
+        assert "app0@user0" == state.application
+
+    def test_new_ack(self, tx_storage: TXStorageMemory):
+        self.test_create(tx_storage)
+        state = tx_storage.get_state_for_session("123")
+        new_ack = attr.evolve(state.ack, status=Status.PENDING)
+
+        state.ack = new_ack
+
+        assert 1 == len(tx_storage)
+
+        state = tx_storage.get_state_for_session("123")
+
+        assert state.ack.status == Status.PENDING
+
+    def test_session_does_not_exist(self, tx_storage):
+        assert not tx_storage.session_exists("123")
+
+    def test_session_exist(self, tx_storage):
+        self.test_create(tx_storage)
+
+        assert tx_storage.session_exists("123")
+
+    def test_ack_paid(self, tx_storage):
+        self.test_create(tx_storage)
+        ack = AckMessage(amount=Decimal("10"), status=Status.NEW, txid="1")
+        order = MerchantOrderRequestMessage(amount=Decimal("10"), session_id="321", fiat_currency="EUR")
+
+        tx_storage.create(1, "321", "app0@user0", order, ack)
+
+        state = tx_storage.get_state_for_session("123")
+        new_ack = attr.evolve(state.ack, status=Status.PAID)
+
+        state.ack = new_ack
+
+        assert 1 == len(tx_storage)
+        assert Status.NEW == tx_storage.get_state_for_session("321").ack.status
+
+
