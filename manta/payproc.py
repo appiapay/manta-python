@@ -237,7 +237,7 @@ class PayProc:
         ack: AckMessage = None
 
         # This is a manta request
-        if p.crypto_currency is None:
+        if not p.crypto_currency:
             # envelope = self.generate_payment_request(device, p)
 
             self.mqtt_client.subscribe('payment_requests/{}/+'.format(p.session_id))

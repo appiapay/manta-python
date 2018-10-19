@@ -178,6 +178,26 @@ def test_receive_merchant_order_request(mock_mqtt, payproc):
     mock_mqtt.subscribe.assert_any_call('payment_requests/1423/+')
 
 
+def test_receive_merchant_order_request_empty_string(mock_mqtt, payproc):
+    request = MerchantOrderRequestMessage(
+        amount=Decimal("1000"),
+        session_id='1423',
+        fiat_currency='eur',
+        crypto_currency=''
+    )
+
+    expected = AckMessage(
+        txid="0",
+        url="manta://localhost/1423",
+        status=Status.NEW
+    )
+
+    mock_mqtt.push("merchant_order_request/device1", request.to_json())
+
+    mock_mqtt.publish.assert_any_call('acks/1423', JsonEqual(expected))
+    mock_mqtt.subscribe.assert_any_call('payments/1423')
+
+
 def test_receive_merchant_order_request_legacy(mock_mqtt, payproc):
     request = MerchantOrderRequestMessage(
         amount=Decimal("1000"),
