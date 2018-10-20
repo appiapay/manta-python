@@ -217,7 +217,6 @@ class PayProc:
         self._subscribe("merchant_order_request/+")
 
         for session, value in self.tx_storage:
-            self._subscribe("acks/{}".format(session))
             self._subscribe("payment_requests/{}/+".format(session))
             self._subscribe("payments/{}".format(session))
 
