@@ -155,6 +155,7 @@ def test_on_connect(mock_mqtt, payproc):
         certificate = myfile.read()
 
     mock_mqtt.subscribe.assert_any_call("merchant_order_request/+")
+    mock_mqtt.subscribe.assert_any_call("merchant_order_cancel/+")
     mock_mqtt.publish.assert_called_with("certificate", certificate, retain=True)
 
 

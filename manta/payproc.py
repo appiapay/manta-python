@@ -215,6 +215,7 @@ class PayProc:
         logger.info("Connected with result code " + str(rc))
 
         self._subscribe("merchant_order_request/+")
+        self._subscribe("merchant_order_cancel/+")
 
         for session, value in self.tx_storage:
             self._subscribe("payment_requests/{}/+".format(session))
