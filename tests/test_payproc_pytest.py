@@ -198,6 +198,21 @@ def test_receive_merchant_order_request_empty_string(mock_mqtt, payproc):
     mock_mqtt.subscribe.assert_any_call('payments/1423')
 
 
+def test_receive_merchant_cancel_order(mock_mqtt, payproc):
+    test_receive_merchant_order_request(mock_mqtt, payproc)
+
+    mock_mqtt.push('merchant_order_cancel/1423', '')
+
+    expected = AckMessage(
+        txid="0",
+        url="manta://localhost/1423",
+        status=Status.INVALID,
+        memo='Canceled by Merchant'
+    )
+
+    mock_mqtt.publish.assert_called_with('acks/1423', JsonEqual(expected))
+
+
 def test_receive_merchant_order_request_legacy(mock_mqtt, payproc):
     request = MerchantOrderRequestMessage(
         amount=Decimal("1000"),

@@ -226,8 +226,14 @@ class PayProc:
         self.mqtt_client.subscribe(topic)
         logger.info('Subscribed to {}'.format(topic))
 
+    @Dispatcher.method_topic("merchant_order_cancel/+")
+    def on_merchant_order_cancel(self, session_id, payload):
+        logger.info("Request for canceling order with session_id {}".format(session_id))
+
+        self.invalidate(session_id, "Canceled by Merchant")
+
     @Dispatcher.method_topic("merchant_order_request/+")
-    def on_merchant_order_request(self, device, payload):
+    def on_merchant_order_request(self, application_id, payload):
 
         logger.info("Processing merchant_order message")
 
@@ -250,12 +256,12 @@ class PayProc:
 
             self.ack(p.session_id, ack)
 
-            self.tx_storage.create(self.txid, p.session_id, device, p, ack)
+            self.tx_storage.create(self.txid, p.session_id, application_id, p, ack)
 
             self.txid = self.txid + 1
 
         else:
-            destinations = self.get_destinations(device, p)
+            destinations = self.get_destinations(application_id, p)
             d = destinations[0]
 
             ack = AckMessage(
@@ -266,7 +272,7 @@ class PayProc:
 
             self.ack(p.session_id, ack)
 
-            self.tx_storage.create(self.txid, p.session_id, device, p, ack),
+            self.tx_storage.create(self.txid, p.session_id, application_id, p, ack),
 
             self.txid = self.txid + 1
 
