@@ -319,9 +319,9 @@ class PayProc:
                                   url=None
                                   )
 
-            state.ack = new_ack
             state.payment_message = payment_message
-
+            state.ack = new_ack
+            
             self.ack(session_id, new_ack)
 
             if self.on_processed_payment:
