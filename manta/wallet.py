@@ -122,10 +122,11 @@ class Wallet:
         result = await asyncio.wait_for(self.payment_request_future, 3)
         return result
 
-    def send_payment(self, transaction_hash: str, crypto_currency: str):
+    async def send_payment(self, transaction_hash: str, crypto_currency: str):
+        await self.connect()
         message = PaymentMessage(
             transaction_hash=transaction_hash,
             crypto_currency=crypto_currency
         )
         self.mqtt_client.subscribe("acks/{}".format(self.session_id))
-        self.mqtt_client.publish("payments/{}".format(self.session_id), message.to_json())
+        self.mqtt_client.publish("payments/{}".format(self.session_id), message.to_json(), qos=1)

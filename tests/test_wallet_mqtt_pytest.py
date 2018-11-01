@@ -63,7 +63,7 @@ class TestWallet:
         # noinspection PyUnresolvedReferences
         wallet = session_data.wallet
 
-        wallet.send_payment(crypto_currency="NANO", transaction_hash="myhash")
+        await wallet.send_payment(crypto_currency="NANO", transaction_hash="myhash")
         ack = await wallet.acks.get()
 
         assert Status.PENDING == ack.status

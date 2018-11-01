@@ -120,11 +120,11 @@ async def test_get_payment_request(mock_mqtt, payment_request, caplog):
     assert envelope.unpack() == payment_request.unpack()
     assert envelope.verify(CERTIFICATE)
 
-
-def test_send_payment(mock_mqtt):
+@pytest.mark.asyncio
+async def test_send_payment(mock_mqtt):
     wallet = Wallet.factory("manta://localhost:8000/123")
 
-    wallet.send_payment(transaction_hash="myhash", crypto_currency="nano")
+    await wallet.send_payment(transaction_hash="myhash", crypto_currency="nano")
 
     expected = PaymentMessage(
         transaction_hash="myhash",
@@ -132,7 +132,7 @@ def test_send_payment(mock_mqtt):
     )
 
     mock_mqtt.subscribe.assert_called_with("acks/123")
-    mock_mqtt.publish.assert_called_with("payments/123", JsonEqual(expected))
+    mock_mqtt.publish.assert_called_with("payments/123", JsonEqual(expected), qos=1)
 
 
 @pytest.mark.asyncio

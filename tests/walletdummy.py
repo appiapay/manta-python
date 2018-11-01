@@ -116,10 +116,10 @@ async def get_payment(url: str, nano_wallet: str = None, account: str = None, ca
                              destination=pr.destinations[0].destination_address,
                              amount=amount)
 
-            wallet.send_payment(transaction_hash=block, crypto_currency='NANO')
+            await wallet.send_payment(transaction_hash=block, crypto_currency='NANO')
 
     else:
-        wallet.send_payment("myhash", pr.destinations[0].crypto_currency)
+        await wallet.send_payment("myhash", pr.destinations[0].crypto_currency)
 
     ack = await wallet.acks.get()
     print(ack)
