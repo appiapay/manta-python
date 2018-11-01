@@ -311,6 +311,20 @@ def test_payment_message(mock_mqtt, payproc):
     mock_mqtt.publish.assert_called_with('acks/1423', JsonEqual(ack))
 
 
+def test_confirming(mock_mqtt, payproc):
+    test_payment_message(mock_mqtt, payproc)
+    payproc.confirming("1423")
+
+    ack = AckMessage(
+        txid="0",
+        status=Status.CONFIRMING,
+        transaction_hash="myhash",
+        transaction_currency="NANO"
+    )
+
+    mock_mqtt.publish.assert_called_with('acks/1423', JsonEqual(ack))
+
+
 def test_confirm(mock_mqtt, payproc):
     test_payment_message(mock_mqtt, payproc)
     payproc.confirm("1423")

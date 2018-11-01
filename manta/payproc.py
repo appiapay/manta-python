@@ -321,7 +321,7 @@ class PayProc:
 
             state.payment_message = payment_message
             state.ack = new_ack
-            
+
             self.ack(session_id, new_ack)
 
             if self.on_processed_payment:
@@ -341,6 +341,15 @@ class PayProc:
         logger.info("Publishing ack for {} as {}".format(session_id, ack.status.value))
 
         self.mqtt_client.publish('acks/{}'.format(session_id), ack.to_json())
+
+    def confirming(self, session_id: str):
+        if self.tx_storage.session_exists(session_id):
+            state = self.tx_storage.get_state_for_session(session_id)
+
+            new_ack = attr.evolve(state.ack, status=Status.CONFIRMING)
+
+            state.ack = new_ack
+            self.ack(session_id, new_ack)
 
     def confirm(self, session_id: str):
 
