@@ -1,0 +1,1 @@
+MANTA_VERSION = '1.6'

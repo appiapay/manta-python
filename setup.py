@@ -1,8 +1,9 @@
-from distutils.core import setup
+from setuptools import setup
+from manta import MANTA_VERSION
 
 setup(
     name='manta',
-    version='1.4',
+    version=MANTA_VERSION,
     packages=['manta'],
     url='',
     license='',

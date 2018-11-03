@@ -15,6 +15,7 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
 from decimal import Decimal
+from manta import MANTA_VERSION
 
 
 class Status(Enum):
@@ -29,12 +30,28 @@ class Status(Enum):
     CANCELED = "canceled"  #: Order has been canceled
 
 
-
 T = TypeVar('T', bound='Message')
+
+
+def drop_nonattrs(d: dict, type_: type) -> dict:
+    """gets rid of all members of the dictionary that wouldn't fit in the given 'attrs' Type"""
+    attrs_attrs = getattr(type_, '__attrs_attrs__', None)
+    if attrs_attrs is None:
+        raise ValueError(f'type {type_} is not an attrs class')
+
+    attrs: Set[str] = {attr.name for attr in attrs_attrs}
+    # attrs: Set[str] = {attr.name for attr in attrs_attrs if attr.init is True}
+
+    return {key: val for key, val in d.items() if key in attrs}
+
+
+def structure_ignore_extras(d: dict, Type: type):
+    return cattr.structure(drop_nonattrs(d, Type), Type)
 
 
 @attr.s
 class Message:
+
     def unstructure(self):
         cattr.register_unstructure_hook(Decimal, lambda d: str(d))
         return cattr.unstructure(self)
@@ -47,7 +64,11 @@ class Message:
     def from_json(cls: Type[T], json_str: str) -> T:
         d = json.loads(json_str)
         cattr.register_structure_hook(Decimal, lambda d, t: Decimal(d))
-        return cattr.structure(d, cls)
+
+        if 'version' not in d:
+            d['version'] = ''
+
+        return structure_ignore_extras(d, cls)
 
 
 @attr.s(auto_attribs=True)
@@ -62,12 +83,15 @@ class MerchantOrderRequestMessage(Message):
         fiat_currency: fiat currency
         session_id: random uuid base64 safe
         crypto_currency: None for manta protocol. Specified for legacy
+        version: Manta protocol version
+
     """
 
     amount: Decimal
     session_id: str
     fiat_currency: str
     crypto_currency: Optional[str] = None
+    version: Optional[str] = MANTA_VERSION
 
 
 @attr.s(auto_attribs=True)
@@ -86,6 +110,7 @@ class AckMessage(Message):
         amount: amount in crypto currency. Used in NEW
         transaction_hash: hash of transaction. After PENDING
         memo: extra text field
+        version: Manta protocol version
     """
     txid: str
     status: Status
@@ -94,6 +119,7 @@ class AckMessage(Message):
     transaction_hash: Optional[str] = None
     transaction_currency: Optional[str] = None
     memo: Optional[str] = None
+    version: Optional[str] = MANTA_VERSION
 
 
 @attr.s(auto_attribs=True)
@@ -112,7 +138,7 @@ class Destination(Message):
 
 
 @attr.s(auto_attribs=True)
-class Merchant:
+class Merchant(Message):
     """
     Merchant
 
@@ -151,7 +177,8 @@ class PaymentRequestMessage(Message):
         json_message = self.to_json()
         signature = base64.b64encode(key.sign(json_message.encode('utf-8'), padding.PKCS1v15(), hashes.SHA256()))
 
-        return PaymentRequestEnvelope(json_message, signature.decode('utf-8'))
+        return PaymentRequestEnvelope(message=json_message,
+                                      signature=signature.decode('utf-8'))
 
 
 @attr.s(auto_attribs=True)
@@ -166,9 +193,11 @@ class PaymentRequestEnvelope(Message):
     Args:
         message: message as json string
         signature: PKCS#1 v1.5 signature
+        version: Manta protocol version
     """
     message: str
     signature: str
+    version: Optional[str] = MANTA_VERSION
 
     def unpack(self) -> PaymentRequestMessage:
         pr = PaymentRequestMessage.from_json(self.message)
@@ -208,14 +237,15 @@ class PaymentMessage(Message):
     Args:
         crypto_currency: crypto currency used for payment
         transaction_hash: hash of transaction
+        version: Manta protocol version
 
     """
     crypto_currency: str
     transaction_hash: str
+    version: Optional[str] = MANTA_VERSION
 
 
 def verify_chain(certificate: Union[str, x509.Certificate], ca: str):
-
     if isinstance(certificate, x509.Certificate):
         pem = certificate.public_bytes(serialization.Encoding.PEM)
     else:
