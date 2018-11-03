@@ -12,7 +12,7 @@ from manta.wallet import Wallet
 
 pytest.register_assert_rewrite("tests.utils")
 # noinspection PyUnresolvedReferences
-from tests.utils import mock_mqtt, JsonEqual
+from tests.utils import mock_mqtt, JsonContains
 
 DESTINATIONS = [
     Destination(
@@ -132,7 +132,7 @@ async def test_send_payment(mock_mqtt):
     )
 
     mock_mqtt.subscribe.assert_called_with("acks/123")
-    mock_mqtt.publish.assert_called_with("payments/123", JsonEqual(expected), qos=1)
+    mock_mqtt.publish.assert_called_with("payments/123", JsonContains(expected), qos=1)
 
 
 @pytest.mark.asyncio

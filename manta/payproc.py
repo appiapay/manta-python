@@ -238,7 +238,8 @@ class PayProc:
 
         logger.info("Processing merchant_order message")
 
-        p = MerchantOrderRequestMessage(**json.loads(payload))
+        # p = MerchantOrderRequestMessage(**json.loads(payload))
+        p = MerchantOrderRequestMessage.from_json(payload)
 
         ack: AckMessage = None
 
@@ -389,6 +390,7 @@ class PayProc:
         json_message = message.to_json()
         signature = self.sign(json_message.encode('utf-8')).decode('utf-8')
 
-        payment_request_envelope = PaymentRequestEnvelope(json_message, signature)
+        payment_request_envelope = PaymentRequestEnvelope(
+            message=json_message, signature=signature)
 
         return payment_request_envelope

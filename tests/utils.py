@@ -1,3 +1,6 @@
+import difflib
+import pprint
+
 import pytest
 import cattr
 from unittest.mock import MagicMock
@@ -27,7 +30,13 @@ class MQTTMessage(NamedTuple):
     payload: any
 
 
-class JsonEqual(Matcher):
+def compare_dicts(d1, d2):
+    return ('\n' + '\n'.join(difflib.ndiff(
+        pprint.pformat(d1).splitlines(),
+        pprint.pformat(d2).splitlines())))
+
+
+class JsonContains(Matcher):
     obj: Dict
 
     def __init__(self, d):
@@ -38,7 +47,9 @@ class JsonEqual(Matcher):
 
     def match(self, value):
         actual = json.loads(value)
-        assert self.obj == actual
+        # check if subset
+        assert self.obj.items() <= actual.items(), compare_dicts(self.obj, actual)
+        # assert self.obj == actual
         return True
 
 

@@ -8,10 +8,9 @@ from manta.messages import Destination, MerchantOrderRequestMessage, PaymentRequ
     PaymentMessage, AckMessage, Status, Merchant
 from manta.payproc import PayProc, TXStorageMemory
 
-pytest.register_assert_rewrite("tests.utils")
-from tests.utils import mock_mqtt, JsonEqual
+# pytest.register_assert_rewrite("tests.utils")
+from tests.utils import mock_mqtt, JsonContains
 from decimal import Decimal
-
 
 PRIV_KEY_DATA = b'''\
 -----BEGIN RSA PRIVATE KEY-----
@@ -115,13 +114,13 @@ def payproc():
 def test_key_from_keydata():
     key = PayProc.key_from_keydata(PRIV_KEY_DATA)
     assert PRIV_KEY_DATA == key.private_bytes(encoding=serialization.Encoding.PEM,
-                                            format=serialization.PrivateFormat.TraditionalOpenSSL,
-                                            encryption_algorithm=serialization.NoEncryption())
+                                              format=serialization.PrivateFormat.TraditionalOpenSSL,
+                                              encryption_algorithm=serialization.NoEncryption())
 
 
 def test_sign():
     pp = PayProc(KEY_FILENAME)
-    print (pp.sign(b"Hello"))
+    print(pp.sign(b"Hello"))
     assert HELLO_SIGNED == pp.sign(b"Hello")
 
 
@@ -174,7 +173,30 @@ def test_receive_merchant_order_request(mock_mqtt, payproc):
 
     mock_mqtt.push("merchant_order_request/device1", request.to_json())
 
-    mock_mqtt.publish.assert_any_call('acks/1423', JsonEqual(expected))
+    mock_mqtt.publish.assert_any_call('acks/1423', JsonContains(expected))
+    mock_mqtt.subscribe.assert_any_call('payments/1423')
+    mock_mqtt.subscribe.assert_any_call('payment_requests/1423/+')
+
+
+def test_receive_merchant_order_request_unkwnown_field(mock_mqtt, payproc):
+    request = MerchantOrderRequestMessage(
+        amount=Decimal("1000"),
+        session_id='1423',
+        fiat_currency='eur'
+    )
+
+    expected = AckMessage(
+        txid="0",
+        url="manta://localhost/1423",
+        status=Status.NEW
+    )
+
+    request_json = request.unstructure()
+    request_json['extra_field'] = 'extra'
+
+    mock_mqtt.push("merchant_order_request/device1", json.dumps(request_json))
+
+    mock_mqtt.publish.assert_any_call('acks/1423', JsonContains(expected))
     mock_mqtt.subscribe.assert_any_call('payments/1423')
     mock_mqtt.subscribe.assert_any_call('payment_requests/1423/+')
 
@@ -195,7 +217,7 @@ def test_receive_merchant_order_request_empty_string(mock_mqtt, payproc):
 
     mock_mqtt.push("merchant_order_request/device1", request.to_json())
 
-    mock_mqtt.publish.assert_any_call('acks/1423', JsonEqual(expected))
+    mock_mqtt.publish.assert_any_call('acks/1423', JsonContains(expected))
     mock_mqtt.subscribe.assert_any_call('payments/1423')
 
 
@@ -211,7 +233,7 @@ def test_receive_merchant_cancel_order(mock_mqtt, payproc):
         memo='Canceled by Merchant'
     )
 
-    mock_mqtt.publish.assert_called_with('acks/1423', JsonEqual(expected))
+    mock_mqtt.publish.assert_called_with('acks/1423', JsonContains(expected))
 
 
 def test_receive_merchant_order_request_legacy(mock_mqtt, payproc):
@@ -229,7 +251,7 @@ def test_receive_merchant_order_request_legacy(mock_mqtt, payproc):
     )
 
     mock_mqtt.push("merchant_order_request/device1", request.to_json())
-    mock_mqtt.publish.assert_any_call("acks/1423", JsonEqual(expected))
+    mock_mqtt.publish.assert_any_call("acks/1423", JsonContains(expected))
 
 
 def test_get_payment_request(mock_mqtt, payproc):
@@ -308,7 +330,7 @@ def test_payment_message(mock_mqtt, payproc):
 
     mock_mqtt.push("payments/1423", message.to_json())
 
-    mock_mqtt.publish.assert_called_with('acks/1423', JsonEqual(ack))
+    mock_mqtt.publish.assert_called_with('acks/1423', JsonContains(ack))
 
 
 def test_confirming(mock_mqtt, payproc):
@@ -322,7 +344,7 @@ def test_confirming(mock_mqtt, payproc):
         transaction_currency="NANO"
     )
 
-    mock_mqtt.publish.assert_called_with('acks/1423', JsonEqual(ack))
+    mock_mqtt.publish.assert_called_with('acks/1423', JsonContains(ack))
 
 
 def test_confirm(mock_mqtt, payproc):
@@ -336,7 +358,7 @@ def test_confirm(mock_mqtt, payproc):
         transaction_currency="NANO"
     )
 
-    mock_mqtt.publish.assert_called_with('acks/1423', JsonEqual(ack))
+    mock_mqtt.publish.assert_called_with('acks/1423', JsonContains(ack))
 
 
 def test_invalidate(mock_mqtt, payproc):
@@ -351,7 +373,7 @@ def test_invalidate(mock_mqtt, payproc):
         memo="Timeout"
     )
 
-    mock_mqtt.publish.assert_called_with('acks/1423', JsonEqual(ack))
+    mock_mqtt.publish.assert_called_with('acks/1423', JsonContains(ack))
 
 
 @pytest.fixture()
@@ -409,5 +431,3 @@ class TestTXStorageMemory:
 
         assert 1 == len(tx_storage)
         assert Status.NEW == tx_storage.get_state_for_session("321").ack.status
-
-
