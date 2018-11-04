@@ -207,7 +207,7 @@ class PaymentRequestEnvelope(Message):
 
     Args:
         message: message as json string
-        signature: PKCS#1 v1.5 signature
+        signature: PKCS#1 v1.5 signature of the message field
         version: Manta protocol version
     """
     message: str
