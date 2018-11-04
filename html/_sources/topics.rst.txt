@@ -1,7 +1,9 @@
 TOPICS
 ======
+**Attention**: All topics below are meant to be lowercase,
+
 MERCHANT_ORDER_REQUEST/{APPLICATION_ID}
-----------------------------------
+---------------------------------------
 **APPLICATION_ID** unique POS identifier
 
 **PUBLISHERS** POS

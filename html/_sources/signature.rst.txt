@@ -1,0 +1,5 @@
+SIGNATURE
+=========
+Manta Payment Request Message are contained in a signed envelope.
+
+This provides

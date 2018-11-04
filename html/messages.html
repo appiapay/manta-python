@@ -40,7 +40,7 @@
 <h2>Ack<a class="headerlink" href="#ack" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="manta.messages.AckMessage">
-<em class="property">class </em><code class="descclassname">manta.messages.</code><code class="descname">AckMessage</code><span class="sig-paren">(</span><em>txid</em>, <em>status</em>, <em>url=None</em>, <em>amount=None</em>, <em>transaction_hash=None</em>, <em>transaction_currency=None</em>, <em>memo=None</em><span class="sig-paren">)</span><a class="headerlink" href="#manta.messages.AckMessage" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">manta.messages.</code><code class="descname">AckMessage</code><span class="sig-paren">(</span><em>txid</em>, <em>status</em>, <em>url=None</em>, <em>amount=None</em>, <em>transaction_hash=None</em>, <em>transaction_currency=None</em>, <em>memo=None</em>, <em>version='1.6'</em><span class="sig-paren">)</span><a class="headerlink" href="#manta.messages.AckMessage" title="Permalink to this definition">¶</a></dt>
 <dd><p>Ack Message</p>
 <p>Order progress message.</p>
 <p>Published by Merchant on ACKS/{SESSION_ID}</p>
@@ -55,6 +55,7 @@
 <li><strong>amount</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Decimal</span></code>]) – amount in crypto currency. Used in NEW</li>
 <li><strong>transaction_hash</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – hash of transaction. After PENDING</li>
 <li><strong>memo</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – extra text field</li>
+<li><strong>version</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – Manta protocol version</li>
 </ul>
 </td>
 </tr>
@@ -109,7 +110,7 @@
 <h2>Merchant Order Request<a class="headerlink" href="#merchant-order-request" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="manta.messages.MerchantOrderRequestMessage">
-<em class="property">class </em><code class="descclassname">manta.messages.</code><code class="descname">MerchantOrderRequestMessage</code><span class="sig-paren">(</span><em>amount</em>, <em>session_id</em>, <em>fiat_currency</em>, <em>crypto_currency=None</em><span class="sig-paren">)</span><a class="headerlink" href="#manta.messages.MerchantOrderRequestMessage" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">manta.messages.</code><code class="descname">MerchantOrderRequestMessage</code><span class="sig-paren">(</span><em>amount</em>, <em>session_id</em>, <em>fiat_currency</em>, <em>crypto_currency=None</em>, <em>version='1.6'</em><span class="sig-paren">)</span><a class="headerlink" href="#manta.messages.MerchantOrderRequestMessage" title="Permalink to this definition">¶</a></dt>
 <dd><p>Merchant Order Request</p>
 <p>Published by Merchant on MERCHANT_ORDER_REQUEST..</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -121,6 +122,7 @@
 <li><strong>fiat_currency</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – fiat currency</li>
 <li><strong>session_id</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – random uuid base64 safe</li>
 <li><strong>crypto_currency</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – None for manta protocol. Specified for legacy</li>
+<li><strong>version</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – Manta protocol version</li>
 </ul>
 </td>
 </tr>
@@ -191,7 +193,7 @@
 
 <dl class="class">
 <dt id="manta.messages.PaymentRequestEnvelope">
-<em class="property">class </em><code class="descclassname">manta.messages.</code><code class="descname">PaymentRequestEnvelope</code><span class="sig-paren">(</span><em>message</em>, <em>signature</em><span class="sig-paren">)</span><a class="headerlink" href="#manta.messages.PaymentRequestEnvelope" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">manta.messages.</code><code class="descname">PaymentRequestEnvelope</code><span class="sig-paren">(</span><em>message</em>, <em>signature</em>, <em>version='1.6'</em><span class="sig-paren">)</span><a class="headerlink" href="#manta.messages.PaymentRequestEnvelope" title="Permalink to this definition">¶</a></dt>
 <dd><p>Payment Request Envelope</p>
 <p>Envelope with Payment Request message and signature</p>
 <p>Published to Payment Processor on payment_requests/{session_id}</p>
@@ -201,7 +203,8 @@
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>message</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – message as json string</li>
-<li><strong>signature</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – PKCS#1 v1.5 signature</li>
+<li><strong>signature</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – PKCS#1 v1.5 signature of the message field</li>
+<li><strong>version</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – Manta protocol version</li>
 </ul>
 </td>
 </tr>
@@ -214,7 +217,7 @@
 <h2>Payment<a class="headerlink" href="#payment" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="manta.messages.PaymentMessage">
-<em class="property">class </em><code class="descclassname">manta.messages.</code><code class="descname">PaymentMessage</code><span class="sig-paren">(</span><em>crypto_currency</em>, <em>transaction_hash</em><span class="sig-paren">)</span><a class="headerlink" href="#manta.messages.PaymentMessage" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">manta.messages.</code><code class="descname">PaymentMessage</code><span class="sig-paren">(</span><em>crypto_currency</em>, <em>transaction_hash</em>, <em>version='1.6'</em><span class="sig-paren">)</span><a class="headerlink" href="#manta.messages.PaymentMessage" title="Permalink to this definition">¶</a></dt>
 <dd><p>Payment Message</p>
 <p>Published by wallet on payments/{session_id}</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -224,6 +227,7 @@
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>crypto_currency</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – crypto currency used for payment</li>
 <li><strong>transaction_hash</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – hash of transaction</li>
+<li><strong>version</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – Manta protocol version</li>
 </ul>
 </td>
 </tr>
