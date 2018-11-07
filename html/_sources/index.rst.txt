@@ -1,13 +1,12 @@
-Welcome to Manta Protocol's documentation!
+Welcome to Manta Python Documentation!
 ==========================================
 
 ..  toctree::
-    :maxdepth: 2
+    :maxdepth: 3
     :caption: Contents:
 
-    flow
-    messages
-    topics
+    protocol
+    api
 
 
 

@@ -1,0 +1,16 @@
+PayProc
+-------
+
+PayProc library has been created to facilitate implementation of a Manta Payment Processor service.
+
+An example using the class is the payprocdummy.py in tests folder.
+
+Initialization of PayProc class:
+
+.. code-block:: python
+
+    pp = PayProc(KEYFILE, host="localhost")
+    pp.get_merchant = lambda x: MERCHANT
+    pp.get_destinations = get_destinations
+    pp.get_supported_cryptos = lambda device, payment_request: {'btc', 'xmr', 'nano'}
+

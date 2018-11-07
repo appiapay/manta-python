@@ -1,0 +1,289 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>FLOW &mdash; manta  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="MESSAGES" href="messages.html" />
+    <link rel="prev" title="Manta Protocol" href="../protocol.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> manta
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../protocol.html">Manta Protocol</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">FLOW</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pos">POS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#payment-processor">Payment Processor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#manta-enabled-wallet">Manta enabled wallet</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="messages.html">MESSAGES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="signature.html">SIGNATURE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topics.html">TOPICS</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">manta</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../protocol.html">Manta Protocol</a> &raquo;</li>
+        
+      <li>FLOW</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/protocol/flow.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="flow">
+<h1>FLOW<a class="headerlink" href="#flow" title="Permalink to this headline">¶</a></h1>
+<p>Flow is initiated by POS.</p>
+<div class="section" id="pos">
+<h2>POS<a class="headerlink" href="#pos" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p class="first">POS generates a random SESSION_ID</p>
+</li>
+<li><p class="first">POS <em>subscribe</em> to <strong>ACKS/{SESSION_ID}</strong></p>
+</li>
+<li><p class="first">POS create a <strong>MERCHANT_ORDER_REQUEST_MESSAGE</strong> and <em>publish</em> on <strong>MERCHANT_ORDER_REQUEST/{APPLICATION_ID}</strong></p>
+<p>crypto_currency should be empty if customer wants to pay with Manta</p>
+</li>
+<li><p class="first">POS receives <strong>ACK_MESSAGE</strong> with status == “new”</p>
+<p>POS can create QR/NDEF Message with URL data</p>
+</li>
+<li><p class="first">POS will receive ACK messages as payment change status. With <em>paid</em> status transaction is finished</p>
+</li>
+</ol>
+</div>
+<div class="section" id="payment-processor">
+<h2>Payment Processor<a class="headerlink" href="#payment-processor" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p class="first">Subscribes to <strong>MERCHANT_ORDER_REQUEST/+</strong></p>
+</li>
+<li><p class="first">On message <strong>MERCHANT_ORDER_REQUEST/{APPLICATION_ID}</strong></p>
+<p>Generate <strong>ACK_MESSAGE</strong> with “new” status.
+URL is manta format if crypto_currency is null (manta protocol), otherwise URL will be crypto_currency legacy format</p>
+<p><em>publish</em> on <strong>ACKS/{SESSION_ID}</strong></p>
+<p>If manta protocol:</p>
+<p>Subscribes to <strong>PAYMENTS/{SESSION_ID}/+</strong></p>
+</li>
+<li><p class="first">On message <strong>PAYMENT_REQUEST_MESSAGE/{SESSION_ID}/{CRYPTO_CURRENCY}</strong></p>
+<p>Creates a new <strong>PAYMENT_REQUEST_MESSAGE</strong> and publish on <strong>PAYMENT_REQUESTS/{SESSION_ID}</strong> with retention</p>
+<p>CRYPTO_CURRENCY can be “all” to request multiple cryptos</p>
+<p>Destination should be specific to {CRYPTO_CURRENCY}</p>
+</li>
+<li><p class="first">On message <strong>PAYMENTS/{SESSION_ID}</strong></p>
+<p>Starts monitoring blockchain and on progress publish <strong>ACK_MESSAGE</strong> on <strong>ACKS/{SESSION_ID}</strong></p>
+</li>
+</ol>
+</div>
+<div class="section" id="manta-enabled-wallet">
+<h2>Manta enabled wallet<a class="headerlink" href="#manta-enabled-wallet" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p class="first">After receiving QR/NFC manta</p>
+<p><em>Subscribe</em> to <strong>PAYMENT_REQUESTS/{SESSION_ID}</strong></p>
+</li>
+<li><p class="first"><em>Publish</em> on <strong>PAYMENT_REQUEST/{SESSION_ID}/{CRYPTO_CURRENCY}</strong></p>
+<p>CRYPTO_CURRENCY can be “all” to request multiple cryptos</p>
+</li>
+<li><p class="first">On <strong>PAYMENT_REQUEST_MESSAGE</strong>
+If <em>destinations</em> does not contain desired crypto, check <em>supported_cryptos</em> and eventually go back to 2)</p>
+</li>
+<li><p class="first">Verify PAYMENT_REQUEST_MESSAGE signature</p>
+</li>
+<li><p class="first">After payment on blockchain <em>publish</em> <strong>PAYMENT_MESSAGE</strong> on <strong>PAYMENTS/{SESSION_ID}</strong></p>
+</li>
+<li><p class="first">Subscribe to <strong>ACKS/{SESSION_ID}</strong></p>
+</li>
+</ol>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="messages.html" class="btn btn-neutral float-right" title="MESSAGES" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../protocol.html" class="btn btn-neutral" title="Manta Protocol" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Alessandro Viganò
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  <script src="../_static/js/scrollspy.js"></script> 
+
+</body>
+</html>

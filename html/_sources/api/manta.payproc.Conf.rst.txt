@@ -1,0 +1,32 @@
+manta.payproc.Conf
+==================
+
+.. currentmodule:: manta.payproc
+
+.. autoclass:: Conf
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Conf.count
+      ~Conf.index
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Conf.key_file
+      ~Conf.nano_address
+      ~Conf.nano_euro
+      ~Conf.url
+   
+   

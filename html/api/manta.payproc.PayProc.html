@@ -1,0 +1,355 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>manta.payproc.PayProc &mdash; manta  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="manta.payproc.TXStorage" href="manta.payproc.TXStorage.html" />
+    <link rel="prev" title="manta.payproc" href="manta.payproc.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> manta
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../protocol.html">Manta Protocol</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="manta.payproc.html">manta.payproc</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">manta.payproc.PayProc</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#reference">Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="manta.payproc.TXStorage.html">manta.payproc.TXStorage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="manta.payproc.TXStorageMemory.html">manta.payproc.TXStorageMemory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="manta.payproc.TransactionState.html">manta.payproc.TransactionState</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="manta.store.html">manta.store</a></li>
+<li class="toctree-l2"><a class="reference internal" href="manta.wallet.html">manta.wallet</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">manta</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../api.html">API</a> &raquo;</li>
+        
+          <li><a href="manta.payproc.html">manta.payproc</a> &raquo;</li>
+        
+      <li>manta.payproc.PayProc</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/manta.payproc.PayProc.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="manta-payproc-payproc">
+<h1>manta.payproc.PayProc<a class="headerlink" href="#manta-payproc-payproc" title="Permalink to this headline">¶</a></h1>
+<p>This class can be used to create a Manta Payment Processor.</p>
+<p>An example using the class is the payprocdummy.py in tests folder.</p>
+<p>Initialization of PayProc class:</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span></span> <span class="n">pp</span> <span class="o">=</span> <span class="n">PayProc</span><span class="p">(</span><span class="n">KEYFILE</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">)</span>
+ <span class="n">pp</span><span class="o">.</span><span class="n">get_merchant</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">MERCHANT</span>
+ <span class="n">pp</span><span class="o">.</span><span class="n">get_destinations</span> <span class="o">=</span> <span class="n">get_destinations</span>
+ <span class="n">pp</span><span class="o">.</span><span class="n">get_supported_cryptos</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">device</span><span class="p">,</span> <span class="n">payment_request</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;btc&#39;</span><span class="p">,</span> <span class="s1">&#39;xmr&#39;</span><span class="p">,</span> <span class="s1">&#39;nano&#39;</span><span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<p>Line 2 to line 4 defines the callbacks you need to implement.</p>
+<p>The class will callback to request information about which Merchant information to provide, which is the destination
+address, which supported cryptos.</p>
+<p>For example this is how get_destinations is defined in Payproc dummy</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">DESTINATIONS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">Destination</span><span class="p">(</span>
+        <span class="n">amount</span><span class="o">=</span><span class="n">Decimal</span><span class="p">(</span><span class="s2">&quot;0.01&quot;</span><span class="p">),</span>
+        <span class="n">destination_address</span><span class="o">=</span><span class="s2">&quot;xrb_3d1ab61eswzsgx5arwqc3gw8xjcsxd7a5egtr69jixa5it9yu9fzct9nyjyx&quot;</span><span class="p">,</span>
+        <span class="n">crypto_currency</span><span class="o">=</span><span class="s2">&quot;NANO&quot;</span>
+    <span class="p">),</span>
+
+<span class="p">]</span>
+
+<span class="k">def</span> <span class="nf">get_destinations</span><span class="p">(</span><span class="n">application_id</span><span class="p">,</span> <span class="n">merchant_order</span><span class="p">:</span> <span class="n">MerchantOrderRequestMessage</span><span class="p">):</span>
+ <span class="k">if</span> <span class="n">merchant_order</span><span class="o">.</span><span class="n">crypto_currency</span><span class="p">:</span>
+     <span class="n">destination</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">DESTINATIONS</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">crypto_currency</span> <span class="o">==</span> <span class="n">merchant_order</span><span class="o">.</span><span class="n">crypto_currency</span><span class="p">)</span>
+     <span class="k">return</span> <span class="p">[</span><span class="n">destination</span><span class="p">]</span>
+ <span class="k">else</span><span class="p">:</span>
+     <span class="k">return</span> <span class="n">DESTINATIONS</span>
+</pre></div>
+</div>
+<p>Finally you need to start the main loop (running in another thread):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pp</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="section" id="reference">
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="manta.payproc.PayProc">
+<em class="property">class </em><code class="descclassname">manta.payproc.</code><code class="descname">PayProc</code><span class="sig-paren">(</span><em>key_file</em>, <em>cert_file=None</em>, <em>host='localhost'</em>, <em>starting_txid=0</em>, <em>tx_storage=None</em>, <em>mqtt_options=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/payproc.html#PayProc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.payproc.PayProc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Manta Protocol Payment Processor Implementation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>key_file</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – File name of PEM private key of Payment Processor. This will be used to sign messages</li>
+<li><strong>certificate</strong> – File name of Manta Certificate Authority, IE Appia</li>
+<li><strong>host</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – MQTT Broker host</li>
+<li><strong>starting_txid</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – Transaction ID are progressive, starting from the one specified</li>
+<li><strong>tx_storage</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<a class="reference internal" href="manta.payproc.TXStorage.html#manta.payproc.TXStorage" title="manta.payproc.TXStorage"><code class="xref py py-class docutils literal notranslate"><span class="pre">TXStorage</span></code></a>]) – TXStorage instance to store session information</li>
+<li><strong>mqtt_options</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, &lt;built-in function any&gt;]]) – A Dict of options to be passed to MQTT Client (like username, password)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><ul class="first last simple">
+<li><strong>get_destinations</strong> – Callback function to retrieve list of Destination</li>
+<li><strong>get_supported_cryptos</strong> – Callback function to retrieve list of supported cryptos</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="manta.payproc.PayProc.confirm">
+<code class="descname">confirm</code><span class="sig-paren">(</span><em>session_id</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/payproc.html#PayProc.confirm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.payproc.PayProc.confirm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the status of session_id to PAID and send the ack</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>session_id</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – session to change</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="manta.payproc.PayProc.confirming">
+<code class="descname">confirming</code><span class="sig-paren">(</span><em>session_id</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/payproc.html#PayProc.confirming"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.payproc.PayProc.confirming" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the status of session_id to CONFIRMING and send the ack</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>session_id</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – session to change</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="manta.payproc.PayProc.invalidate">
+<code class="descname">invalidate</code><span class="sig-paren">(</span><em>session_id</em>, <em>reason=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/payproc.html#PayProc.invalidate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.payproc.PayProc.invalidate" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div>Change the status of session_id to INVALID and send the ack</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>session_id</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – session to change</li>
+<li><strong>reason</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – reason for INVALID (ex. ‘Timeout’)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="manta.payproc.PayProc.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/payproc.html#PayProc.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.payproc.PayProc.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start processing network requests</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="manta.payproc.TXStorage.html" class="btn btn-neutral float-right" title="manta.payproc.TXStorage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="manta.payproc.html" class="btn btn-neutral" title="manta.payproc" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Alessandro Viganò
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  <script src="../_static/js/scrollspy.js"></script> 
+
+</body>
+</html>

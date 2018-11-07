@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Search &mdash; manta  documentation</title>
+  <title>PayProc &mdash; manta  documentation</title>
   
 
   
@@ -27,7 +27,7 @@
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="#" /> 
+    <link rel="search" title="Search" href="search.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -59,7 +59,7 @@
 
           
 <div role="search">
-  <form id="rtd-search-form" class="wy-form" action="#" method="get">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
@@ -125,12 +125,14 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Search</li>
+      <li>PayProc</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
+            <a href="_sources/payproc.rst.txt" rel="nofollow"> View page source</a>
+          
         
       </li>
     
@@ -142,19 +144,19 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <noscript>
-  <div id="fallback" class="admonition warning">
-    <p class="last">
-      Please activate JavaScript to enable the search
-      functionality.
-    </p>
-  </div>
-  </noscript>
+  <div class="section" id="payproc">
+<h1>PayProc<a class="headerlink" href="#payproc" title="Permalink to this headline">¶</a></h1>
+<p>PayProc library has been created to facilitate implementation of a Manta Payment Processor service.</p>
+<p>An example using the class is the payprocdummy.py in tests folder.</p>
+<p>Initialization of PayProc class:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pp</span> <span class="o">=</span> <span class="n">PayProc</span><span class="p">(</span><span class="n">KEYFILE</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">)</span>
+<span class="n">pp</span><span class="o">.</span><span class="n">get_merchant</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">MERCHANT</span>
+<span class="n">pp</span><span class="o">.</span><span class="n">get_destinations</span> <span class="o">=</span> <span class="n">get_destinations</span>
+<span class="n">pp</span><span class="o">.</span><span class="n">get_supported_cryptos</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">device</span><span class="p">,</span> <span class="n">payment_request</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;btc&#39;</span><span class="p">,</span> <span class="s1">&#39;xmr&#39;</span><span class="p">,</span> <span class="s1">&#39;nano&#39;</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
 
-  
-  <div id="search-results">
-  
-  </div>
 
            </div>
            
@@ -194,7 +196,6 @@
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
         <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-        <script type="text/javascript" src="_static/searchtools.js"></script>
     
 
   
@@ -207,14 +208,7 @@
       });
   </script>
 
-  <script src="_static/js/scrollspy.js"></script>
-  <script type="text/javascript">
-    jQuery(function() { Search.loadIndex("searchindex.js"); });
-  </script>
-  
-  <script type="text/javascript" id="searchindexloader"></script>
-   
-
+  <script src="_static/js/scrollspy.js"></script> 
 
 </body>
 </html>
