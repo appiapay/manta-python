@@ -82,7 +82,7 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../protocol.html">Manta Protocol</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">FLOW</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#pos">POS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#merchant">Merchant</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#payment-processor">Payment Processor</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#manta-enabled-wallet">Manta enabled wallet</a></li>
 </ul>
@@ -160,21 +160,25 @@
             
   <div class="section" id="flow">
 <h1>FLOW<a class="headerlink" href="#flow" title="Permalink to this headline">¶</a></h1>
-<p>Flow is initiated by POS.</p>
-<div class="section" id="pos">
-<h2>POS<a class="headerlink" href="#pos" title="Permalink to this headline">¶</a></h2>
+<p>Flow is initiated by Merchant.</p>
+<div class="figure" id="id1">
+<img alt="../_images/manta-protocol-full.svg" src="../_images/manta-protocol-full.svg" /><p class="caption"><span class="caption-text">Detailed Manta Protocol flow</span></p>
+</div>
+<p>You can <a href="../_images/manta-protocol-full.svg" target="_blank">Open diagram in new window</a>.</p>
+<div class="section" id="merchant">
+<h2>Merchant<a class="headerlink" href="#merchant" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
-<li><p class="first">POS generates a random SESSION_ID</p>
+<li><p class="first">Merchant generates a random SESSION_ID</p>
 </li>
-<li><p class="first">POS <em>subscribe</em> to <strong>ACKS/{SESSION_ID}</strong></p>
+<li><p class="first">Merchant <em>subscribe</em> to <strong>ACKS/{SESSION_ID}</strong></p>
 </li>
-<li><p class="first">POS create a <strong>MERCHANT_ORDER_REQUEST_MESSAGE</strong> and <em>publish</em> on <strong>MERCHANT_ORDER_REQUEST/{APPLICATION_ID}</strong></p>
+<li><p class="first">Merchant create a <strong>MERCHANT_ORDER_REQUEST_MESSAGE</strong> and <em>publish</em> on <strong>MERCHANT_ORDER_REQUEST/{APPLICATION_ID}</strong></p>
 <p>crypto_currency should be empty if customer wants to pay with Manta</p>
 </li>
-<li><p class="first">POS receives <strong>ACK_MESSAGE</strong> with status == “new”</p>
-<p>POS can create QR/NDEF Message with URL data</p>
+<li><p class="first">Merchant receives <strong>ACK_MESSAGE</strong> with status == “new”</p>
+<p>Merchant can create QR/NDEF Message with URL data</p>
 </li>
-<li><p class="first">POS will receive ACK messages as payment change status. With <em>paid</em> status transaction is finished</p>
+<li><p class="first">Merchant will receive ACK messages as payment change status. With <em>paid</em> status transaction is finished</p>
 </li>
 </ol>
 </div>

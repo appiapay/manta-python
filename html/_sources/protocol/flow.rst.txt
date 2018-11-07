@@ -1,22 +1,32 @@
 FLOW
 ====
-Flow is initiated by POS.
+Flow is initiated by Merchant.
 
-POS
----
-1.  POS generates a random SESSION_ID
+.. figure:: ../images/manta-protocol-full.svg
 
-2.  POS *subscribe* to **ACKS/{SESSION_ID}**
+   Detailed Manta Protocol flow
 
-3.  POS create a **MERCHANT_ORDER_REQUEST_MESSAGE** and *publish* on **MERCHANT_ORDER_REQUEST/{APPLICATION_ID}**
+You can |location_link|.
+
+.. |location_link| raw:: html
+
+   <a href="../_images/manta-protocol-full.svg" target="_blank">Open diagram in new window</a>
+
+Merchant
+--------
+1.  Merchant generates a random SESSION_ID
+
+2.  Merchant *subscribe* to **ACKS/{SESSION_ID}**
+
+3.  Merchant create a **MERCHANT_ORDER_REQUEST_MESSAGE** and *publish* on **MERCHANT_ORDER_REQUEST/{APPLICATION_ID}**
 
     crypto_currency should be empty if customer wants to pay with Manta
 
-4.  POS receives **ACK_MESSAGE** with status == "new"
+4.  Merchant receives **ACK_MESSAGE** with status == "new"
 
-    POS can create QR/NDEF Message with URL data
+    Merchant can create QR/NDEF Message with URL data
 
-5.  POS will receive ACK messages as payment change status. With *paid* status transaction is finished
+5.  Merchant will receive ACK messages as payment change status. With *paid* status transaction is finished
 
 Payment Processor
 -----------------
