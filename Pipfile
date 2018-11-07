@@ -20,6 +20,7 @@ pytest-timeout = "*"
 sphinx = "*"
 sphinx-autodoc-typehints = {editable= true, git="https://github.com/agronholm/sphinx-autodoc-typehints.git"}
 sphinx-jsonschema = "*"
+sphinx_rtd_theme = "*"
 aiohttp-swagger = "*"
 nano-python = "*"
 coverage = "*"
