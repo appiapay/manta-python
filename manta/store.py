@@ -15,6 +15,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Library for implementing a Manta Pos
+"""
+
 from __future__ import annotations
 
 import asyncio
@@ -45,12 +49,25 @@ def wrap_callback(f):
 
 
 class Store:
+    """
+    Store Class for implement Manta POS
+
+    Args:
+        device_id: Device unique identifier of POS
+        host: Hostname of the Manta Broker
+        client_options: A Dict of options to be passed to MQTT Client (like username, password)
+
+    Attributes:
+        acks (asyncio.Queue): Queue of Acks messages. Wait for it to retrieve the first available message
+
+
+    """
     mqtt_client: mqtt.Client
     loop: asyncio.AbstractEventLoop
     connected: asyncio.Event
     device_id: str
     session_id: str = None
-    acks = asyncio.Queue
+    acks: asyncio.Queue
     first_connect = False
     subscriptions: List[str] = []
     host: str
@@ -122,6 +139,18 @@ class Store:
     #     return self.loop.run_until_complete(self.__generate_payment_request(amount, fiat, crypto))
 
     async def merchant_order_request(self, amount: Decimal, fiat: str, crypto: str = None) -> AckMessage:
+        """
+        Create a new Merchant Order
+
+        Args:
+            amount: Fiat Amount requested
+            fiat: Fiat Currency requested (ex. 'EUR')
+            crypto: Crypto Currency requested (ex. 'NANO')
+
+        Returns:
+            AckMessage with status 'NEW' if confirmed by Payment Processor or Timeout Exception
+
+        """
         await self.connect()
         self.clean()
         self.session_id = generate_session_id()

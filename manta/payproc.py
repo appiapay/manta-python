@@ -15,15 +15,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import annotations
+# from __future__ import annotations
+
+"""
+Library for implementing a Manta Payment Processor
+"""
 
 import base64
 import logging
 import traceback
 from dataclasses import dataclass
-from typing import NamedTuple, TYPE_CHECKING, Callable, List, Dict, Set, Optional
+from typing import NamedTuple, Callable, List, Dict, Set, Optional
 import paho.mqtt.client as mqtt
-import simplejson as json
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
@@ -37,10 +40,7 @@ from manta.messages import PaymentRequestMessage, MerchantOrderRequestMessage, P
 from abc import abstractmethod
 import attr
 
-# from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
-
-if TYPE_CHECKING:
-    from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
+from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +58,21 @@ class SessionDoesNotExist(Exception):
 
 @dataclass()
 class TransactionState:
+    # noinspection PyUnresolvedReferences
+    """
+        Transaction State represents state of a Transaction
+
+        Args:
+            txid: Transaction ID
+            session_id: Session ID of transaction
+            application: Application ID of transaction
+            order: Merchant order for transaction
+            payment_request: Last payment request of transaction
+            payment_message: Last payment message of transaction
+            ack: Last ack of transaction
+            wallet_request: Last wallet request of transaction
+            notify: callback to be called when attributes of transaction change
+        """
     txid: int
     session_id: str
     application: str
@@ -77,20 +92,61 @@ class TransactionState:
 
 
 class TXStorage:
+    """
+    Storage for Active Session Data of Transaction
+
+    This is an abstract class to be implemented in subclassing.
+    This is meant to be used with external storage like a database.
+    Payproc will use a memory TXStorage implementation by default, which is not persistent.
+
+    Transaction with status 'PAID' or 'INVALID' must not be present
+
+    """
     @abstractmethod
     def create(self, txid: int,
                session_id: str,
                application: str,
                order: MerchantOrderRequestMessage,
                ack: AckMessage = None) -> TransactionState:
+        """
+        Create a new transaction
+
+        Args:
+            txid: txid of Transaction
+            session_id: session_id of Transaction
+            application: application_id of Transaction
+            order: Merchant Order of Transaction
+            ack: First Ack Message (ie status=NEW)
+
+        Returns:
+
+        """
         pass
 
     @abstractmethod
     def get_state_for_session(self, session_id: str) -> TransactionState:
+        """
+        Get state for transaction with session_id
+
+        Args:
+            session_id: session_id of transaction
+
+        Returns: state of transaction
+
+        """
         pass
 
     @abstractmethod
     def session_exists(self, session_id: str) -> bool:
+        """
+        Check if session exist
+
+        Args:
+            session_id: session_id of transaction
+
+        Returns: true if session exist
+
+        """
         pass
 
     def __iter__(self):
@@ -105,6 +161,9 @@ class TXStorage:
 
 
 class TXStorageMemory(TXStorage):
+    """
+    Implmentation of TXStorage as memory storage
+    """
     states: Dict[str, TransactionState]
 
     def __init__(self):
@@ -156,6 +215,23 @@ def generate_crypto_legacy_url(crypto: str, address: str, amount: float) -> str:
 
 
 class PayProc:
+    # noinspection PyUnresolvedReferences
+    """
+        Manta Protocol Payment Processor Implementation
+
+        Args:
+            key_file: File name of PEM private key of Payment Processor. This will be used to sign messages
+            certificate: File name of Manta Certificate Authority, IE Appia
+            host: MQTT Broker host
+            starting_txid: Transaction ID are progressive, starting from the one specified
+            tx_storage: TXStorage instance to store session information
+            mqtt_options: A Dict of options to be passed to MQTT Client (like username, password)
+
+        Attributes:
+            get_destinations: Callback function to retrieve list of Destination
+            get_supported_cryptos: Callback function to retrieve list of supported cryptos
+        """
+
     mqtt_client: mqtt.Client
     host: str
     key: RSAPrivateKey
@@ -184,7 +260,7 @@ class PayProc:
     txid: int
 
     def __init__(self, key_file: str, cert_file: str=None, host: str = "localhost", starting_txid: int = 0,
-                 tx_storage: TXStorage = None, mqtt_options: Dict[str:any]= None) -> None:
+                 tx_storage: TXStorage = None, mqtt_options: Dict[str, any]= None) -> None:
 
         self.txid = starting_txid
         self.tx_storage = tx_storage if tx_storage is not None else TXStorageMemory()
@@ -208,6 +284,9 @@ class PayProc:
             self.certificate = ""
 
     def run(self):
+        """
+            Start processing network requests
+        """
         self.mqtt_client.connect(host=self.host)
         self.mqtt_client.loop_start()
 
@@ -361,6 +440,15 @@ class PayProc:
         self.mqtt_client.publish('acks/{}'.format(session_id), ack.to_json())
 
     def confirming(self, session_id: str):
+        """
+
+        Change the status of session_id to CONFIRMING and send the ack
+
+        Args:
+            session_id: session to change
+
+        """
+
         if self.tx_storage.session_exists(session_id):
             state = self.tx_storage.get_state_for_session(session_id)
 
@@ -370,6 +458,14 @@ class PayProc:
             self.ack(session_id, new_ack)
 
     def confirm(self, session_id: str):
+        """
+
+        Change the status of session_id to PAID and send the ack
+
+        Args:
+            session_id: session to change
+
+        """
 
         if self.tx_storage.session_exists(session_id):
             state = self.tx_storage.get_state_for_session(session_id)
@@ -383,6 +479,15 @@ class PayProc:
                 self.on_processed_confirmation(state.ack.txid, new_ack)
 
     def invalidate(self, session_id: str, reason: str=""):
+        """
+
+            Change the status of session_id to INVALID and send the ack
+
+        Args:
+            session_id: session to change
+            reason: reason for INVALID (ex. 'Timeout')
+        """
+
         if self.tx_storage.session_exists(session_id):
             state = self.tx_storage.get_state_for_session(session_id)
 

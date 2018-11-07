@@ -15,6 +15,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Library for implementing a Manta Wallet
+"""
+
 from __future__ import annotations
 
 import asyncio
@@ -40,6 +44,16 @@ def wrap_callback(f):
 
 
 class Wallet:
+    """
+    Class for creating a Manta Wallet
+
+    Instantiates using factory method
+
+    Parameters:
+        acks (asyncio.Queue): Queue for acks. Wait for it to retrieve the next ack message.
+
+    """
+
     mqtt_client: mqtt.Client
     loop: asyncio.AbstractEventLoop
     connected: asyncio.Event
@@ -53,6 +67,14 @@ class Wallet:
 
     @classmethod
     def factory(cls, url: str):
+        """
+        This creates a Wallet instance from a manta url. Can be none if url is invalid.
+        Args:
+            url: manta url (ex. manta://developer.beappia.com/2848839943)
+
+        Returns:
+
+        """
         match = cls.parse_url(url)
         if match:
             port = 1883 if match[2] is None else int(match[2])
@@ -110,6 +132,14 @@ class Wallet:
 
     @staticmethod
     def parse_url(url: str) -> Optional[re.Match]:
+        """
+        Convenience method to check if Manta url is valid
+        Args:
+            url: manta url (ex. manta://developer.beappia.com/2848839943)
+
+        Returns:
+            A match object
+        """
         # TODO: What is session format?
         pattern = "^manta:\\/\\/((?:\\w|\\.)+)(?::(\\d+))?\\/(.+)$"
         return re.match(pattern, url)
@@ -128,6 +158,16 @@ class Wallet:
         return x509.load_pem_x509_certificate(certificate, default_backend())
 
     async def get_payment_request(self, crypto_currency: str = "all") -> PaymentRequestEnvelope:
+        """
+        Get Payment Request for specific crypto currency, or 'all' crypto supported
+
+        Args:
+            crypto_currency: crypto to request payment for (ex. 'NANO')
+
+        Returns:
+            The Payment Request Envelope
+
+        """
         await self.connect()
 
         self.payment_request_future = self.loop.create_future()
@@ -140,6 +180,15 @@ class Wallet:
         return result
 
     async def send_payment(self, transaction_hash: str, crypto_currency: str):
+        """
+        Send payment info
+
+        Args:
+            transaction_hash: the hash of transaction sent to blockchain
+            crypto_currency: the crypto currency used for transaction
+
+
+        """
         await self.connect()
         message = PaymentMessage(
             transaction_hash=transaction_hash,

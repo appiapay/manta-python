@@ -18,11 +18,12 @@ callee = "*"
 pytest-asyncio = "*"
 pytest-timeout = "*"
 sphinx = "*"
-sphinx-autodoc-typehints = "*"
+sphinx-autodoc-typehints = {editable= true, git="https://github.com/agronholm/sphinx-autodoc-typehints.git"}
 sphinx-jsonschema = "*"
 aiohttp-swagger = "*"
 nano-python = "*"
 coverage = "*"
+sphinx-rtd-theme = "*"
 
 [requires]
 python_version = "3.7"

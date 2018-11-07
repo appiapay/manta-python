@@ -39,7 +39,7 @@ MERCHANT = Merchant(
 )
 
 
-def get_destinations(device, merchant_order: MerchantOrderRequestMessage):
+def get_destinations(application_id, merchant_order: MerchantOrderRequestMessage):
     if merchant_order.crypto_currency:
         destination = next(x for x in DESTINATIONS if x.crypto_currency == merchant_order.crypto_currency)
         return [destination]
