@@ -195,6 +195,12 @@ class PaymentRequestMessage(Message):
         return PaymentRequestEnvelope(message=json_message,
                                       signature=signature.decode('utf-8'))
 
+    def get_destination(self, crypto: str) -> Optional[Destination]:
+        try:
+            return next(d for d in self.destinations if d.crypto_currency == crypto)
+        except StopIteration:
+            return None
+
 
 @attr.s(auto_attribs=True)
 class PaymentRequestEnvelope(Message):
