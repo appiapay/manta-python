@@ -25,6 +25,7 @@ aiohttp-swagger = "*"
 nano-python = "*"
 coverage = "*"
 sphinx-rtd-theme = "*"
+inquirer = "*"
 
 [requires]
 python_version = "3.7"

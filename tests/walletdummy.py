@@ -16,6 +16,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import traceback
+from typing import Optional, List
+
 import nano
 import argparse
 import configparser
@@ -30,7 +32,8 @@ import os
 import sys
 import asyncio
 from concurrent.futures._base import TimeoutError
-from manta.messages import verify_chain
+from manta.messages import verify_chain, Destination
+import inquirer
 
 #sys.path.append('.')
 
@@ -73,8 +76,11 @@ def query_yes_no(question, default="yes"):
             sys.stdout.write("Please respond with 'yes' or 'no' "
                              "(or 'y' or 'n').\n")
 
-
-async def get_payment(url: str, nano_wallet: str = None, account: str = None, ca_certificate: str = None):
+async def get_payment(url: str,
+                      interactive: bool,
+                      nano_wallet: str = None,
+                      account: str = None,
+                      ca_certificate: str = None):
     wallet = Wallet.factory(url)
 
     try:
@@ -108,32 +114,49 @@ async def get_payment(url: str, nano_wallet: str = None, account: str = None, ca
 
     logger.info("Payment request: {}".format(pr))
 
-    if nano_wallet:
-        rpc = nano.rpc.Client(host="http://localhost:7076")
-        balance = rpc.account_balance(account=account)
-        print()
-        print("Actual balance: {}".format(
-            str(nano.convert(from_unit="raw", to_unit="XRB", value=balance['balance']))
-        ))
+    options = [x.crypto_currency for x in pr.destinations]
 
-        if not verified:
-            print("WARNING!!!! THIS IS NOT VERIFIED REQUEST")
+    questions = [ inquirer.List('crypto',
+                                message=' What crypto you want to pay with?',
+                                choices=options)]
 
-        if query_yes_no("Pay {} {} ({} {}) to {}".format(pr.destinations[0].amount,
-                                                         pr.destinations[0].crypto_currency,
-                                                         pr.amount,
-                                                         pr.fiat_currency,
-                                                         pr.merchant)):
-            amount = int(nano.convert(from_unit='XRB', to_unit="raw", value=pr.destinations[0].amount))
+    if interactive:
+        answers = inquirer.prompt(questions)
 
-            print(amount)
+        if answers['crypto'] == 'NANO':
+            rpc = nano.rpc.Client(host="http://localhost:7076")
+            balance = rpc.account_balance(account=account)
+            print()
+            print("Actual balance: {}".format(
+                str(nano.convert(from_unit="raw", to_unit="XRB", value=balance['balance']))
+            ))
 
-            block = rpc.send(wallet=nano_wallet,
-                             source=account,
-                             destination=pr.destinations[0].destination_address,
-                             amount=amount)
+            if not verified:
+                print("WARNING!!!! THIS IS NOT VERIFIED REQUEST")
 
-            await wallet.send_payment(transaction_hash=block, crypto_currency='NANO')
+            destination = pr.get_destination('NANO')
+
+            if query_yes_no("Pay {} {} ({} {}) to {}".format(destination.amount,
+                                                             destination.crypto_currency,
+                                                             pr.amount,
+                                                             pr.fiat_currency,
+                                                             pr.merchant)):
+                amount = int(nano.convert(from_unit='XRB', to_unit="raw", value=destination.amount))
+
+                print(amount)
+
+                block = rpc.send(wallet=nano_wallet,
+                                 source=account,
+                                 destination=destination.destination_address,
+                                 amount=amount)
+
+                await wallet.send_payment(transaction_hash=block, crypto_currency='NANO')
+        elif answers['crypto'] == 'TESTCOIN':
+            destination = pr.get_destination('TESTCOIN')
+            await wallet.send_payment(transaction_hash='test_hash', crypto_currency='TESTCOIN')
+        else:
+            print("Not supported!")
+            sys.exit()
 
     else:
         await wallet.send_payment("myhash", pr.destinations[0].crypto_currency)
@@ -169,6 +192,7 @@ default = config['DEFAULT']
 
 parser = argparse.ArgumentParser(description="Wallet Dummy for Testing")
 parser.add_argument('url', metavar="url", type=str, nargs="?")
+parser.add_argument('-i', '--interactive', action='store_true', default=default.get('interactive', False))
 parser.add_argument('--wallet', type=str, default=default.get('wallet', None))
 parser.add_argument('--account', type=str, default=default.get('account', None))
 parser.add_argument('--certificate', type=str, default=default.get('certificate', None))
@@ -184,7 +208,11 @@ if ns.url:
     ONCE = True
     loop = asyncio.get_event_loop()
 
-    loop.run_until_complete(get_payment(ns.url, ns.wallet, ns.account, ca_certificate=ns.certificate))
+    loop.run_until_complete(get_payment(url=ns.url,
+                                        interactive=ns.interactive,
+                                        nano_wallet=ns.wallet,
+                                        account=ns.account,
+                                        ca_certificate=ns.certificate))
 
 else:
     app.add_routes(routes)
