@@ -32,10 +32,10 @@ import os
 import sys
 import asyncio
 from concurrent.futures._base import TimeoutError
-from manta.messages import verify_chain, Destination
+from manta.messages import verify_chain, Destination, PaymentRequestEnvelope
 import inquirer
 
-#sys.path.append('.')
+# sys.path.append('.')
 
 ONCE = False
 
@@ -76,15 +76,10 @@ def query_yes_no(question, default="yes"):
             sys.stdout.write("Please respond with 'yes' or 'no' "
                              "(or 'y' or 'n').\n")
 
-async def get_payment(url: str,
-                      interactive: bool,
-                      nano_wallet: str = None,
-                      account: str = None,
-                      ca_certificate: str = None):
-    wallet = Wallet.factory(url)
 
+async def get_payment_request(wallet: Wallet, crypto_currency: str = 'all') -> PaymentRequestEnvelope:
     try:
-        envelope = await wallet.get_payment_request()
+        envelope = await wallet.get_payment_request(crypto_currency)
     except TimeoutError as e:
         if ONCE:
             print("Timeout exception in waiting for payment")
@@ -92,17 +87,19 @@ async def get_payment(url: str,
         else:
             raise e
 
-    # Verify signature chain
+    return envelope
+
+
+def verify_envelope(envelope: PaymentRequestEnvelope, certificate, ca_certificate) -> bool:
     verified = False
 
     if ca_certificate:
-        certificate = await wallet.get_certificate()
         path = verify_chain(certificate, ca_certificate)
 
         if path:
             if envelope.verify(certificate):
                 verified = True
-                logger.info ("Verified Request")
+                logger.info("Verified Request")
                 logger.info("Certificate issued to {}".format(
                     certificate.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value))
             else:
@@ -110,18 +107,57 @@ async def get_payment(url: str,
         else:
             logger.error("Invalid Certification Path")
 
+    return verified
+
+
+async def get_payment(url: str,
+                      interactive: bool,
+                      nano_wallet: str = None,
+                      account: str = None,
+                      ca_certificate: str = None):
+    wallet = Wallet.factory(url)
+
+    envelope = await get_payment_request(wallet)
+
+    verified = False
+    certificate = None
+
+    if ca_certificate:
+        certificate = await wallet.get_certificate()
+
+        verified = verify_envelope(envelope, certificate, ca_certificate)
+
     pr = envelope.unpack()
 
     logger.info("Payment request: {}".format(pr))
 
-    options = [x.crypto_currency for x in pr.destinations]
+    options = [x for x in pr.supported_cryptos]
 
-    questions = [ inquirer.List('crypto',
-                                message=' What crypto you want to pay with?',
-                                choices=options)]
+    questions = [inquirer.List('crypto',
+                               message=' What crypto you want to pay with?',
+                               choices=options)]
 
     if interactive:
         answers = inquirer.prompt(questions)
+
+        chosen_crypto = answers['crypto']
+
+        # Check if we have already the destination
+        destination = pr.get_destination(chosen_crypto)
+
+        # Otherwise ask payment provider
+        if not destination:
+            logger.info('Requesting payment request for {}'.format(chosen_crypto))
+            envelope = await get_payment_request(wallet, chosen_crypto)
+            verified = False
+
+            if ca_certificate:
+                verified = verify_envelope(envelope, certificate, ca_certificate)
+
+            pr = envelope.unpack()
+            logger.info("Payment request: {}".format(pr))
+
+            destination = pr.get_destination(chosen_crypto)
 
         if answers['crypto'] == 'NANO':
             rpc = nano.rpc.Client(host="http://localhost:7076")
@@ -216,6 +252,6 @@ if ns.url:
 
 else:
     app.add_routes(routes)
-    #swagger_file = os.path.join(os.path.dirname(__file__), 'swagger/wallet.yaml')
-    #setup_swagger(app, swagger_from_file=swagger_file)
+    # swagger_file = os.path.join(os.path.dirname(__file__), 'swagger/wallet.yaml')
+    # setup_swagger(app, swagger_from_file=swagger_file)
     web.run_app(app, port=8082)
