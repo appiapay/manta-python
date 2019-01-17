@@ -408,7 +408,15 @@ class PayProc:
 
         if self.tx_storage.session_exists(session_id):
             payment_message = PaymentMessage.from_json(payload)
+
             state = self.tx_storage.get_state_for_session(session_id)
+
+            # check if crypto is one of the supported
+            payment_request = state.payment_request
+
+            if payment_message.crypto_currency.upper() not in [x.upper() for x in payment_request.supported_cryptos]:
+                return
+
             new_ack = attr.evolve(state.ack,
                                   status=Status.PENDING,
                                   transaction_hash=payment_message.transaction_hash,

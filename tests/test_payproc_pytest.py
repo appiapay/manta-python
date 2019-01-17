@@ -332,7 +332,7 @@ def test_get_payment_request_all(mock_mqtt, payproc):
 
 
 def test_payment_message(mock_mqtt, payproc):
-    test_receive_merchant_order_request(mock_mqtt, payproc)
+    test_get_payment_request_all(mock_mqtt, payproc)
     message = PaymentMessage(
         crypto_currency="NANO",
         transaction_hash="myhash"
@@ -348,6 +348,27 @@ def test_payment_message(mock_mqtt, payproc):
     mock_mqtt.push("payments/1423", message.to_json())
 
     mock_mqtt.publish.assert_called_with('acks/1423', JsonContains(ack))
+
+
+def test_payment_message_unsupported(mock_mqtt, payproc):
+    test_get_payment_request_all(mock_mqtt, payproc)
+    message = PaymentMessage(
+        crypto_currency="ETH",
+        transaction_hash="myhash"
+    )
+
+    ack = AckMessage(
+        txid='0',
+        status=Status.PENDING,
+        transaction_hash="myhash",
+        transaction_currency="NANO"
+    )
+
+    mock_mqtt.reset_mock()
+
+    mock_mqtt.push("payments/1423", message.to_json())
+
+    mock_mqtt.publish.assert_not_called();
 
 
 def test_confirming(mock_mqtt, payproc):
