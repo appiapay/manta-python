@@ -111,7 +111,7 @@ def verify_envelope(envelope: PaymentRequestEnvelope, certificate, ca_certificat
 
 
 async def get_payment(url: str,
-                      interactive: bool,
+                      interactive: bool = False,
                       nano_wallet: str = None,
                       account: str = None,
                       ca_certificate: str = None):
