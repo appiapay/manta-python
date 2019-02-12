@@ -91,10 +91,12 @@ help::
 .PHONY: type-tests
 type-tests:
 	@mypy ./manta
+	$(info Running type tests...)
 
 help::
 	@printf "\nunit-tests\n\trun the unittests using pytest"
 
 .PHONY: unit-tests
 unit-tests:
+	$(info Running unit tests...)
 	@pytest ./tests
