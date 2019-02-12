@@ -26,7 +26,7 @@ import base64
 from decimal import Decimal
 import logging
 import uuid
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 import paho.mqtt.client as mqtt
 
@@ -66,7 +66,7 @@ class Store:
     loop: asyncio.AbstractEventLoop
     connected: asyncio.Event
     device_id: str
-    session_id: str = None
+    session_id: Optional[str] = None
     acks: asyncio.Queue
     first_connect = False
     subscriptions: List[str] = []

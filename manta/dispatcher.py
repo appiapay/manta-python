@@ -56,7 +56,7 @@ class Dispatcher:
     @staticmethod
     def method_topic(topic):
         def decorator(f: Callable):
-            f.dispatcher = Dispatcher.mqtt_to_regex(topic)
+            f.dispatcher = Dispatcher.mqtt_to_regex(topic) # type: ignore
             return f
 
         return decorator

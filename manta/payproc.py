@@ -81,9 +81,9 @@ class TransactionState:
     payment_request: Optional[PaymentRequestMessage] = None
     payment_message: Optional[PaymentMessage] = None
     ack: Optional[AckMessage] = None
-    wallet_request: str = None
+    wallet_request: Optional[str] = None
 
-    notify: Callable[[int, str, any], None] = None
+    notify: Optional[Callable[[int, str, Any], None]] = None
 
     def __setattr__(self, key, value):
         if self.notify:
@@ -237,13 +237,6 @@ class PayProc:
     host: str
     key: RSAPrivateKey
     certificate: str
-    get_merchant: Callable[[str], Merchant]
-
-    # get_destinations(application: str, merchant_order: MerchantOrderRequestMessage)
-    get_destinations: Callable[[str, MerchantOrderRequestMessage], List[Destination]]
-
-    # get_supported_cryptos(application: str, merchant_order: MerchantOrderRequestMessage)
-    get_supported_cryptos: Callable[[str, MerchantOrderRequestMessage], Set[str]]
 
     # str is txid
     on_processed_order: Optional[Callable[[str, MerchantOrderRequestMessage, AckMessage], None]] = None
@@ -260,8 +253,9 @@ class PayProc:
     dispatcher: Dispatcher
     txid: int
 
-    def __init__(self, key_file: str, cert_file: str=None, host: str = "localhost", starting_txid: int = 0,
-                 tx_storage: TXStorage = None, mqtt_options: Dict[str, any]= None) -> None:
+    def __init__(self, key_file: str, cert_file: str = None, host: str = "localhost",
+                 starting_txid: int = 0, tx_storage: TXStorage = None,
+                 mqtt_options: Dict[str, Any] = None) -> None:
 
         self.txid = starting_txid
         self.tx_storage = tx_storage if tx_storage is not None else TXStorageMemory()
@@ -279,10 +273,17 @@ class PayProc:
         self.key = PayProc.key_from_keydata(key_data)
 
         if cert_file is not None:
-            with open(cert_file, 'r') as myfile:
-                self.certificate = myfile.read()
+            with open(cert_file, 'r') as cfile:
+                self.certificate = cfile.read()
         else:
             self.certificate = ""
+
+        self.get_merchant: Callable[[str], Merchant]
+        # get_destinations(application: str, merchant_order: MerchantOrderRequestMessage)
+        self.get_destinations: Callable[[str, MerchantOrderRequestMessage], List[Destination]]
+
+        # get_supported_cryptos(application: str, merchant_order: MerchantOrderRequestMessage)
+        self.get_supported_cryptos: Callable[[str, MerchantOrderRequestMessage], Set[str]]
 
     def run(self):
         """
@@ -383,7 +384,7 @@ class PayProc:
     def on_get_payment_request(self, session_id: str, crypto_currency: str, payload: str):
         logger.info("Processing payment request message")
 
-        state = self.tx_storage.get_state_for_session(session_id)
+        state: TransactionState = self.tx_storage.get_state_for_session(session_id)
 
         state.wallet_request = crypto_currency
 
@@ -402,6 +403,7 @@ class PayProc:
         self.mqtt_client.publish('payment_requests/{}'.format(session_id), envelope.to_json())
 
         if self.on_processed_get_payment:
+            assert state.ack is not None
             self.on_processed_get_payment(state.ack.txid, crypto_currency, envelope.unpack())
 
     @Dispatcher.method_topic("payments/+")
@@ -415,6 +417,7 @@ class PayProc:
             # check if crypto is one of the supported
             payment_request = state.payment_request
 
+            assert payment_request is not None
             if payment_message.crypto_currency.upper() not in [x.upper() for x in payment_request.supported_cryptos]:
                 return
 
@@ -424,6 +427,7 @@ class PayProc:
                                   transaction_currency=payment_message.crypto_currency,
                                   url=None
                                   )
+            assert new_ack is not None
 
             state.payment_message = payment_message
             state.ack = new_ack
@@ -462,7 +466,7 @@ class PayProc:
             state = self.tx_storage.get_state_for_session(session_id)
 
             new_ack = attr.evolve(state.ack, status=Status.CONFIRMING)
-
+            assert new_ack is not None
             state.ack = new_ack
             self.ack(session_id, new_ack)
 
@@ -480,6 +484,7 @@ class PayProc:
             state = self.tx_storage.get_state_for_session(session_id)
 
             new_ack = attr.evolve(state.ack, status=Status.PAID)
+            assert new_ack is not None
 
             state.ack = new_ack
             self.ack(session_id, new_ack)
@@ -501,6 +506,7 @@ class PayProc:
             state = self.tx_storage.get_state_for_session(session_id)
 
             new_ack = attr.evolve(state.ack, status=Status.INVALID, memo=reason)
+            assert new_ack is not None
 
             state.ack = new_ack
             self.ack(session_id, new_ack)

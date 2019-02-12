@@ -24,7 +24,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
-from typing import Optional
+from typing import Match, Optional
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
@@ -60,8 +60,8 @@ class Wallet:
     host: str
     port: int
     session_id: str
-    payment_request_future: asyncio.Future = None
-    certificate_future: asyncio.Future = None
+    payment_request_future: Optional[asyncio.Future] = None
+    certificate_future: Optional[asyncio.Future] = None
     acks: asyncio.Queue
     first_connect = False
 
@@ -123,15 +123,17 @@ class Wallet:
 
         if tokens[0] == "payment_requests":
             envelope = PaymentRequestEnvelope.from_json(msg.payload)
+            assert self.payment_request_future is not None
             self.loop.call_soon_threadsafe(self.payment_request_future.set_result, envelope)
         elif tokens[0] == "acks":
             ack = AckMessage.from_json(msg.payload)
             self.acks.put_nowait(ack)
         elif tokens[0] == "certificate":
+            assert self.certificate_future is not None
             self.loop.call_soon_threadsafe(self.certificate_future.set_result, msg.payload)
 
     @staticmethod
-    def parse_url(url: str) -> Optional[re.Match]:
+    def parse_url(url: str) -> Optional[Match]:
         """
         Convenience method to check if Manta url is valid
         Args:
@@ -154,6 +156,7 @@ class Wallet:
 
     async def get_certificate(self) -> x509.Certificate:
         await self.connect()
+        assert self.certificate_future is not None
         certificate = await self.certificate_future
         return x509.load_pem_x509_certificate(certificate, default_backend())
 
