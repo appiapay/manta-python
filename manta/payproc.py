@@ -21,26 +21,27 @@
 Library for implementing a Manta Payment Processor
 """
 
+from abc import abstractmethod
 import base64
+from dataclasses import dataclass
+from decimal import Decimal
 import logging
 import traceback
-from dataclasses import dataclass
-from typing import NamedTuple, Callable, List, Dict, Set, Optional
-import paho.mqtt.client as mqtt
+from typing import Any, Callable, Dict, List, NamedTuple, Optional, Set
+
+import attr
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.primitives.serialization import load_pem_private_key
-from manta.dispatcher import Dispatcher
-from decimal import Decimal
-
-from manta.messages import PaymentRequestMessage, MerchantOrderRequestMessage, PaymentRequestEnvelope, Destination, \
-    PaymentMessage, AckMessage, Status, Merchant
-
-from abc import abstractmethod
-import attr
-
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
+import paho.mqtt.client as mqtt
+
+from .dispatcher import Dispatcher
+from .messages import (PaymentRequestMessage, MerchantOrderRequestMessage,
+                       PaymentRequestEnvelope, Destination, PaymentMessage,
+                       AckMessage, Status, Merchant)
+
 
 logger = logging.getLogger(__name__)
 

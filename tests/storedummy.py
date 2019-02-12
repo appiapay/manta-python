@@ -15,11 +15,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from manta.store import Store
-from aiohttp import web
-import traceback
-import logging
 from decimal import Decimal
+import logging
+import traceback
+
+from aiohttp import web
+
+from manta.store import Store
+
 
 logger = logging.getLogger(__name__)
 routes = web.RouteTableDef()

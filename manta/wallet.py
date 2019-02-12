@@ -24,14 +24,14 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
-from typing import Optional, Any, Callable
+from typing import Optional
 
-import paho.mqtt.client as mqtt
-
-from manta.messages import PaymentRequestMessage, PaymentRequestEnvelope, PaymentMessage, AckMessage
-from certvalidator import CertificateValidator
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
+import paho.mqtt.client as mqtt
+
+from .messages import PaymentRequestEnvelope, PaymentMessage, AckMessage
+
 
 logger = logging.getLogger(__name__)
 

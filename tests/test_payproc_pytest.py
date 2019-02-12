@@ -21,12 +21,13 @@ import attr
 from callee import Matcher
 from cryptography.hazmat.primitives import serialization
 
-from manta.messages import Destination, MerchantOrderRequestMessage, PaymentRequestMessage, \
-    PaymentMessage, AckMessage, Status, Merchant
+from manta.messages import (Destination, MerchantOrderRequestMessage,
+                            PaymentRequestMessage, PaymentMessage, AckMessage,
+                            Status, Merchant)
 from manta.payproc import PayProc, TXStorageMemory
 
 # pytest.register_assert_rewrite("tests.utils")
-from tests.utils import mock_mqtt, JsonContains
+from tests.utils import JsonContains
 from decimal import Decimal
 
 PRIV_KEY_DATA = b'''\

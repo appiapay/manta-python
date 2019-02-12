@@ -16,10 +16,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import annotations
-import re
-from dataclasses import dataclass, field
-from typing import List, Callable, Tuple, Dict, Type
+
 import inspect
+import re
+from typing import List, Callable, Tuple
 
 
 class Dispatcher:

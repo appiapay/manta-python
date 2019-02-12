@@ -17,14 +17,15 @@
 
 import difflib
 import pprint
-
-import pytest
-import cattr
-from unittest.mock import MagicMock
 from typing import NamedTuple, Dict
+from unittest.mock import MagicMock
+
 from callee import Matcher
+import cattr
+import pytest
 import paho.mqtt.client as mqtt
 import simplejson as json
+
 from manta.messages import Message
 
 

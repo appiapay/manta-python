@@ -15,18 +15,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import NamedTuple
-from unittest.mock import MagicMock
-
 import re
-import paho.mqtt.client as mqtt
+
 import pytest
-import simplejson as json
 
 from manta.store import Store
 from manta.messages import AckMessage, Status, MerchantOrderRequestMessage
-import callee
-from tests.utils import MQTTMessage, mock_mqtt
 
 BASE64PATTERN = "(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?"
 BASE64PATTERNSAFE = "(?:[A-Za-z0-9_-]{4})*(?:[A-Za-z0-9_-]{2}==|[A-Za-z0-9_-]{3}=)?"

@@ -15,16 +15,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 from decimal import Decimal
+import logging
 
-import pytest
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from cryptography.x509 import NameOID
+import pytest
 
-from manta.messages import Destination, PaymentRequestMessage, verify_chain, PaymentMessage, AckMessage, Status, \
-    Merchant
+from manta.messages import (Destination, PaymentRequestMessage, verify_chain,
+                            PaymentMessage, AckMessage, Status, Merchant)
 from manta.wallet import Wallet
 
 pytest.register_assert_rewrite("tests.utils")

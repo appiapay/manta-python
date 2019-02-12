@@ -15,11 +15,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from decimal import Decimal
+import logging
+
+from aiohttp import web
+
 from manta.messages import MerchantOrderRequestMessage, Destination, Merchant
 from manta.payproc import PayProc
-from aiohttp import web
-import logging
-from decimal import Decimal
+
 
 logger = logging.getLogger(__name__)
 

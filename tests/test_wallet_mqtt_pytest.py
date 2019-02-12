@@ -15,15 +15,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import asyncio
 from dataclasses import dataclass
+import logging
+
+import pytest
+import requests
 
 from manta.messages import PaymentRequestEnvelope, Status
 from manta.wallet import Wallet
-import pytest
-import logging
-import asyncio
-import requests
-
 STORE_URL = "http://localhost:8080/"
 PP_HOST = "http://localhost:8081"
 

@@ -16,12 +16,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import base64
+from decimal import Decimal
 from enum import Enum
-from typing import NamedTuple, List, Set, TypeVar, Type, Optional, Union
+from typing import List, Set, TypeVar, Type, Optional, Union
 
 import attr
 import cattr
-import simplejson as json
 from certvalidator import CertificateValidator, ValidationContext
 from cryptography import x509
 from cryptography.exceptions import InvalidSignature
@@ -29,8 +29,9 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
-from decimal import Decimal
-from manta import MANTA_VERSION
+import simplejson as json
+
+from . import MANTA_VERSION
 
 
 class Status(Enum):

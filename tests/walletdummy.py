@@ -15,25 +15,22 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import traceback
-from typing import Optional, List
-
-import nano
 import argparse
+import asyncio
+from concurrent.futures._base import TimeoutError
 import configparser
-
-from cryptography.x509 import NameOID
-
-from manta.wallet import Wallet
-from aiohttp import web
-# from aiohttp_swagger import *
 import logging
 import os
 import sys
-import asyncio
-from concurrent.futures._base import TimeoutError
-from manta.messages import verify_chain, Destination, PaymentRequestEnvelope
+import traceback
+
+from aiohttp import web
+from cryptography.x509 import NameOID
 import inquirer
+import nano
+
+from manta.messages import verify_chain, PaymentRequestEnvelope
+from manta.wallet import Wallet
 
 # sys.path.append('.')
 
