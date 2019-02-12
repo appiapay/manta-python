@@ -17,6 +17,10 @@
 
 import pytest
 
+pytest.register_assert_rewrite("tests.utils")
+
+from .utils import mock_mqtt
+
 
 def pytest_runtest_makereport(item, call):
     if "incremental" in item.keywords:

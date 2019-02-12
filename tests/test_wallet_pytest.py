@@ -27,9 +27,8 @@ from manta.messages import (Destination, PaymentRequestMessage, verify_chain,
                             PaymentMessage, AckMessage, Status, Merchant)
 from manta.wallet import Wallet
 
-pytest.register_assert_rewrite("tests.utils")
 # noinspection PyUnresolvedReferences
-from tests.utils import mock_mqtt, JsonContains
+from tests.utils import JsonContains
 
 DESTINATIONS = [
     Destination(
