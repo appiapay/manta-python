@@ -1,0 +1,7 @@
+aiohttp
+callee
+inquirer
+mypy
+nano-python
+pytest-asyncio
+pytest

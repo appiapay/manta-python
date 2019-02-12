@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Manta Python
 # Manta Protocol Implementation for Python
 # Copyright (C) 2018 Alessandro Viganò
@@ -15,8 +16,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+
 from setuptools import setup
+
 from manta import MANTA_VERSION
+
+here_dir = os.path.dirname(__file__)
+with open(os.path.join(here_dir, 'requirements.txt')) as req_file:
+    requirements = req_file.read().splitlines()
+
 
 setup(
     name='manta',
@@ -27,11 +36,5 @@ setup(
     author='Alessandro Viganò',
     author_email='alvistar@gmail.com',
     description='',
-    install_requires=[
-        "simplejson",
-        "cattrs",
-        "cryptography",
-        "certvalidator",
-        "paho-mqtt",
-    ]
+    install_requires=requirements
 )
