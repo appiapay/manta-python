@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from unittest.mock import MagicMock
+
 from manta.dispatcher import Dispatcher
 
 
@@ -44,6 +45,7 @@ def test_register_topic():
     d.dispatch("payment_requests/leonardo")
     m.assert_called_with("leonardo")
 
+
 def test_register_topic_b():
     d = Dispatcher()
     m = MagicMock()
@@ -68,7 +70,6 @@ def test_register_topic_multiple_args():
 
     d.dispatch("payment_requests/arg1/subtopic/arg2")
     m.assert_called_with("arg1", "arg2")
-
 
 
 def test_register_topic_multiple_args_kwargs():
@@ -129,4 +130,3 @@ def test_register_in_class_with_kwargs():
     c = MyClass()
     c.d.dispatch("payment_requests/arg1/subtopic/arg2", payload="mypayload")
     m.assert_called_with("arg1", "arg2", "mypayload")
-

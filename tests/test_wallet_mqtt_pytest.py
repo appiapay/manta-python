@@ -24,6 +24,7 @@ import requests
 
 from manta.messages import PaymentRequestEnvelope, Status
 from manta.wallet import Wallet
+
 STORE_URL = "http://localhost:8080/"
 PP_HOST = "http://localhost:8081"
 

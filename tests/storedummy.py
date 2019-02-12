@@ -38,7 +38,6 @@ async def merchant_order(request: web.Request):
 
         reply = await store.merchant_order_request(**json)
 
-
         return web.Response(body=reply.to_json(), content_type="application/json")
 
     except Exception:

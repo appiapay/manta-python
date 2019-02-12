@@ -27,13 +27,14 @@ logger = logging.getLogger(__name__)
 
 WAITING_INTERVAL = 4
 
-def on_connect(client:mqtt.Client, userdata, flags, rc):
+
+def on_connect(client: mqtt.Client, userdata, flags, rc):
     logger.info("Connected")
     client.subscribe("acks/#")
 
 
 def on_message(client: mqtt.Client, userdata, msg: mqtt.MQTTMessage):
-    ack:AckMessage = AckMessage.from_json(msg.payload)
+    ack: AckMessage = AckMessage.from_json(msg.payload)
     tokens = msg.topic.split('/')
     session_id = tokens[1]
 

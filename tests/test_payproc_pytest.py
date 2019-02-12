@@ -347,7 +347,6 @@ def test_payment_message(mock_mqtt, payproc):
     )
 
     mock_mqtt.push("payments/1423", message.to_json())
-
     mock_mqtt.publish.assert_called_with('acks/1423', JsonContains(ack))
 
 
@@ -366,10 +365,8 @@ def test_payment_message_unsupported(mock_mqtt, payproc):
     )
 
     mock_mqtt.reset_mock()
-
     mock_mqtt.push("payments/1423", message.to_json())
-
-    mock_mqtt.publish.assert_not_called();
+    mock_mqtt.publish.assert_not_called()
 
 
 def test_confirming(mock_mqtt, payproc):

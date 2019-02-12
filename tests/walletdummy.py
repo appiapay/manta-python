@@ -32,8 +32,6 @@ import nano
 from manta.messages import verify_chain, PaymentRequestEnvelope
 from manta.wallet import Wallet
 
-# sys.path.append('.')
-
 ONCE = False
 
 logger = logging.getLogger(__name__)

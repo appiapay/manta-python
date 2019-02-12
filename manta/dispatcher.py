@@ -31,7 +31,7 @@ class Dispatcher:
         if obj is None:
             return
 
-        for cls in inspect.getmro(obj.__class__): #Register all subclasses methods
+        for cls in inspect.getmro(obj.__class__): # Register all subclasses methods
             for key, value in cls.__dict__.items():
                 if inspect.isfunction(value):
                     if hasattr(value, "dispatcher"):
@@ -67,5 +67,3 @@ class Dispatcher:
             return f
 
         return decorator
-
-
