@@ -97,4 +97,4 @@ help::
 
 .PHONY: unit-tests
 unit-tests:
-	@pytests ./tests
+	@pytest ./tests
