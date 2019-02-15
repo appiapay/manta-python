@@ -37,6 +37,7 @@ from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 import paho.mqtt.client as mqtt
 
+from .base import MantaComponent
 from .dispatcher import Dispatcher
 from .messages import (PaymentRequestMessage, MerchantOrderRequestMessage,
                        PaymentRequestEnvelope, Destination, PaymentMessage,
@@ -215,7 +216,7 @@ def generate_crypto_legacy_url(crypto: str, address: str, amount: float) -> str:
     return ""
 
 
-class PayProc:
+class PayProc(MantaComponent):
     # noinspection PyUnresolvedReferences
     """
         Manta Protocol Payment Processor Implementation
@@ -233,8 +234,6 @@ class PayProc:
             get_supported_cryptos: Callback function to retrieve list of supported cryptos
         """
 
-    mqtt_client: mqtt.Client
-    host: str
     key: RSAPrivateKey
     certificate: str
 
@@ -255,7 +254,7 @@ class PayProc:
 
     def __init__(self, key_file: str, cert_file: str = None, host: str = "localhost",
                  starting_txid: int = 0, tx_storage: TXStorage = None,
-                 mqtt_options: Dict[str, Any] = None) -> None:
+                 mqtt_options: Dict[str, Any] = None, port: int = 1883) -> None:
 
         self.txid = starting_txid
         self.tx_storage = tx_storage if tx_storage is not None else TXStorageMemory()
@@ -266,6 +265,7 @@ class PayProc:
         self.mqtt_client.on_message = self.on_message
         self.mqtt_client.enable_logger()
         self.host = host
+        self.port = port
 
         with open(key_file, 'rb') as myfile:
             key_data = myfile.read()
@@ -289,7 +289,7 @@ class PayProc:
         """
             Start processing network requests
         """
-        self.mqtt_client.connect(host=self.host)
+        self.mqtt_client.connect(host=self.host, port=self.port)
         self.mqtt_client.loop_start()
 
     @staticmethod

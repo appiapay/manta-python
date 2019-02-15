@@ -30,6 +30,7 @@ from typing import List, Dict, Optional
 
 import paho.mqtt.client as mqtt
 
+from .base import MantaComponent
 from .messages import MerchantOrderRequestMessage, AckMessage, Status
 
 logger = logging.getLogger(__name__)
@@ -48,13 +49,14 @@ def wrap_callback(f):
     return wrapper
 
 
-class Store:
+class Store(MantaComponent):
     """
     Store Class for implement Manta POS
 
     Args:
         device_id: Device unique identifier of POS
-        host: Hostname of the Manta Broker
+        host: Hostname of the Manta broker
+        port: port of the Manta broker
         client_options: A Dict of options to be passed to MQTT Client (like username, password)
 
     Attributes:
@@ -62,7 +64,6 @@ class Store:
 
 
     """
-    mqtt_client: mqtt.Client
     loop: asyncio.AbstractEventLoop
     connected: asyncio.Event
     device_id: str
@@ -70,9 +71,9 @@ class Store:
     acks: asyncio.Queue
     first_connect = False
     subscriptions: List[str] = []
-    host: str
 
-    def __init__(self, device_id: str, host: str= "localhost", client_options: Dict = None):
+    def __init__(self, device_id: str, host: str = "localhost",
+                 client_options: Dict = None, port: int = 1883):
         client_options = {} if client_options is None else client_options
 
         self.device_id = device_id
@@ -89,6 +90,7 @@ class Store:
 
         self.acks = asyncio.Queue(loop=self.loop)
         self.connected = asyncio.Event(loop=self.loop)
+        self.port = port
 
     def close(self):
         self.mqtt_client.disconnect()
@@ -129,7 +131,7 @@ class Store:
 
     async def connect(self):
         if not self.first_connect:
-            self.mqtt_client.connect(self.host)
+            self.mqtt_client.connect(self.host, port=self.port)
             self.mqtt_client.loop_start()
             self.first_connect = True
 

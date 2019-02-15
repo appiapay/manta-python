@@ -30,6 +30,7 @@ from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 import paho.mqtt.client as mqtt
 
+from .base import MantaComponent
 from .messages import PaymentRequestEnvelope, PaymentMessage, AckMessage
 
 
@@ -43,7 +44,7 @@ def wrap_callback(f):
     return wrapper
 
 
-class Wallet:
+class Wallet(MantaComponent):
     """
     Class for creating a Manta Wallet
 
@@ -54,10 +55,8 @@ class Wallet:
 
     """
 
-    mqtt_client: mqtt.Client
     loop: asyncio.AbstractEventLoop
     connected: asyncio.Event
-    host: str
     port: int
     session_id: str
     payment_request_future: Optional[asyncio.Future] = None
