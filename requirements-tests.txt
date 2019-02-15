@@ -1,7 +1,11 @@
 aiohttp
 callee
+# use a fork until the fix is accepted upstream
+# file_config[pyyaml]
+https://github.com/azazel75/file-config/archive/fix_loaded_defaults.zip
 inquirer
 mypy
 nano-python
 pytest-asyncio
 pytest
+pyyaml
