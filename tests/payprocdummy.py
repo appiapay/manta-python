@@ -44,13 +44,14 @@ MERCHANT = Merchant(
 
 def get_destinations(application_id, merchant_order: MerchantOrderRequestMessage):
     if merchant_order.crypto_currency:
-        destination = next(x for x in DESTINATIONS if x.crypto_currency == merchant_order.crypto_currency)
+        destination = next(x for x in DESTINATIONS
+                           if x.crypto_currency == merchant_order.crypto_currency)
         return [destination]
     else:
         return DESTINATIONS
 
 
-pp = PayProc(KEYFILE, host="192.168.20.105")
+pp = PayProc(KEYFILE)
 pp.get_merchant = lambda x: MERCHANT
 pp.get_destinations = get_destinations
 pp.get_supported_cryptos = lambda device, payment_request: {'btc', 'xmr', 'nano'}
