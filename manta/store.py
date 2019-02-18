@@ -57,10 +57,12 @@ class Store(MantaComponent):
         device_id: Device unique identifier of POS
         host: Hostname of the Manta broker
         port: port of the Manta broker
-        client_options: A Dict of options to be passed to MQTT Client (like username, password)
+        client_options: A Dict of options to be passed to MQTT Client (like
+          username, password)
 
     Attributes:
-        acks (asyncio.Queue): Queue of Acks messages. Wait for it to retrieve the first available message
+        acks (asyncio.Queue): Queue of Acks messages. Wait for it to retrieve
+          the first available message
 
 
     """
