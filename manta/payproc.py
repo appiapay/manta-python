@@ -350,7 +350,10 @@ class PayProc(MantaComponent):
 
             ack = AckMessage(
                 status=Status.NEW,
-                url="manta://{}/{}".format(self.host, p.session_id),
+                url="manta://{}{}/{}".format(self.host,
+                                             ':' + str(self.port) if self.port != 1883
+                                             else '',
+                                             p.session_id),
                 txid=str(self.txid)
             )
 
