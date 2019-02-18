@@ -81,7 +81,8 @@ class Wallet(MantaComponent):
         else:
             return None
 
-    def __init__(self, url: str, session_id: str, host: str = "localhost", port: int = 1883):
+    def __init__(self, url: str, session_id: str, host: str = "localhost",
+                 port: int = 1883):
         self.host = host
         self.port = port
         self.session_id = session_id
