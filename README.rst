@@ -26,7 +26,7 @@ Installation
 Primary repository
 ------------------
 
-To start working on ``pirlo`` you must first checkout a copy of the
+To start working on ``manta-python`` you must first checkout a copy of the
 main repository::
 
  $ git git@github.com:NanoRay/manta-python.git
@@ -66,7 +66,7 @@ b) print an help on the available targets
 You **must** remember to activate the virtual environment **before**
 doing anything::
 
- $ . env/bin/activate
+ $ . venv/bin/activate
 
 Running the tests
 -----------------
@@ -75,4 +75,5 @@ To run the tests simply run the following command::
 
  $ make tests
 
-That will run the unit tests and the integration tests.
+That will run the unit tests and the integration tests. Remember to always use
+it before committing.
