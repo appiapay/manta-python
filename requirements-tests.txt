@@ -1,8 +1,6 @@
 aiohttp
 callee
-# use a fork until the fix is accepted upstream
-# file_config[pyyaml]
-https://github.com/azazel75/file-config/archive/fix_loaded_defaults.zip
+file_config[pyyaml] >= 0.3.5
 inquirer
 mypy
 nano-python
