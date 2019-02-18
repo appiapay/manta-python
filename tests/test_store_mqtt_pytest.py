@@ -16,20 +16,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest
-import requests
 
 from manta.messages import Status
 from manta.store import Store
 
 # logging.basicConfig(level=logging.INFO)
 
-PP_HOST = "http://localhost:8081"
-WALLET_HOST = "http://localhost:8082"
-
-
 @pytest.fixture
-async def store() -> Store:
-    return Store('device1')
+async def store(broker) -> Store:
+    _, host, port, _ = broker
+    return Store('device1', host=host, port=port)
 
 
 @pytest.mark.timeout(2)
@@ -42,7 +38,7 @@ async def test_connect(store):
 
 @pytest.mark.timeout(2)
 @pytest.mark.asyncio
-async def test_generate_payment_request(store):
+async def test_generate_payment_request(store, dummy_payproc):
     # noinspection PyUnresolvedReferences
     ack = await store.merchant_order_request(amount=10, fiat='eur')
     assert ack.url.startswith("manta://")
@@ -51,12 +47,13 @@ async def test_generate_payment_request(store):
 # noinspection PyUnresolvedReferences
 @pytest.mark.timeout(5)
 @pytest.mark.asyncio
-async def test_ack(store):
+async def test_ack(store, dummy_wallet, dummy_payproc, web_post):
 
     ack = await store.merchant_order_request(amount=10, fiat='eur')
-
-    requests.post(WALLET_HOST + "/scan", json={"url": ack.url})
-
+    if dummy_wallet.url:
+        web_post(dummy_wallet.url + "/scan", json={"url": ack.url})
+    else:
+        await dummy_wallet.start(url=ack.url)
     ack_message = await store.acks.get()
 
     assert Status.PENDING == ack_message.status
@@ -65,11 +62,14 @@ async def test_ack(store):
 @pytest.mark.timeout(5)
 @pytest.mark.asyncio
 # noinspection PyUnresolvedReferences
-async def test_ack_paid(store):
-    await test_ack(store)
+async def test_ack_paid(store, dummy_wallet, dummy_payproc, web_post):
+    await test_ack(store, dummy_wallet, dummy_payproc, web_post)
 
-    requests.post(PP_HOST + "/confirm",
-                  json={'session_id': store.session_id})
+    if dummy_payproc.url:
+        web_post(dummy_payproc.url + "/confirm",
+                 json={'session_id': store.session_id})
+    else:
+        dummy_payproc.manta.confirm(store.session_id)
 
     ack_message = await store.acks.get()
 

@@ -1,0 +1,35 @@
+# -*- coding: utf-8 -*-
+---
+broker:
+  allow_port_reallocation: true
+  start: true
+  host: localhost
+  port: 1883
+payproc:
+  supported_cryptos: [btc, xmr, nano]
+  destinations:
+  - amount: '0.01'
+    destination_address: xrb_3d1ab61eswzsgx5arwqc3gw8xjcsxd7a5egtr69jixa5it9yu9fzct9nyjyx
+    crypto_currency: NANO
+  keyfile: tests/certificates/root/keys/www.brainblocks.com.key
+  merchant:
+    name: Merchant 1
+    address: 5th Avenue
+  web:
+    enable: false
+    allow_port_reallocation: true
+    bind_address: localhost
+    bind_port: 8081
+store:
+  web:
+    enable: false
+    allow_port_reallocation: true
+    bind_address: localhost
+    bind_port: 8080
+wallet:
+  interactive: false
+  web:
+    enable: false
+    allow_port_reallocation: true
+    bind_address: localhost
+    bind_port: 8082

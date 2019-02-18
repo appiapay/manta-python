@@ -19,18 +19,80 @@ import pytest
 
 pytest.register_assert_rewrite("tests.utils")
 
-from .utils import mock_mqtt
+# it's a fixture used in the tests
+from .utils import mock_mqtt # noqa E402
 
 
-def pytest_runtest_makereport(item, call):
-    if "incremental" in item.keywords:
-        if call.excinfo is not None:
-            parent = item.parent
-            parent._previousfailed = item
+@pytest.fixture(scope='session',
+                params=[pytest.param(dict(enable_web=False), id='direct'),
+                        pytest.param(dict(enable_web=True), id='web')])
+def config(request):
+    from manta.testing.config import get_full_config
+
+    return get_full_config(request.param)
 
 
-def pytest_runtest_setup(item):
-    if "incremental" in item.keywords:
-        previousfailed = getattr(item.parent, "_previousfailed", None)
-        if previousfailed is not None:
-            pytest.xfail("previous test failed (%s)" % previousfailed.name)
+@pytest.fixture(scope='session')
+def broker(config):
+    from manta.testing.broker import launch_mosquitto_from_config
+
+    with launch_mosquitto_from_config(config.broker) as connection_data:
+        # listening config may have changed due to automatic
+        # reallocation in case some other process is listening already
+        _, host, port, _ = connection_data
+        config.broker.host = host
+        config.broker.port = port
+        yield connection_data
+
+
+@pytest.fixture(scope='function')
+async def dummy_store(config, broker):
+    from manta.testing.runner import AppRunner
+    from manta.testing.store import dummy_store
+
+    runner = AppRunner(dummy_store, config)
+    await runner.start()
+    yield runner
+    await runner.stop()
+
+
+@pytest.fixture(scope='function')
+def dummy_wallet(config, broker):
+    from manta.testing.runner import AppRunner
+    from manta.testing.wallet import dummy_wallet
+
+    runner = AppRunner(dummy_wallet, config)
+    # wallet is run only when needed
+    yield runner
+
+
+@pytest.fixture(scope='function')
+async def dummy_payproc(config, broker):
+    from manta.testing.runner import AppRunner
+    from manta.testing.payproc import dummy_payproc
+
+    runner = AppRunner(dummy_payproc, config)
+    await runner.start()
+    yield runner
+    await runner.stop()
+
+
+@pytest.fixture()
+def web_get(event_loop):
+    import functools
+    import requests
+
+    def get(*args, **kwargs):
+        return event_loop.run_in_executor(
+            None, functools.partial(requests.get, **kwargs), *args)
+    return get
+
+@pytest.fixture()
+def web_post(event_loop):
+    import functools
+    import requests
+
+    def post(*args, **kwargs):
+        return event_loop.run_in_executor(
+            None, functools.partial(requests.post, **kwargs), *args)
+    return post
