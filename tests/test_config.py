@@ -1,18 +1,6 @@
 # -*- coding: utf-8 -*-
-import os
-import pathlib
 
 import pytest
-
-
-@pytest.fixture
-def tests_dir():
-    return pathlib.Path(os.path.dirname(os.path.realpath(__file__)))
-
-
-@pytest.fixture
-def config_file(tests_dir):
-    return open(tests_dir / 'dummyconfig.yaml')
 
 
 def test_msg2config():
@@ -31,26 +19,24 @@ def test_msg2config():
 @pytest.mark.filterwarnings("ignore:unhandled translation")
 @pytest.mark.filterwarnings("ignore:field modifier")
 @pytest.mark.xfail
-def test_config_validation(config_file):
+def test_config_validation(config_str):
     import file_config
 
     from manta.testing.config import IntegrationConfig
 
-    config = IntegrationConfig.load_yaml(config_file)
+    config = IntegrationConfig.loads_yaml(config_str)
 
     assert file_config.validate(config) is None
 
 
 @pytest.mark.filterwarnings("ignore:unhandled translation")
 @pytest.mark.filterwarnings("ignore:field modifier")
-def test_config_data_validation(config_file):
+def test_config_data_validation(config_str):
     from decimal import Decimal
-
-    import file_config
 
     from manta.testing.config import IntegrationConfig
 
-    config = IntegrationConfig.load_yaml(config_file)
+    config = IntegrationConfig.loads_yaml(config_str)
 
     assert isinstance(config.payproc.destinations[0].amount, Decimal)
 

@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+import pathlib
 import pytest
 
 pytest.register_assert_rewrite("tests.utils")
@@ -23,13 +25,30 @@ pytest.register_assert_rewrite("tests.utils")
 from .utils import mock_mqtt # noqa E402
 
 
-@pytest.fixture(scope='session',
-                params=[pytest.param(dict(enable_web=False), id='direct'),
-                        pytest.param(dict(enable_web=True), id='web')])
-def config(request):
-    from manta.testing.config import get_full_config
+@pytest.fixture(scope='session')
+def tests_dir():
+    return pathlib.Path(os.path.dirname(os.path.realpath(__file__)))
 
-    return get_full_config(request.param)
+
+@pytest.fixture(scope='session')
+def config_str(tests_dir):
+    config_file = open(tests_dir / 'dummyconfig.yaml')
+    return config_file.read()
+
+
+@pytest.fixture(scope='session',
+                params=[pytest.param(False, id='direct'),
+                        pytest.param(True, id='web')])
+def config(request, config_str):
+    from manta.testing.config import IntegrationConfig
+
+    config = IntegrationConfig.loads_yaml(config_str)
+    enable_web = request.param
+    if enable_web:
+        config.payproc.web.enable = True
+        config.store.web.enable = True
+        config.wallet.web.enable = True
+    return config
 
 
 @pytest.fixture(scope='session')
