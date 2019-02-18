@@ -1,5 +1,6 @@
 aiohttp
 callee
+docutils
 file_config[pyyaml] >= 0.3.5
 inquirer
 mypy

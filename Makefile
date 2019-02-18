@@ -83,7 +83,7 @@ help::
 	@printf "\ntests\n\trun the configured test"
 
 .PHONY: tests
-tests: type-tests unit-tests
+tests: rst-tests type-tests unit-tests
 
 help::
 	@printf "\ntype-tests\n\trun the typechecks using mypy"
@@ -98,5 +98,12 @@ help::
 
 .PHONY: unit-tests
 unit-tests:
-	$(info Running unit tests...)
+	$(info Running unit and integration tests...)
 	@pytest ./tests
+
+help::
+	@printf "\nrst-tests\n\tcheck README.rst syntax"
+
+.PHONY: rst-tests
+	$(info checking README.rst file syntax)
+	@rst2html.py README.rst > /dev/null
