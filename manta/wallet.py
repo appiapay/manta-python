@@ -142,7 +142,7 @@ class Wallet(MantaComponent):
             A match object
         """
         # TODO: What is session format?
-        pattern = "^manta:\\/\\/((?:\\w|\\.)+)(?::(\\d+))?\\/(.+)$"
+        pattern = r"^manta://((?:\w|\.)+)(?::(\d+))?/(.+)$"
         return re.match(pattern, url)
 
     async def connect(self):
