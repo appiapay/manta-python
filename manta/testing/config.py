@@ -67,7 +67,7 @@ class DummyPayProcConfig:
         bind_port = var(int, default=8081, required=False)
 
     supported_cryptos = var(List[str], unique=True, min=1)
-    destinations = var(List[DestinationConfig], min=1)
+    destinations = var(List[DestinationConfig], min=1)  # type: ignore
     keyfile = var(str)
     merchant = var(MerchantConfig)
     web = var(PayProcWebConfig, default=PayProcWebConfig(), required=False)

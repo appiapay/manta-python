@@ -145,7 +145,7 @@ def launch_program(args: Sequence[str], sentinel: bytes,
     process.kill()
 
 
-def msg2config(cls: str, suffix: str = 'Config') -> Any:
+def msg2config(cls: type, suffix: str = 'Config') -> Any:
     """Convert a Message class coming from :module:`manta.messages` module to a
     config class."""
     assert isinstance(cls, type) and hasattr(cls, '__attrs_attrs__'), \
@@ -157,7 +157,7 @@ def msg2config(cls: str, suffix: str = 'Config') -> Any:
         added_opts = {}
         # take the first not-None type if t is an Union type
         if getattr(t, '__origin__', None) is Union:
-            for type_choice in t.__args__:
+            for type_choice in t.__args__: # type: ignore
                 # isinstance() cannot be used with typing.*
                 if type_choice is not type(None):
                     t = type_choice
@@ -168,9 +168,9 @@ def msg2config(cls: str, suffix: str = 'Config') -> Any:
         # isn't supported directly by (py)YAML
         if t is Decimal:
             added_opts['encoder'] = lambda v: f'{v!s}'
-            added_opts['decoder'] = lambda v: Decimal(v)
+            added_opts['decoder'] = lambda v: Decimal(v)  # type: ignore
         if 'type' not in added_opts:
-            added_opts['type'] = t
+            added_opts['type'] = t  # type: ignore
         return file_config.var(default=att.default, **added_opts)
 
     ns = {a.name: gen_var(a) for a in aattrs}
@@ -188,11 +188,11 @@ class AppRunnerConfig:
     """Configuration exchanged between the configurator and an AppRunner."""
 
     "callable used to ``start`` the Manta component"
-    starter: Callable[[MantaComponent], Union[None, Awaitable]]
+    starter: Callable[[], Union[None, Awaitable]]
     "callable used to ``stop`` the Manta component"
-    stopper: Callable[[MantaComponent], Union[None, Awaitable]]
+    stopper: Callable[[], Union[None, Awaitable]]
     "the configured Manta component"
-    manta: MantaComponent = None
+    manta: Optional[MantaComponent] = None
     "``True`` if binding port reallocation is allowed"
     allow_port_reallocation: Optional[bool] = True
     "interface address where the listening port should be bound to"

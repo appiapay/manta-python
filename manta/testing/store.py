@@ -109,7 +109,7 @@ def dummy_store(runner: AppRunner) -> AppRunnerConfig:
                                             content_type="application/json")
 
             except Exception:
-                logger.exception()
+                logger.exception("Error during '/merchant_order' web endpoint")
                 raise aiohttp.web.HTTPInternalServerError()
 
         more_params = dict(web_routes=routes,

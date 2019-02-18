@@ -35,15 +35,9 @@ class AppRunner:
 
     "configuration for all the componentss"
     app_config: IntegrationConfig
-    "callable used to configure the application"
-    configurator: Callable[[AppRunner], AppRunnerConfig]
     loop: asyncio.AbstractEventLoop
     "manta component returned by the configurator"
     manta: Optional[MantaComponent] = None
-    "the callable used to start the manta app"
-    starter: Optional[Callable[[], Union[None, Awaitable]]] = None
-    "the callable used to stop the manta app"
-    stopper: Optional[Callable[[], Union[None, Awaitable]]] = None
     thread: Optional[threading.Thread] = None
     "AIOHTTP instance"
     web: Optional[aiohttp.web.Application] = None
@@ -57,8 +51,14 @@ class AppRunner:
                                               AppRunnerConfig],
                  app_config: IntegrationConfig):
 
-        self.configurator = configurator
+        "callable used to configure the application"
+        self.configurator: Callable[[AppRunner], AppRunnerConfig] = configurator
         self.app_config = app_config
+
+        "the callable used to start the manta app"
+        self.starter: Optional[Callable[[], Union[None, Awaitable]]] = None
+        "the callable used to stop the manta app"
+        self.stopper: Optional[Callable[[], Union[None, Awaitable]]] = None
 
     def _init_app(self) -> None:
         run_config = self.configurator(self)
@@ -66,6 +66,7 @@ class AppRunner:
         self.starter = run_config.starter
         self.stopper = run_config.stopper
         if run_config.web_routes is not None:
+            assert isinstance(run_config.web_bind_address, str)
             if run_config.web_bind_port is not None \
                and not port_can_be_bound(run_config.web_bind_port,
                                          run_config.web_bind_address) \
@@ -93,7 +94,7 @@ class AppRunner:
         started = False
         try:
             loop = self.loop = _get_event_loop()
-            self.loop.run_until_complete(self._start(*args, **kwargs))
+            self.loop.run_until_complete(self._start(args=args, kwargs=kwargs))
             started = True
             self.loop.run_forever()
             self.loop.stop()
@@ -111,8 +112,10 @@ class AppRunner:
         self._init_app()
         # setup manta/mqtt
         assert callable(self.starter)
-        start_res = self.starter(*args, **kwargs)
+        # TODO: fix the type for proxy invocation
+        start_res = self.starter(*args, **kwargs)  # type: ignore
         if inspect.isawaitable(start_res):
+            assert start_res is not None
             await start_res
         # setup aiohttp
         if self.web is not None:
@@ -142,12 +145,14 @@ class AppRunner:
     def start(self, *args, new_thread: bool = False,
               **kwargs) -> Union[None, Awaitable]:
         "Start the manta application."
-        if self.thread is None and new_thread:
-            self.thread = threading.Thread(target=self._run, args=args,
-                                           kwargs=kwargs)
-            self.thread.start()
-        if not new_thread:
-            return self._start(args=args, kwargs=kwargs)
+        if self.thread is None:
+            if new_thread:
+                self.thread = threading.Thread(target=self._run, args=args,
+                                               kwargs=kwargs)
+                self.thread.start()
+            else:
+                return self._start(args=args, kwargs=kwargs)
+        return None
 
     def stop(self) -> None:
         if self.thread is None:

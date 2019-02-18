@@ -24,12 +24,11 @@ import sys
 import aiohttp
 from cryptography import x509
 from cryptography.x509 import NameOID
-from file_config import config, var
 import inquirer
 import nano
 
-from ..messages import (verify_chain, PaymentRequestEnvelope,
-                        PaymentRequestMessage)
+from ..messages import (verify_chain, Destination,
+                        PaymentRequestEnvelope, PaymentRequestMessage)
 from ..wallet import Wallet
 from . import AppRunnerConfig
 from .runner import AppRunner
@@ -59,7 +58,7 @@ def dummy_wallet(runner: AppRunner) -> AppRunnerConfig:
                 return aiohttp.web.json_response("ok")
 
             except Exception:
-                logger.exception()
+                logger.exception("Error while executing '/scan' web endpoint")
                 raise aiohttp.web.HTTPInternalServerError()
 
         more_params = dict(web_routes=routes,
@@ -73,13 +72,15 @@ def dummy_wallet(runner: AppRunner) -> AppRunnerConfig:
         nonlocal runner
         wallet = Wallet.factory(url)
         runner.manta = wallet
-        return _get_payment(*args, wallet=wallet, **kwargs)
+        kwargs['wallet'] = wallet
+        return _get_payment(*args, **kwargs)
 
     def stopper():
         assert isinstance(runner.manta, Wallet)
         runner.manta.mqtt_client.loop_stop()
 
-    return AppRunnerConfig(starter=starter, stopper=stopper, **more_params)
+    return AppRunnerConfig(starter=starter,  # type: ignore
+                           stopper=stopper, **more_params)
 
 
 async def _get_payment(url: str = None,
@@ -176,6 +177,7 @@ async def _interactive_payment(wallet: Wallet, payment_req: PaymentRequestMessag
 
         destination = payment_req.get_destination('NANO')
 
+        assert isinstance(destination, Destination)
         if _query_yes_no("Pay {} {} ({} {}) to {}".format(
                 destination.amount, destination.crypto_currency,
                 payment_req.amount, payment_req.fiat_currency,
