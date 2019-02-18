@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from io import open
 import os
 
 from setuptools import setup
@@ -26,15 +27,28 @@ here_dir = os.path.dirname(__file__)
 with open(os.path.join(here_dir, 'requirements.txt')) as req_file:
     requirements = req_file.read().splitlines()
 
+with open(os.path.join(here_dir, 'README.rst'), encoding='utf-8') as f:
+    README = f.read()
+
 
 setup(
     name='manta',
     version=MANTA_VERSION,
+    description="Manta protocol components",
+    long_description=README,
     packages=['manta'],
-    url='',
-    license='',
+    url='https://nanoray.github.io/manta-python',
+    license='GNU Affero GPLv3',
     author='Alessandro Viganò',
     author_email='alvistar@gmail.com',
-    description='',
-    install_requires=requirements
+    install_requires=requirements,
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.7",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: GNU Affero General Public License v3",
+        "Topic :: System :: Networking",
+        "Topic :: Office/Business :: Financial :: Point-Of-Sale"
+        ],
 )
