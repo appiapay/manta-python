@@ -421,15 +421,15 @@ class PayProc(MantaComponent):
             payment_request = state.payment_request
 
             assert payment_request is not None
-            if payment_message.crypto_currency.upper() not in [x.upper() for x in payment_request.supported_cryptos]:
+            if payment_message.crypto_currency.upper() not in \
+               [x.upper() for x in payment_request.supported_cryptos]:
                 return
 
             new_ack = attr.evolve(state.ack,
                                   status=Status.PENDING,
                                   transaction_hash=payment_message.transaction_hash,
                                   transaction_currency=payment_message.crypto_currency,
-                                  url=None
-                                  )
+                                  url=None)
             assert new_ack is not None
 
             state.payment_message = payment_message
@@ -492,10 +492,10 @@ class PayProc(MantaComponent):
             state.ack = new_ack
             self.ack(session_id, new_ack)
 
-            if self.on_processed_confirmation:
+            if callable(self.on_processed_confirmation):
                 self.on_processed_confirmation(state.ack.txid, new_ack)
 
-    def invalidate(self, session_id: str, reason: str=""):
+    def invalidate(self, session_id: str, reason: str = ""):
         """
 
             Change the status of session_id to INVALID and send the ack

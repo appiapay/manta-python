@@ -191,14 +191,17 @@ class PaymentRequestMessage(Message):
 
     def get_envelope(self, key: RSAPrivateKey):
         json_message = self.to_json()
-        signature = base64.b64encode(key.sign(json_message.encode('utf-8'), padding.PKCS1v15(), hashes.SHA256()))
+        signature = base64.b64encode(key.sign(json_message.encode('utf-8'),
+                                              padding.PKCS1v15(),
+                                              hashes.SHA256()))
 
         return PaymentRequestEnvelope(message=json_message,
                                       signature=signature.decode('utf-8'))
 
     def get_destination(self, crypto: str) -> Optional[Destination]:
         try:
-            return next(d for d in self.destinations if d.crypto_currency == crypto)
+            return next(d for d in self.destinations
+                        if d.crypto_currency == crypto)
         except StopIteration:
             return None
 
