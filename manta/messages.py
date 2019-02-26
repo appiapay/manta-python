@@ -171,7 +171,7 @@ class PaymentRequestMessage(Message):
     """
     Payment Request
 
-    Generated after request on payment_requests/[session_id}/crypto
+    Generated after request on payment_requests/{session_id}/{crypto_currency}
 
     Published in Envelope to Payment Processor on payment_requests/{session_id}
 
