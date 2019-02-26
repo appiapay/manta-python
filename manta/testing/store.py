@@ -96,6 +96,7 @@ def dummy_store(runner: AppRunner) -> AppRunnerConfig:
 
     if cfg.web is not None and cfg.web.enable:
         routes = aiohttp.web.RouteTableDef()
+
         @routes.post("/merchant_order")
         async def merchant_order(request: aiohttp.web.Request):
             try:
