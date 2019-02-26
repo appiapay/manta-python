@@ -2,3 +2,4 @@ sphinx
 sphinx-autodoc-typehints
 sphinx-jsonschema
 sphinx-rtd-theme
+sphinxcontrib-seqdiag

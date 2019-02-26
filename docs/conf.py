@@ -43,8 +43,8 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.autosummary',
     'sphinx_autodoc_typehints',
-    'sphinx-jsonschema'
-
+    'sphinx-jsonschema',
+    'sphinxcontrib.seqdiag',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -74,6 +74,10 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'default'
 
+# Fontpath for seqdiag (truetype font)
+seqdiag_fontpath = os.path.join(os.path.dirname(__file__), 'fonts/Lato-Regular.ttf')
+seqdiag_antialias = True
+seqdiag_html_image_format = 'SVG'
 
 # -- Options for HTML output -------------------------------------------------
 
