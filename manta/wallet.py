@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Library for implementing a Manta Wallet
+Library with a basic implementation of a Manta :term:`Wallet`.
 """
 
 from __future__ import annotations
@@ -46,15 +46,25 @@ def wrap_callback(f):
 
 class Wallet(MantaComponent):
     """
-    Class for creating a Manta Wallet
+    Implements a Manta :term:`Wallet`. This class needs an *asyncio* loop
+    to run correctly as some of its features are implemented as
+    *coroutines*.
 
-    Instantiates using factory method
+    This is usually instantiated from a :term:`Manta URL` using the
+    :meth:`.factory` classmethod.
 
-    Parameters:
-        acks (asyncio.Queue): Queue for acks. Wait for it to retrieve the next ack message.
+    Args:
+        url: a string containing a :term:`Manta URL`
+        session_id: a session_id
+        host: :term:`MQTT` broker IP addresses
+        port: optional port number of the broker service
 
+    Attributes:
+        acks: queue of :class:`~.messages.AckMessage` instances
+        loop: the *asyncio* loop that manages the asynchronous parts of this
+          object
+        session_id: :term:`session_id` of the ongoing session, if any
     """
-
     loop: asyncio.AbstractEventLoop
     connected: asyncio.Event
     port: int
@@ -67,12 +77,14 @@ class Wallet(MantaComponent):
     @classmethod
     def factory(cls, url: str):
         """
-        This creates a Wallet instance from a manta url. Can be none if url is invalid.
+        This creates an instance from a :term:`Manta URL`. Can be ``None``
+        if the URL is invalid.
+
         Args:
             url: manta url (ex. manta://developer.beappia.com/2848839943)
 
         Returns:
-
+            a new configured but unconnected instance
         """
         match = cls.parse_url(url)
         if match:
@@ -102,6 +114,7 @@ class Wallet(MantaComponent):
         self.connected = asyncio.Event(loop=self.loop)
 
     def close(self):
+        """Disconnect and stop :term:`MQTT` client's processing loop."""
         self.mqtt_client.disconnect()
         self.mqtt_client.loop_stop()
 
@@ -147,6 +160,12 @@ class Wallet(MantaComponent):
         return re.match(pattern, url)
 
     async def connect(self):
+        """
+        Connect to the :term:`MQTT` broker and wait for the connection
+        confirmation.
+
+        This is a coroutine.
+        """
         if not self.first_connect:
             self.mqtt_client.connect(self.host, port=self.port)
             self.mqtt_client.loop_start()
@@ -155,6 +174,12 @@ class Wallet(MantaComponent):
         await self.connected.wait()
 
     async def get_certificate(self) -> x509.Certificate:
+        """
+        Get :term:`Payment Processor`'s certificate retained by the
+        :term:`MQTT` broker service.
+
+        This is a coroutine
+        """
         await self.connect()
         assert self.certificate_future is not None
         certificate = await self.certificate_future
@@ -162,14 +187,17 @@ class Wallet(MantaComponent):
 
     async def get_payment_request(self, crypto_currency: str = "all") -> PaymentRequestEnvelope:
         """
-        Get Payment Request for specific crypto currency, or 'all' crypto supported
+        Get the :class:`~.messages.PaymentRequestMessage` for specific crypto
+        currency, or ``all`` to obtain informations about all the supported
+        crypto currencies.
 
         Args:
             crypto_currency: crypto to request payment for (ex. 'NANO')
 
         Returns:
-            The Payment Request Envelope
+            The Payment Request Envelope. It's ``all`` by default
 
+        This is a coroutine
         """
         await self.connect()
 
@@ -190,7 +218,7 @@ class Wallet(MantaComponent):
             transaction_hash: the hash of transaction sent to blockchain
             crypto_currency: the crypto currency used for transaction
 
-
+        This is a coroutine
         """
         await self.connect()
         message = PaymentMessage(

@@ -18,7 +18,7 @@
 # from __future__ import annotations
 
 """
-Library for implementing a Manta Payment Processor
+Library that implements a basic a Manta :term:`Payment Processor`.
 """
 
 from abc import abstractmethod
@@ -222,16 +222,22 @@ class PayProc(MantaComponent):
         Manta Protocol Payment Processor Implementation
 
         Args:
-            key_file: File name of PEM private key of Payment Processor. This will be used to sign messages
+            key_file: File name of PEM private key of Payment Processor. This
+              will be used to sign messages
             certificate: File name of Manta Certificate Authority, IE Appia
             host: MQTT Broker host
-            starting_txid: Transaction ID are progressive, starting from the one specified
+            starting_txid: Transaction ID are progressive, starting from the
+              one specified
             tx_storage: TXStorage instance to store session information
-            mqtt_options: A Dict of options to be passed to MQTT Client (like username, password)
+            mqtt_options: A Dict of options to be passed to MQTT Client (like
+              username, password)
+            port: MQTT Broker port number. Specified only if it's different
+              than the default of 1883
 
         Attributes:
             get_destinations: Callback function to retrieve list of Destination
-            get_supported_cryptos: Callback function to retrieve list of supported cryptos
+            get_supported_cryptos: Callback function to retrieve list of
+              supported cryptos
         """
 
     key: RSAPrivateKey
@@ -287,7 +293,8 @@ class PayProc(MantaComponent):
 
     def run(self):
         """
-            Start processing network requests
+        Start processing network requests. This starts the :term:`MQTT`
+        client processing loop in another thread.
         """
         self.mqtt_client.connect(host=self.host, port=self.port)
         self.mqtt_client.loop_start()
@@ -295,8 +302,26 @@ class PayProc(MantaComponent):
     @staticmethod
     def key_from_keydata(key_data: bytes) -> RSAPrivateKey:
         return load_pem_private_key(key_data, password=None, backend=default_backend())
+        """
+        Given a string containing the key encoded in PEM format, loads it.
+
+        Args:
+            key_data: string containing the key in PEM format
+        Returns:
+            a ready key object
+        """
 
     def sign(self, message: bytes) -> bytes:
+        """
+        Sign the given string with the cryptographic key specified at
+        creation time.
+
+        Args:
+            message: string to sign
+        Returns:
+            signature text
+
+        """
         # signature = key.sign(message,
         #                      padding.PSS(
         #                          mgf=padding.MGF1(hashes.SHA256()),
@@ -452,14 +477,21 @@ class PayProc(MantaComponent):
             traceback.print_exc()
 
     def ack(self, session_id: str, ack: AckMessage):
+        """
+        Publish the given :class:`~.messages.AckMessage`.
+
+        Args:
+            session_id: id of the session where to send the messages
+        """
         logger.info("Publishing ack for {} as {}".format(session_id, ack.status.value))
 
         self.mqtt_client.publish('acks/{}'.format(session_id), ack.to_json())
 
     def confirming(self, session_id: str):
         """
-
-        Change the status of session_id to CONFIRMING and send the ack
+        Change the status of the session with the given ``session_id`` to
+        :attr:`~.messages.Status.CONFIRMING` and publish the
+        :class:`~.messages.AckMessage`.
 
         Args:
             session_id: session to change
@@ -476,8 +508,9 @@ class PayProc(MantaComponent):
 
     def confirm(self, session_id: str):
         """
-
-        Change the status of session_id to PAID and send the ack
+        Change the status of the session with the given ``session_id`` to
+        :attr:`~.messages.Status.PAID` and publish the
+        :class:`~.messages.AckMessage`.
 
         Args:
             session_id: session to change
@@ -499,11 +532,13 @@ class PayProc(MantaComponent):
     def invalidate(self, session_id: str, reason: str = ""):
         """
 
-            Change the status of session_id to INVALID and send the ack
+        Change the status of the session with the given ``session_id`` to
+        :attr:`~.messages.Status.INVALID` and publish the
+        :class:`~.messages.AckMessage`.
 
         Args:
             session_id: session to change
-            reason: reason for INVALID (ex. 'Timeout')
+            reason: reason for INVALID status (ex. 'Timeout')
         """
 
         if self.tx_storage.session_exists(session_id):
@@ -517,7 +552,16 @@ class PayProc(MantaComponent):
 
     def generate_payment_request(self, device: str,
                                  payment_request: MerchantOrderRequestMessage) -> PaymentRequestEnvelope:
+        """
+        Create a :class:`~.messages.PaymentRequestEnvelope` containing the
+        payment informations.
 
+        Args:
+            device: :term:`application_id` of the :term:`POS`
+            merchant_request: object containing payment infos
+        Returns:
+            an envelope containing a :class:`~.message.PaymentRequestMessage`
+        """
         merchant = self.get_merchant(device)
         destinations = self.get_destinations(device, payment_request)
         supported_cryptos = self.get_supported_cryptos(device, payment_request)

@@ -1,6 +1,8 @@
 manta.payproc
 =============
-PayProc library has been created to facilitate implementation of a Manta Payment Processor service.
+
+PayProc library has been created to facilitate implementation of a
+Manta Payment Processor service.
 
 See :py:class:`manta.payproc.PayProc` for more details.
 
@@ -22,4 +24,3 @@ See :py:class:`manta.payproc.PayProc` for more details.
 .. autosummary::
 
    SessionDoesNotExist
-

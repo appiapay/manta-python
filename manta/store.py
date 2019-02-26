@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Library for implementing a Manta Pos
+Library with a basic implementation of a Manta :term:`POS`.
 """
 
 from __future__ import annotations
@@ -51,20 +51,25 @@ def wrap_callback(f):
 
 class Store(MantaComponent):
     """
-    Store Class for implement Manta POS
+    Implements a Manta :term:`POS`. This class needs an *asyncio* loop
+    to run correctly as some of its features are implemented as
+    *coroutines*.
 
     Args:
-        device_id: Device unique identifier of POS
+        device_id: Device unique identifier (also called :term:`application_id`)
+          associated with the :term:`POS`
         host: Hostname of the Manta broker
-        port: port of the Manta broker
         client_options: A Dict of options to be passed to MQTT Client (like
           username, password)
+        port: port of the Manta broker
 
     Attributes:
-        acks (asyncio.Queue): Queue of Acks messages. Wait for it to retrieve
-          the first available message
-
-
+        acks: queue of :class:`~.messages.AckMessage` instances
+        device_id: Device unique identifier (also called
+          :term:`application_id`) associated with the :term:`POS`
+        loop: the *asyncio* loop that manages the asynchronous parts of this
+          object
+        session_id: :term:`session_id` of the ongoing session, if any
     """
     loop: asyncio.AbstractEventLoop
     connected: asyncio.Event
@@ -95,6 +100,7 @@ class Store(MantaComponent):
         self.port = port
 
     def close(self):
+        """Disconnect and stop :term:`MQTT` client's processing loop."""
         self.mqtt_client.disconnect()
         self.mqtt_client.loop_stop()
 
@@ -122,16 +128,33 @@ class Store(MantaComponent):
             self.acks.put_nowait(ack)
 
     def subscribe(self, topic: str):
+        """
+        Subscribe to the given :term:`MQTT` topic.
+
+        Args:
+           topic: string containing the topic name.
+        """
         self.mqtt_client.subscribe(topic)
         self.subscriptions.append(topic)
 
     def clean(self):
+        """
+        Clean the :class:`~.messages.AckMessage` queue and unsubscribe
+        from any active :term:`MQTT` subscriptions.
+
+        """
         self.acks = asyncio.Queue()
 
         if len(self.subscriptions) > 0:
             self.mqtt_client.unsubscribe(self.subscriptions)
 
     async def connect(self):
+        """
+        Connect to the :term:`MQTT` broker and wait for the connection
+        confirmation.
+
+        This is a coroutine.
+        """
         if not self.first_connect:
             self.mqtt_client.connect(self.host, port=self.port)
             self.mqtt_client.loop_start()
@@ -144,16 +167,20 @@ class Store(MantaComponent):
 
     async def merchant_order_request(self, amount: Decimal, fiat: str, crypto: str = None) -> AckMessage:
         """
-        Create a new Merchant Order
+        Create a new Merchant Order and publish it to the
+        :ref:`merchant_order_request/{application_id}` topic. Raises an
+        exception if an :class:`~.messages.AckMessage` isn't received
+        in less than 3 seconds.
 
         Args:
             amount: Fiat Amount requested
             fiat: Fiat Currency requested (ex. 'EUR')
             crypto: Crypto Currency requested (ex. 'NANO')
-
         Returns:
-            AckMessage with status 'NEW' if confirmed by Payment Processor or Timeout Exception
+            ack message with status 'NEW' if confirmed by Payment Processor or
+              Timeout Exception
 
+        This is a coroutine.
         """
         await self.connect()
         self.clean()
