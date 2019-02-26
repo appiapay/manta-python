@@ -2,6 +2,11 @@
  Messages
 ==========
 
+Messages are object that are use used to store and communicate the
+data of the :term:`Merchant` order and the correspondent
+:term:`Wallet` payment. They are serialize to/from term:`JSON` for
+transmission using :term:`MQTT` protocol.
+
 Ack
 ===
 .. autoclass:: manta.messages.AckMessage
