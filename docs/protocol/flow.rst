@@ -1,6 +1,166 @@
-FLOW
-====
+======
+ Flow
+======
+
 Flow is initiated by Merchant.
+
+Merchant
+========
+
+The payment process from the :term:`Merchant`'s point of view:
+
+.. seqdiag::
+
+ activation = none;
+ Merchant; "Payment Processor"; "MQTT Broker";
+
+ Merchant --> "MQTT Broker" [leftnote="(2) SUBSCRIBE to\n\"acks/{session_id}\""];
+ Merchant ->>  "Payment Processor" [leftnote="PUBLISH on\n\"merchant_order_request/{application_id}\"",
+                                    label="(3) MerchantOrderRequest"];
+ Merchant <<-  "Payment Processor" [rightnote="PUBLISH on\n\"acks/{session_id}\"",
+                                    label="(4) Ack[status = new]"];
+ Merchant <<-  "Payment Processor" [rightnote="PUBLISH on\n\"acks/{session_id}\"",
+                                    label="(5) Ack[status = paid]"];
+ Merchant --> "MQTT Broker" [leftnote="(6) UNSUBSCRIBE to\n\"acks/{session_id}\""];
+
+1. :term:`Merchant` generates a random :term:`session_id`.
+
+2. :term:`Merchant` *subscribes* to the topic :ref:`acks/{session_id}`.
+
+3. :term:`Merchant` create a
+   `~manta.messages.MerchantOrderRequestMessage`:class: and *publishes* on
+   topic `merchant_order_request/{application_id}`:ref:.
+
+   `~manta.messages.MerchantOrderRequestMessage.crypto_currency`:obj:
+   field should be empty if customer wants to pay with Manta.
+
+4. :term:`Merchant` *receives* an :class:`~manta.messages.AckMessage` with
+   status == "new" on topic :ref:`acks/{session_id}`.
+
+   :term:`Merchant` can create QR code/NDEF Message with URL data
+
+5. :term:`Merchant` *will receive* an
+   :class:`~manta.messages.AckMessage` messages as payment changes
+   state. With status == "paid" the transaction is completed.
+
+6. :term:`Merchant` *unsubscribes* from the topic
+   :ref:`acks/{session_id}`.
+
+Payment Processor
+=================
+
+The payment process from the :term:`Payment Processor`'s side:
+
+
+.. seqdiag::
+ :scale: 70
+
+ activation = none;
+ Merchant; "Payment Processor"; Wallet; "MQTT Broker";
+
+ "Payment Processor" --> "MQTT Broker" [rightnote="(1) SUBSCRIBE to\n\"merchant_order_request/+\""]
+ "Payment Processor" --> "MQTT Broker" [rightnote="(1) SUBSCRIBE to\n\"merchant_order_cancel/+\""]
+
+ === initialization complete ===
+
+ Merchant ->>  "Payment Processor" [leftnote="PUBLISH on\n\"merchant_order_request/{application_id}\"",
+                                    label="(2) MerchantOrderRequest"];
+ Merchant <<-  "Payment Processor" [rightnote="PUBLISH on\n\"acks/{session_id}\"",
+                                    label="(2b) Ack[status = new]"];
+ ... crypto_currency == null ...
+
+ "Payment Processor" --> "MQTT Broker" [rightnote="(2c) SUBSCRIBE to\n\"payments/{session_id}\""];
+ "Payment Processor" --> "MQTT Broker" [rightnote="(2c) SUBSCRIBE to\n\"payment_requests/{session_id}/+\""];
+
+ "Payment Processor" <<- Wallet [rightnote="(3) PUBLISH on\n\"payment_requests/{session_id}/{crypto_currency}\""];
+ "Payment Processor" ->> Wallet [leftnote="PUBLISH on\n\"payment_requests/{session_id}\"",
+                                 label="(3a) PaymentRequestEnvelope"];
+
+1. When it starts, it subscribes to :ref:`merchant_order_request/+`
+   and :ref:`merchant_order_cancel/+` topics.
+
+2. On message :class:`~manta.messages.MerchantOrderRequestMessage` on
+   a specific :ref:`merchant_order_request/{application_id}` topic:
+
+   a. generates an :class:`~manta.messages.AckMessage` with status ==
+      "new". The :attr:`~manta.messages.AckMessage.url` field is in
+      manta format if field
+      :attr:`~manta.messages.AckMessage.crypto_currency` is null
+      (manta protocol), otherwise
+      :attr:`~manta.messages.AckMessage.url` format will depend on the
+      :attr:`~manta.messages.AckMessage.crypto_currency`;
+
+   b. *publishes* this the :class:`~manta.messages.AckMessage` on the
+      :ref:`acks/{session_id}` topic;
+
+   If manta protocol is used:
+
+   c. It *subscribes* to :ref:`payments/{session_id}` and
+      :ref:`payment_requests/{session_id}/+` topics.
+
+3. On an event on
+   :ref:`payment_requests/{session_id}/{crypto_currency}` without any
+   payload:
+
+   a. creates a new
+      :class:`~manta.messages.PaymentRequestMessage` and *publishes* it on
+      :ref:`payment_requests/{session_id}` wrapped into a
+      :class:`~manta.messages.PaymentRequestEnvelope` with retention.
+
+   ``{crypto_currency}`` parameter can be "all" to request multiple
+   cryptos.
+
+   Destination should be specific to ``{crypto_currency}`` field.
+
+4. On message :class:`~manta.messages.PaymentMessage` on
+   :ref:`payments/{session_id}` it starts monitoring blockchain and on
+   progress publish :class:`~manta.messages.AckMessage` on
+   :ref:`acks/{session_id}`.
+
+
+Manta enabled wallet
+====================
+
+.. seqdiag::
+
+ activation = none;
+ Wallet; "Payment Processor"; "MQTT Broker";
+
+ Wallet -> Wallet [rightnote="read manta URL"]
+ Wallet --> "MQTT Broker" [leftnote="(1) SUBSCRIBE to\n\"payment_requests/{session_id}\""];
+ Wallet ->> "Payment Processor" [leftnote="(2) PUBLISH on\n\"payment_request_message/{session_id}/{crypto_currency}\""];
+ Wallet <<- "Payment Processor" [leftnote="PUBLISH on\n\"payment_requests/{session_id}\"",
+                                 label="(3) PaymentRequest"];
+ Wallet ->> "Payment Processor" [leftnote="PUBLISH on\n\"payments/{session_id}\"",
+                                 label="(5) Payment"];
+ Wallet --> "MQTT Broker" [leftnote="(6) SUBSCRIBE to\n\"acks/{session_id}\""];
+
+
+1. After receiving a :term:`Manta URL` via QR code or NFC it
+   *subscribes* to :ref:`payment_requests/{session_id}`.
+
+2. *Publishes* on :ref:`payment_requests/{session_id}/{crypto_currency}`.
+
+   ``{crypto_currency}`` can be "all" to request multiple cryptos.
+
+3. On :class:`~manta.messages.PaymentRequestMessage` on topic
+   :ref:`payment_requests/{session_id}` if
+   :attr:`~manta.messages.PaymentRequestMessage.destinations` field does
+   not contain desired crypto, check *supported_cryptos* and eventually
+   go back to 2).
+
+4. *Verifies* :class:`~manta.messages.PaymentRequestMessage` signature.
+
+5. After payment on blockchain *publishes* a
+   :class:`~manta.messages.PaymentMessage` on
+   :ref:`payments/{session_id}` topic.
+
+6. *Subscribes* to the topic named :ref:`acks/{session_id}`
+
+
+Complete Manta flow diagram
+===========================
+
 
 .. figure:: ../images/manta-protocol-full.svg
 
@@ -11,67 +171,3 @@ You can |location_link|.
 .. |location_link| raw:: html
 
    <a href="../_images/manta-protocol-full.svg" target="_blank">Open diagram in new window</a>
-
-Merchant
---------
-1.  Merchant generates a random SESSION_ID
-
-2.  Merchant *subscribe* to **ACKS/{SESSION_ID}**
-
-3.  Merchant create a **MERCHANT_ORDER_REQUEST_MESSAGE** and *publish* on **MERCHANT_ORDER_REQUEST/{APPLICATION_ID}**
-
-    crypto_currency should be empty if customer wants to pay with Manta
-
-4.  Merchant receives **ACK_MESSAGE** with status == "new"
-
-    Merchant can create QR/NDEF Message with URL data
-
-5.  Merchant will receive ACK messages as payment change status. With *paid* status transaction is finished
-
-Payment Processor
------------------
-
-1.  Subscribes to **MERCHANT_ORDER_REQUEST/+**
-
-2.  On message **MERCHANT_ORDER_REQUEST/{APPLICATION_ID}**
-
-    Generate **ACK_MESSAGE** with "new" status.
-    URL is manta format if crypto_currency is null (manta protocol), otherwise URL will be crypto_currency legacy format
-
-    *publish* on **ACKS/{SESSION_ID}**
-
-    If manta protocol:
-
-    Subscribes to **PAYMENTS/{SESSION_ID}/+**
-
-3.  On message **PAYMENT_REQUEST_MESSAGE/{SESSION_ID}/{CRYPTO_CURRENCY}**
-
-    Creates a new **PAYMENT_REQUEST_MESSAGE** and publish on **PAYMENT_REQUESTS/{SESSION_ID}** with retention
-
-    CRYPTO_CURRENCY can be "all" to request multiple cryptos
-
-    Destination should be specific to {CRYPTO_CURRENCY}
-
-4.  On message **PAYMENTS/{SESSION_ID}**
-
-    Starts monitoring blockchain and on progress publish **ACK_MESSAGE** on **ACKS/{SESSION_ID}**
-
-Manta enabled wallet
---------------------
-
-1.  After receiving QR/NFC manta
-
-    *Subscribe* to **PAYMENT_REQUESTS/{SESSION_ID}**
-
-2.  *Publish* on **PAYMENT_REQUEST/{SESSION_ID}/{CRYPTO_CURRENCY}**
-
-    CRYPTO_CURRENCY can be "all" to request multiple cryptos
-
-3.  On **PAYMENT_REQUEST_MESSAGE**
-    If *destinations* does not contain desired crypto, check *supported_cryptos* and eventually go back to 2)
-
-4.  Verify PAYMENT_REQUEST_MESSAGE signature
-
-5.  After payment on blockchain *publish* **PAYMENT_MESSAGE** on **PAYMENTS/{SESSION_ID}**
-
-6.  Subscribe to **ACKS/{SESSION_ID}**
