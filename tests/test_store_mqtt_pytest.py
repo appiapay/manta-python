@@ -22,6 +22,7 @@ from manta.store import Store
 
 # logging.basicConfig(level=logging.INFO)
 
+
 @pytest.fixture
 async def store(broker) -> Store:
     _, host, port, _ = broker
@@ -74,3 +75,18 @@ async def test_ack_paid(store, dummy_wallet, dummy_payproc, web_post):
     ack_message = await store.acks.get()
 
     assert Status.PAID == ack_message.status
+
+
+@pytest.mark.timeout(5)
+@pytest.mark.asyncio
+# noinspection PyUnresolvedReferences
+async def test_store_complete_session(store, dummy_wallet, dummy_payproc,
+                                      web_post):
+    ack = await store.merchant_order_request(amount=10, fiat='eur')
+    await dummy_wallet.start(url=ack.url)
+    dummy_payproc.manta.confirm(dummy_wallet.manta.session_id)
+    while True:
+        ack = await store.acks.get()
+        if ack.status is Status.PAID:
+            break
+    assert ack.status is Status.PAID
