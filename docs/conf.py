@@ -45,6 +45,7 @@ extensions = [
     'sphinx_autodoc_typehints',
     'sphinx-jsonschema',
     'sphinxcontrib.seqdiag',
+    'sphinxcontrib.asyncio',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
