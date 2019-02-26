@@ -546,7 +546,7 @@ class PayProc(MantaComponent):
             self.ack(session_id, new_ack)
 
     def generate_payment_request(self, device: str,
-                                 payment_request: MerchantOrderRequestMessage) -> PaymentRequestEnvelope:
+                                 merchant_request: MerchantOrderRequestMessage) -> PaymentRequestEnvelope:
         """
         Create a :class:`~.messages.PaymentRequestEnvelope` containing the
         payment informations.
@@ -558,12 +558,12 @@ class PayProc(MantaComponent):
             an envelope containing a :class:`~.message.PaymentRequestMessage`
         """
         merchant = self.get_merchant(device)
-        destinations = self.get_destinations(device, payment_request)
-        supported_cryptos = self.get_supported_cryptos(device, payment_request)
+        destinations = self.get_destinations(device, merchant_request)
+        supported_cryptos = self.get_supported_cryptos(device, merchant_request)
 
         message = PaymentRequestMessage(merchant=merchant,
-                                        amount=payment_request.amount,
-                                        fiat_currency=payment_request.fiat_currency,
+                                        amount=merchant_request.amount,
+                                        fiat_currency=merchant_request.fiat_currency,
                                         destinations=destinations,
                                         supported_cryptos=supported_cryptos)
 
