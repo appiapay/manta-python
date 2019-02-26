@@ -87,7 +87,7 @@ class TransactionState:
     notify: Optional[Callable[[int, str, Any], None]] = None
 
     def __setattr__(self, key, value):
-        if self.notify:
+        if callable(self.notify):
             self.notify(self.txid, key, value)
 
         super().__setattr__(key, value)
@@ -379,7 +379,7 @@ class PayProc(MantaComponent):
 
             self.txid = self.txid + 1
 
-        if self.on_processed_order:
+        if callable(self.on_processed_order):
             self.on_processed_order(ack.txid, p, ack)
 
     # noinspection PyUnusedLocal
@@ -405,7 +405,7 @@ class PayProc(MantaComponent):
         logger.info("Publishing {}".format(envelope))
         self.mqtt_client.publish('payment_requests/{}'.format(session_id), envelope.to_json())
 
-        if self.on_processed_get_payment:
+        if callable(self.on_processed_get_payment):
             assert state.ack is not None
             self.on_processed_get_payment(state.ack.txid, crypto_currency, envelope.unpack())
 
@@ -437,7 +437,7 @@ class PayProc(MantaComponent):
 
             self.ack(session_id, new_ack)
 
-            if self.on_processed_payment:
+            if callable(self.on_processed_payment):
                 self.on_processed_payment(state.ack.txid, payment_message, new_ack)
 
     # noinspection PyUnusedLocal
