@@ -323,11 +323,11 @@ class PayProc(MantaComponent):
 
     def _subscribe(self, topic):
         self.mqtt_client.subscribe(topic)
-        logger.info('Subscribed to {}'.format(topic))
+        logger.info('Subscribed to %r', topic)
 
     @Dispatcher.method_topic("merchant_order_cancel/+")
     def on_merchant_order_cancel(self, session_id, payload):
-        logger.info("Request for canceling order with session_id {}".format(session_id))
+        logger.info("Request for canceling order with session_id %r", session_id)
 
         self.invalidate(session_id, "Canceled by Merchant")
 
