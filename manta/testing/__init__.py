@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Manta Python
 # Manta Protocol Implementation for Python
-# Copyright (C) 2018 xxx
+# Copyright (C) 2019 xxx
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
