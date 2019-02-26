@@ -226,4 +226,5 @@ class Wallet(MantaComponent):
             crypto_currency=crypto_currency
         )
         self.mqtt_client.subscribe("acks/{}".format(self.session_id))
-        self.mqtt_client.publish("payments/{}".format(self.session_id), message.to_json(), qos=1)
+        self.mqtt_client.publish("payments/{}".format(self.session_id),
+                                 message.to_json(), qos=1)

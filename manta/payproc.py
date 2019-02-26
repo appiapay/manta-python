@@ -301,7 +301,6 @@ class PayProc(MantaComponent):
 
     @staticmethod
     def key_from_keydata(key_data: bytes) -> RSAPrivateKey:
-        return load_pem_private_key(key_data, password=None, backend=default_backend())
         """
         Given a string containing the key encoded in PEM format, loads it.
 
@@ -310,6 +309,8 @@ class PayProc(MantaComponent):
         Returns:
             a ready key object
         """
+        return load_pem_private_key(key_data, password=None,
+                                    backend=default_backend())
 
     def sign(self, message: bytes) -> bytes:
         """

@@ -162,10 +162,8 @@ class Store(MantaComponent):
 
         await self.connected.wait()
 
-    # def generate_payment_request(self, amount: float, fiat: str, crypto: str = None):
-    #     return self.loop.run_until_complete(self.__generate_payment_request(amount, fiat, crypto))
-
-    async def merchant_order_request(self, amount: Decimal, fiat: str, crypto: str = None) -> AckMessage:
+    async def merchant_order_request(self, amount: Decimal, fiat: str,
+                                     crypto: str = None) -> AckMessage:
         """
         Create a new Merchant Order and publish it to the
         :ref:`merchant_order_request/{application_id}` topic. Raises an
