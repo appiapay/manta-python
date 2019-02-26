@@ -107,3 +107,16 @@ help::
 .PHONY: rst-tests
 	$(info checking README.rst file syntax)
 	@rst2html.py README.rst > /dev/null
+
+
+help::
+	@printf "\nDocumentation\n=============\n"
+
+help::
+	@printf "\ndocs\n\tcompile the documentation\n"
+
+.PHONY: docs
+docs:
+	$(info compiling documentation...)
+	@cd docs && $(MAKE) html
+	$(info index is available at ./docs/_build/html/index.html)
