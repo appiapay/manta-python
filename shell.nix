@@ -8,6 +8,7 @@ stdenv.mkDerivation {
     python37Full
     python37Packages.virtualenv
     python37Packages.pip
+    python37Packages.pillow
     # The following are build dependencies
     gnumake
     libffi
