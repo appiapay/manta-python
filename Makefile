@@ -80,13 +80,13 @@ help::
 	@printf "\nTesting\n=======\n"
 
 help::
-	@printf "\ntests\n\trun the configured test"
+	@printf "\ntests\n\trun the configured test\n"
 
 .PHONY: tests
 tests: rst-tests type-tests unit-tests
 
 help::
-	@printf "\ntype-tests\n\trun the typechecks using mypy"
+	@printf "\ntype-tests\n\trun the typechecks using mypy\n"
 
 .PHONY: type-tests
 type-tests:
@@ -94,7 +94,7 @@ type-tests:
 	$(info Running type tests...)
 
 help::
-	@printf "\nunit-tests\n\trun the unittests using pytest"
+	@printf "\nunit-tests\n\trun the unittests using pytest\n"
 
 .PHONY: unit-tests
 unit-tests:
@@ -102,7 +102,7 @@ unit-tests:
 	@pytest ./tests
 
 help::
-	@printf "\nrst-tests\n\tcheck README.rst syntax"
+	@printf "\nrst-tests\n\tcheck README.rst syntax\n"
 
 .PHONY: rst-tests
 	$(info checking README.rst file syntax)
