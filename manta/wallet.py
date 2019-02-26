@@ -24,7 +24,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
-from typing import Match, Optional
+from typing import Match, Optional, Union
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
@@ -75,7 +75,7 @@ class Wallet(MantaComponent):
     first_connect = False
 
     @classmethod
-    def factory(cls, url: str):
+    def factory(cls, url: str) -> Union[Wallet, None]:
         """
         This creates an instance from a :term:`Manta URL`. Can be ``None``
         if the URL is invalid.

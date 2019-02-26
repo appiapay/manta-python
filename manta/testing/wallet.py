@@ -94,6 +94,7 @@ async def _get_payment(url: str = None,
         assert url is not None
         wallet = Wallet.factory(url)
 
+    assert wallet is not None
     envelope = await _get_payment_request(wallet)
 
     certificate: x509.Certificate = None
