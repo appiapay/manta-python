@@ -495,9 +495,7 @@ class PayProc(MantaComponent):
 
         Args:
             session_id: session to change
-
         """
-
         if self.tx_storage.session_exists(session_id):
             state = self.tx_storage.get_state_for_session(session_id)
 
@@ -514,9 +512,7 @@ class PayProc(MantaComponent):
 
         Args:
             session_id: session to change
-
         """
-
         if self.tx_storage.session_exists(session_id):
             state = self.tx_storage.get_state_for_session(session_id)
 
@@ -531,7 +527,6 @@ class PayProc(MantaComponent):
 
     def invalidate(self, session_id: str, reason: str = ""):
         """
-
         Change the status of the session with the given ``session_id`` to
         :attr:`~.messages.Status.INVALID` and publish the
         :class:`~.messages.AckMessage`.
@@ -540,7 +535,6 @@ class PayProc(MantaComponent):
             session_id: session to change
             reason: reason for INVALID status (ex. 'Timeout')
         """
-
         if self.tx_storage.session_exists(session_id):
             state = self.tx_storage.get_state_for_session(session_id)
 

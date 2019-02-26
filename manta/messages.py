@@ -101,7 +101,6 @@ class MerchantOrderRequestMessage(Message):
         session_id: random uuid base64 safe
         crypto_currency: None for manta protocol. Specified for legacy
         version: Manta protocol version
-
     """
 
     amount: Decimal
