@@ -43,9 +43,10 @@ Technologies Used
    publish-subscribe-based messaging protocol.
 
    Information exchange is organized in *topics* and clients
-   communicates directly only the *broker*. A client can instruct the
-   broker to *retain* a published message so that it can be delivered
-   to future subscribers whose subscriptions match its topic name.
+   communicates directly only with the *broker* service. A client can
+   instruct the broker to *retain* a published message so that it can
+   be delivered to future subscribers whose subscriptions match its
+   topic name.
 
 
 .. _Message Queuing Telemetry Transport:
