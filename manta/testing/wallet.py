@@ -53,7 +53,7 @@ def dummy_wallet(runner: AppRunner) -> AppRunnerConfig:
             try:
                 json = await request.json()
                 logger.info("Got scan request for {}".format(json['url']))
-                await _get_payment(json['url'])
+                await pay(json['url'])
 
                 return aiohttp.web.json_response("ok")
 
@@ -68,7 +68,11 @@ def dummy_wallet(runner: AppRunner) -> AppRunnerConfig:
     else:
         more_params = {}
 
-    def starter(url: str, *args, **kwargs):
+    def starter():
+        nonlocal runner
+        runner.pay = pay
+
+    def pay(url: str, *args, **kwargs):
         nonlocal runner
         wallet = Wallet.factory(url)
         runner.manta = wallet

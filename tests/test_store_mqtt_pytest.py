@@ -54,7 +54,7 @@ async def test_ack(store, dummy_wallet, dummy_payproc, web_post):
     if dummy_wallet.url:
         web_post(dummy_wallet.url + "/scan", json={"url": ack.url})
     else:
-        await dummy_wallet.start(url=ack.url)
+        await dummy_wallet.pay(url=ack.url)
     ack_message = await store.acks.get()
 
     assert Status.PENDING == ack_message.status
@@ -83,7 +83,7 @@ async def test_ack_paid(store, dummy_wallet, dummy_payproc, web_post):
 async def test_store_complete_session(store, dummy_wallet, dummy_payproc,
                                       web_post):
     ack = await store.merchant_order_request(amount=10, fiat='eur')
-    await dummy_wallet.start(url=ack.url)
+    await dummy_wallet.pay(url=ack.url)
     dummy_payproc.manta.confirm(dummy_wallet.manta.session_id)
     while True:
         ack = await store.acks.get()

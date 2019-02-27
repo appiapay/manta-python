@@ -76,13 +76,15 @@ async def dummy_store(config, broker):
 
 
 @pytest.fixture(scope='function')
-def dummy_wallet(config, broker):
+async def dummy_wallet(config, broker):
     from manta.testing.runner import AppRunner
     from manta.testing.wallet import dummy_wallet
 
     runner = AppRunner(dummy_wallet, config)
-    # wallet is run only when needed
+    await runner.start()
+    # wallet start() adds pay() method to  the runner
     yield runner
+    await runner.stop()
 
 
 @pytest.fixture(scope='function')
