@@ -58,8 +58,10 @@ The payment process from the :term:`Payment Processor`'s side:
  activation = none;
  Merchant; "Payment Processor"; Wallet; "MQTT Broker";
 
- "Payment Processor" --> "MQTT Broker" [rightnote="(1) SUBSCRIBE to\n\"merchant_order_request/+\""]
- "Payment Processor" --> "MQTT Broker" [rightnote="(1) SUBSCRIBE to\n\"merchant_order_cancel/+\""]
+ "Payment Processor" --> "MQTT Broker" [rightnote="(1a) SUBSCRIBE to\n\"merchant_order_request/+\""]
+ "Payment Processor" --> "MQTT Broker" [rightnote="(1a) SUBSCRIBE to\n\"merchant_order_cancel/+\""]
+ "Payment Processor" --> "MQTT Broker" [rightnote="PUBLISH on\n\"certificate\"",
+                                        label="(1b) Manta CA certificate"]
 
  === initialization complete ===
 
@@ -76,8 +78,13 @@ The payment process from the :term:`Payment Processor`'s side:
  "Payment Processor" ->> Wallet [leftnote="PUBLISH on\n\"payment_requests/{session_id}\"",
                                  label="(3a) PaymentRequestEnvelope"];
 
-1. When it starts, it subscribes to :ref:`merchant_order_request/+`
-   and :ref:`merchant_order_cancel/+` topics.
+1. When it starts:
+
+   a. it *subscribes* to :ref:`merchant_order_request/+`
+      and :ref:`merchant_order_cancel/+` topics;
+
+   b. it *publishes* the Manta CA certificate to :ref:`certificate`
+      topic, with retention.
 
 2. On message :class:`~manta.messages.MerchantOrderRequestMessage` on
    a specific :ref:`merchant_order_request/{application_id}` topic:

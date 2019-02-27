@@ -14,6 +14,17 @@ Used by the :term:`Payment Processor` to publish
 informing the other parties of the :class:`~manta.messages.Status` and
 other primary data of the session.
 
+.. _certificate:
+
+certificate
+-----------
+:parameters: none
+:publishers: :term:`Payment Processor`
+:subscribers: :term:`Wallet`
+
+Used by the :term:`Payment Processor` to publish the Manta CA
+certificate so that the wallet can use it to... TBD...
+
 .. _merchant_order_cancel/+:
 .. _merchant_order_cancel/{session_id}:
 
