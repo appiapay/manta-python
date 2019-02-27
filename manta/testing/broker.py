@@ -17,11 +17,15 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from contextlib import contextmanager
+import logging
 import tempfile
+import threading
 from typing import Optional
 
 from . import get_next_free_tcp_port, launch_program, port_can_be_bound
 from .config import BrokerConfig
+
+logger = logging.getLogger(__name__)
 
 DEFAULT_MQTT_PORT = 1883
 
@@ -73,7 +77,7 @@ def launch_mosquitto(bind_address: str = 'localhost',
 
 
 @contextmanager
-def launch_mosquitto_from_config(cfg: BrokerConfig):
+def launch_mosquitto_from_config(cfg: BrokerConfig, read_log=False):
     """Given a configuration instance, start a broker process.
 
     Args:
@@ -87,6 +91,38 @@ def launch_mosquitto_from_config(cfg: BrokerConfig):
         with launch_mosquitto(
                 bind_address=cfg.host, bind_port=cfg.port, exec_path=cfg.path,
                 allow_port_reallocation=cfg.allow_port_reallocation) as mos:
-            yield mos
+            logger.info("Started Mosquitto broker on interface %r and port"
+                        " %r.", mos[1], mos[2])
+            if read_log:
+                mos_log = logging.getLogger('mosquitto')
+                read_event = threading.Event()
+
+                def run(event):
+                    """Read moquitto stderr in a non-blocking fashon."""
+                    proc = mos[0]
+                    while not event.wait(0.3):
+                        log = b''
+                        while True:
+                            read_log = proc.stderr.read(256)
+                            if read_log is None or len(read_log) == 0:
+                                break
+                            else:
+                                log += read_log
+                        if len(log) > 0:
+                            lines = log.splitlines()
+                            for l in lines:
+                                mos_log.info(l.decode('utf-8'))
+
+                log_thread = threading.Thread(target=run, args=(read_event,))
+                log_thread.start()
+            try:
+                yield mos
+            finally:
+                if read_log:
+                    read_event.set()
+                    log_thread.join()
+                logger.info("Stopped Mosquitto broker")
     else:
+        logger.info("Not starting Mosquitto broker. Services will connect to "
+                    "services on host %r and port %r", cfg.host, cfg.port)
         yield (None, cfg.host, cfg.port, None)
