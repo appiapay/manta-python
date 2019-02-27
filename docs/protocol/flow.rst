@@ -10,6 +10,7 @@ Merchant
 The payment process from the :term:`Merchant`'s point of view:
 
 .. seqdiag::
+ :scale: 70
 
  activation = none;
  Merchant; "Payment Processor"; "MQTT Broker";
@@ -77,6 +78,10 @@ The payment process from the :term:`Payment Processor`'s side:
  "Payment Processor" <<- Wallet [rightnote="(3) PUBLISH on\n\"payment_requests/{session_id}/{crypto_currency}\""];
  "Payment Processor" ->> Wallet [leftnote="PUBLISH on\n\"payment_requests/{session_id}\"",
                                  label="(3a) PaymentRequestEnvelope"];
+ "Payment Processor" <<- Wallet [rightnote="PUBLISH on\n\"payments/{session_id}\"",
+                                 label="(4a) PaymentMessage"];
+ Merchant <<- "Payment Processor" ->> Wallet [rightnote="PUBLISH on\n\"acks/{session_id}\"",
+                                              label="(4b) Ack[status = paid]"];
 
 1. When it starts:
 
@@ -119,16 +124,19 @@ The payment process from the :term:`Payment Processor`'s side:
 
    Destination should be specific to ``{crypto_currency}`` field.
 
-4. On message :class:`~manta.messages.PaymentMessage` on
+4. On message (a) :class:`~manta.messages.PaymentMessage` on
    :ref:`payments/{session_id}` it starts monitoring blockchain and on
-   progress publish :class:`~manta.messages.AckMessage` on
+   progress *publishes* (b) :class:`~manta.messages.AckMessage` on
    :ref:`acks/{session_id}`.
 
 
 Manta enabled wallet
 ====================
 
+The payment process from the :term:`Wallet` point of view:
+
 .. seqdiag::
+ :scale: 70
 
  activation = none;
  Wallet; "Payment Processor"; "MQTT Broker";
@@ -141,6 +149,8 @@ Manta enabled wallet
  Wallet ->> "Payment Processor" [leftnote="PUBLISH on\n\"payments/{session_id}\"",
                                  label="(5) Payment"];
  Wallet --> "MQTT Broker" [leftnote="(6) SUBSCRIBE to\n\"acks/{session_id}\""];
+ Wallet <<-  "Payment Processor" [rightnote="PUBLISH on\n\"acks/{session_id}\"",
+                                  label="(7) Ack[status = paid]"];
 
 
 1. After receiving a :term:`Manta URL` via QR code or NFC it
@@ -164,10 +174,12 @@ Manta enabled wallet
 
 6. *Subscribes* to the topic named :ref:`acks/{session_id}`
 
+7. :term:`Wallet` *will receive* an
+   :class:`~manta.messages.AckMessage` messages as payment changes
+   state. With status == "paid" the transaction is completed.
 
 Complete Manta flow diagram
 ===========================
-
 
 .. figure:: ../images/manta-protocol-full.svg
 
