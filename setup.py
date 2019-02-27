@@ -24,8 +24,12 @@ from setuptools import setup
 from manta import MANTA_VERSION
 
 here_dir = os.path.dirname(__file__)
+
 with open(os.path.join(here_dir, 'requirements.txt')) as req_file:
     requirements = req_file.read().splitlines()
+
+with open(os.path.join(here_dir, 'requirements-tests.txt')) as req_file:
+    requirements_tests = req_file.read().splitlines()
 
 with open(os.path.join(here_dir, 'README.rst'), encoding='utf-8') as f:
     README = f.read()
@@ -36,12 +40,16 @@ setup(
     version=MANTA_VERSION,
     description="Manta protocol components",
     long_description=README,
-    packages=['manta'],
+    packages=['manta', 'manta.testing'],
     url='https://nanoray.github.io/manta-python',
     license='GNU Affero GPLv3',
     author='Alessandro Viganò',
     author_email='alvistar@gmail.com',
     install_requires=requirements,
+    extras_require={
+        'runner':  requirements_tests,
+    },
+    python_requires='>=3.7',
     classifiers=[
         "Development Status :: 4 - Beta",
         "Programming Language :: Python :: 3",
@@ -51,4 +59,8 @@ setup(
         "Topic :: System :: Networking",
         "Topic :: Office/Business :: Financial :: Point-Of-Sale"
         ],
+    entry_points={
+        'console_scripts': ['manta-runner=manta.testing.__main__:main'],
+    },
+
 )
