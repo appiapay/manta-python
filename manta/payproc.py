@@ -362,7 +362,6 @@ class PayProc(MantaComponent):
 
         logger.info("Processing merchant_order message")
 
-        # p = MerchantOrderRequestMessage(**json.loads(payload))
         p = MerchantOrderRequestMessage.from_json(payload)
 
         ack: AckMessage = None
@@ -370,7 +369,6 @@ class PayProc(MantaComponent):
         # This is a manta request
         if p.crypto_currency is None or p.crypto_currency == '':
 
-            # envelope = self.generate_payment_request(device, p)
 
             self.mqtt_client.subscribe('payment_requests/{}/+'.format(p.session_id))
             self.mqtt_client.subscribe('payments/{}'.format(p.session_id))
