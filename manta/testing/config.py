@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from decimal import Decimal
+import io
 from typing import List
 
 from file_config import config, var
@@ -133,3 +134,8 @@ def get_full_config(enable_web=False):
         config.store.web.enable = True
         config.wallet.web.enable = True
     return config
+
+
+def read_config_file(path: str) -> IntegrationConfig:
+    """Read a file containing a configuration and return a config object."""
+    return IntegrationConfig.load_yaml(io.open(path, encoding='utf-8'))  # type: ignore

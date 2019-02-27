@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import asyncio
 import inspect
+import logging
 import threading
 from typing import Awaitable, Callable, Dict, Optional, Tuple, Union
 
@@ -28,6 +29,8 @@ import aiohttp.web
 from ..base import MantaComponent
 from . import AppRunnerConfig, get_next_free_tcp_port, port_can_be_bound
 from .config import IntegrationConfig
+
+logger = logging.getLogger(__name__)
 
 
 class AppRunner:
@@ -46,6 +49,30 @@ class AppRunner:
     "port of HTTP listening socket"
     web_bind_port: Optional[int] = None
     url: Optional[str] = None
+
+    @classmethod
+    def start_stop(cls, configurator: Callable[[AppRunner],
+                                            AppRunnerConfig],
+                   app_config: IntegrationConfig,
+                   name: str = 'unknown'):
+        runner = cls(configurator, app_config)
+
+        async def start():
+            await runner.start()
+            if runner.web is None:
+                logger.info("Started service %s", name)
+            else:
+                logger.info("Started service %s on address %r and port %r",
+                            name, runner.web_bind_address,
+                            runner.web_bind_port)
+            return runner
+
+        async def stop():
+            await runner.stop()
+            logger.info("Stopped service %s", name)
+            return runner
+
+        return start, stop
 
     def __init__(self, configurator: Callable[[AppRunner],
                                               AppRunnerConfig],

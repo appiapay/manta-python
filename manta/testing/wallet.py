@@ -80,8 +80,8 @@ def dummy_wallet(runner: AppRunner) -> AppRunnerConfig:
         return _get_payment(*args, **kwargs)
 
     def stopper():
-        assert isinstance(runner.manta, Wallet)
-        runner.manta.mqtt_client.loop_stop()
+        if isinstance(runner.manta, Wallet):
+            runner.manta.mqtt_client.loop_stop()
 
     return AppRunnerConfig(starter=starter,  # type: ignore
                            stopper=stopper, **more_params)
