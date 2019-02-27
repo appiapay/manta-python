@@ -120,3 +120,14 @@ docs:
 	$(info compiling documentation...)
 	@cd docs && $(MAKE) html
 	$(info index is available at ./docs/_build/html/index.html)
+
+help::
+	@printf "\nDistribution\n============\n"
+
+help::
+	@printf "\ndist\n\tcreate distribution package\n"
+
+.PHONY: dist
+dist:
+	$(info generating package...)
+	@python setup.py sdist
