@@ -1,26 +1,27 @@
 # -*- coding: utf-8 -*-
 
-NIX := $(which nix)
+NIX := $(shell which nix)
 export TOPDIR := $(CURDIR)
 export VENVDIR := $(TOPDIR)/venv
 export SYS_PYTHON := $(shell which python3.7)
 
-ifeq ($(NIX), "")
+ifeq ($(NIX),)
 	export PYTHON := $(VENVDIR)/bin/python
 else
 	export PYTHON := $(SYS_PYTHON)
 endif
 export SHELL := $(shell which bash)
 
+
 # This is the default target, when no target is specified on the command line
 .PHONY: all
-ifneq ($(NIX), "")
+ifneq ($(NIX),)
 ifndef IN_NIX_SHELL
 
 all: activate-nix
 
 activate-nix:
-	@printf "\nPLEASE ACTIVATE THE ENVIRONMENT USING THE COMMAND \"nix-shell\""
+	@printf "\nPLEASE ACTIVATE THE ENVIRONMENT USING THE COMMAND \"nix-shell\"\n"
 else
 
 VENV_CMD := virtualenv --no-setuptools
