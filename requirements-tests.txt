@@ -5,6 +5,7 @@ file_config[pyyaml] >= 0.3.5
 inquirer
 mypy
 nano-python
-pytest-asyncio
 pytest
+pytest-asyncio
+pytest-cov
 pyyaml
