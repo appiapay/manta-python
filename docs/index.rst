@@ -4,7 +4,7 @@
 
 This is an implementation of the Manta payment protocol for
 Python 3. If you want to dive in you may choose to learn first of the
-:doc:`protocol` or if you want to try some code head over to the API
+:doc:`protocol` or if you want to try some code, head over to the API
 entries for the :doc:`Store <api/manta.store>`, :doc:`Wallet
 <api/manta.wallet>` and :doc:`Payment Processor
 <api/manta.payproc.PayProc>`.
@@ -28,7 +28,7 @@ To install this library, just type the following commands::
 
  $ pip install manta-python
 
-or, if you want to use the testing infrastructure, execute::
+or, if you want to use the testing infrastructure, execute instead::
 
  $ pip install manta-python[runner]
 
@@ -51,7 +51,8 @@ By default this configuration will start the mosquitto_ :term:`MQTT`
 broker and all the example components that are used also in the tests,
 with their web port enabled:
 
-To setup the services with this configuration, simply execute::
+To setup the services with this configuration, simply execute the
+following commands::
 
   $ manta-runner --print-config > /tmp/demo.yaml
   $ manta-runner -c /tmp/demo.yaml
@@ -78,9 +79,9 @@ combination that generates a ``KeyboardInterrupt`` exception on your
 OS) to teardown the services.
 
 The configured services are automatically started and connected to the
-port exposed by the broker. If enable (as it is by default) each
-configured services exposes a web service that can be used to execute
-key APIs of each. To know what are the entrypoints you have (for now)
+port exposed by the broker. If enabled (as it is by default) each
+configured service exposes a web service that can be used to execute
+key APIs of each. To know what the entrypoints are you have (for now)
 to look into the files in the ``manta.testing`` subpackage or to look
 into the tests in the `github repository`_.
 

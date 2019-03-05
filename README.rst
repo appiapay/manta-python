@@ -42,14 +42,18 @@ entry in the file ``tests/dummyconfig.yaml`` to ``false``.
 
 .. _mosquitto: http://mosquitto.org
 
-If you use Nix__ (that can be installed on GNU/Linux systems and
-macOS) all you need is to execute an::
+Task automation is achieved using `GNU Make`_. It should be easily
+installable on every UNIX-like platform.
+
+If you use Nix__ (it can be installed on GNU/Linux systems and
+macOS) all you need is to execute a single command::
 
  $ nix-shell
 
-and that will install mosquitto_ for you. In such case you should skip
-the following section.
+and that will install mosquitto_ and `GNU Make`_ for you. In such case
+you should skip the following section.
 
+.. _GNU Make: https://www.gnu.org/software/make/
 __ https://nixos.org/nix/
 
 Creation of the Python virtual environment
