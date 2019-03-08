@@ -71,7 +71,7 @@ requirements: $(REQUIREMENTS_TIMESTAMP)
 
 $(REQUIREMENTS_TIMESTAMP): $(REQUIREMENTS)
 	@printf "Installing development requirements...\n"
-	@PATH=$(TOPDIR)/bin:$(PATH) $(PIP) install -r $(REQUIREMENTS)
+	@PATH=$(TOPDIR)/bin:"$(PATH)" $(PIP) install -r $(REQUIREMENTS)
 	touch $@
 
 distclean::
