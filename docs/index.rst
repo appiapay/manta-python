@@ -87,6 +87,44 @@ into the tests in the `github repository`_.
 
 .. _github repository: https://github.com/NanoRay/manta-python
 
+Single component runners
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To ease the development of new components this library installs in
+your path executables to run the individual components, they are named
+``manta-store``, ``manta-payproc`` and ``manta-wallet``. They are
+implementd by the same code of the collective runner but they offer a
+different user interface with more commandline arguments, e.g.::
+
+ $ manta-wallet --help
+ usage: manta-wallet [-h] [-b BROKER] [--broker-port BROKER_PORT] [-p WEB_PORT]
+                     [--url URL] [-i] [-w WALLET] [-a ACCOUNT] [--cert CERT]
+                     [-c CONF] [--print-config]
+
+ Run manta-python dummy wallet
+
+ optional arguments:
+   -h, --help            show this help message and exit
+   -b BROKER, --broker BROKER
+                         MQTT broker hostname (default: 'localhost')
+   --broker-port BROKER_PORT
+                         MQTT broker port (default: 1883)
+   -p WEB_PORT, --web-port WEB_PORT
+                         enable web interface on the specified port
+   --url URL             Manta-URL of the payment session to join and pay. It
+                         will automatically end the session when payment is
+                         completed
+   -i, --interactive     enable interactive payment interface (default: False)
+   -w WALLET, --wallet WALLET
+                         hash of the nano wallet to use
+   -a ACCOUNT, --account ACCOUNT
+                         hash of the nano account
+   --cert CERT           CA certificate used to validate the payment session
+   -c CONF, --conf CONF  path of a config file to load
+   --print-config        print a sample of the default configuration
+
+All three expect for the broker to be up and running already.
+
 Tests
 =====
 
