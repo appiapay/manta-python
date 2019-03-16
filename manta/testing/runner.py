@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 
 class AppRunner:
-    """Helps running an asyncio or aiohttp app in another thread."""
+    """A tool for running the testing/demo components."""
 
     "configuration for all the componentss"
     app_config: IntegrationConfig
@@ -58,19 +58,19 @@ class AppRunner:
         runner = cls(configurator, app_config)
 
         async def start():
-            await runner.start()
+            res = await runner.start()
             if runner.web is None:
                 logger.info("Started service %s", name)
             else:
                 logger.info("Started service %s on address %r and port %r",
                             name, runner.web_bind_address,
                             runner.web_bind_port)
-            return runner
+            return res
 
         async def stop():
-            await runner.stop()
+            res = await runner.stop()
             logger.info("Stopped service %s", name)
-            return runner
+            return res
 
         return start, stop
 
@@ -83,7 +83,7 @@ class AppRunner:
         self.app_config = app_config
 
         "the callable used to start the manta app"
-        self.starter: Optional[Callable[[], Union[None, Awaitable]]] = None
+        self.starter: Optional[Callable[[], Union[None, Awaitable, bool]]] = None
         "the callable used to stop the manta app"
         self.stopper: Optional[Callable[[], Union[None, Awaitable]]] = None
 
@@ -142,8 +142,9 @@ class AppRunner:
         # TODO: fix the type for proxy invocation
         start_res = self.starter(*args, **kwargs)  # type: ignore
         if inspect.isawaitable(start_res):
-            assert start_res is not None
-            await start_res
+            assert start_res is not None  # help mypy
+            assert not isinstance(start_res, bool)  # help mypy
+            start_res = await start_res
         # setup aiohttp
         if self.web is not None:
             assert isinstance(self.web, aiohttp.web.Application)
@@ -154,6 +155,7 @@ class AppRunner:
                                              self.web_bind_address,
                                              self.web_bind_port)
             await self._site.start()
+        return start_res
 
     async def _stop(self):
         # tear down aiohttp

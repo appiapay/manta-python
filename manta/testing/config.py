@@ -112,21 +112,25 @@ class IntegrationConfig:
     wallet = var(DummyWalletConfig, required=False)
 
 
+def get_default_dummypayproc_config():
+    return DummyPayProcConfig(
+        supported_cryptos=['btc', 'xmr', 'nano'],
+        destinations=[DummyPayProcConfig.DestinationConfig(
+            destination_address=_nano_dest,
+            crypto_currency='NANO',
+            amount=Decimal("0.01"))],
+        keyfile=str(get_tests_dir() /
+                    'certificates/root/keys/'
+                    'www.brainblocks.com.key'),
+        merchant=DummyPayProcConfig.MerchantConfig(
+            name='Merchant 1',
+            address='5th Avenue'))
+
+
 def get_full_config(enable_web=False):
     config = IntegrationConfig(
         broker=BrokerConfig(),
-        payproc=DummyPayProcConfig(
-            supported_cryptos=['btc', 'xmr', 'nano'],
-            destinations=[DummyPayProcConfig.DestinationConfig(
-                destination_address=_nano_dest,
-                crypto_currency='NANO',
-                amount=Decimal("0.01"))],
-            keyfile=str(get_tests_dir() /
-                        'certificates/root/keys/'
-                        'www.brainblocks.com.key'),
-            merchant=DummyPayProcConfig.MerchantConfig(
-                name='Merchant 1',
-                address='5th Avenue')),
+        payproc=get_default_dummypayproc_config(),
         store=DummyStoreConfig(),
         wallet=DummyWalletConfig())
     if enable_web:
@@ -139,3 +143,13 @@ def get_full_config(enable_web=False):
 def read_config_file(path: str) -> IntegrationConfig:
     """Read a file containing a configuration and return a config object."""
     return IntegrationConfig.load_yaml(io.open(path, encoding='utf-8'))  # type: ignore
+
+
+def read_payproc_config_file(path: str) -> DummyPayProcConfig:
+    """Read a file containing a configuration and return a config object."""
+    return DummyPayProcConfig.load_yaml(io.open(path, encoding='utf-8'))  # type: ignore
+
+
+def read_wallet_config_file(path: str) -> DummyWalletConfig:
+    """Read a file containing a configuration and return a config object."""
+    return DummyWalletConfig.load_yaml(io.open(path, encoding='utf-8'))  # type: ignore

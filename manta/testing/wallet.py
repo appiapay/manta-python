@@ -18,6 +18,7 @@
 
 from __future__ import annotations
 
+from asyncio import TimeoutError
 import logging
 import sys
 
@@ -34,8 +35,6 @@ from . import AppRunnerConfig
 from .runner import AppRunner
 
 logger = logging.getLogger(__name__)
-
-ONCE = False
 
 
 def dummy_wallet(runner: AppRunner) -> AppRunnerConfig:
@@ -68,15 +67,22 @@ def dummy_wallet(runner: AppRunner) -> AppRunnerConfig:
     else:
         more_params = {}
 
-    def starter():
-        nonlocal runner
+    async def starter():
+        nonlocal runner, cfg
         runner.pay = pay
+        if cfg.url is not None:
+            await pay(cfg.url, once=True)
+            return True  # inform the runner that we want it to stop
 
     def pay(url: str, *args, **kwargs):
-        nonlocal runner
+        nonlocal runner, cfg
         wallet = Wallet.factory(url)
         runner.manta = wallet
         kwargs['wallet'] = wallet
+        kwargs.setdefault('interactive', cfg.interactive)
+        kwargs.setdefault('account', cfg.account)
+        kwargs.setdefault('ca_certificate', cfg.certificate)
+        kwargs.setdefault('nano_wallet', cfg.wallet)
         return _get_payment(*args, **kwargs)
 
     def stopper():
@@ -92,14 +98,21 @@ async def _get_payment(url: str = None,
                        nano_wallet: str = None,
                        account: str = None,
                        ca_certificate: str = None,
-                       wallet: Wallet = None):
+                       wallet: Wallet = None,
+                       once: bool = False):
 
     if wallet is None:
         assert url is not None
         wallet = Wallet.factory(url)
 
     assert wallet is not None
-    envelope = await _get_payment_request(wallet)
+    try:
+        envelope = await _get_payment_request(wallet, once=once)
+    except TimeoutError as e:
+        if once:
+            return
+        else:
+            raise e
 
     certificate: x509.Certificate = None
 
@@ -113,7 +126,7 @@ async def _get_payment(url: str = None,
     if interactive:
         await _interactive_payment(wallet, payment_req, nano_wallet=nano_wallet,
                                    account=account, certificate=certificate,
-                                   ca_certificate=ca_certificate)
+                                   ca_certificate=ca_certificate, once=once)
     else:
         await wallet.send_payment("myhash",
                                   payment_req.destinations[0].crypto_currency)
@@ -122,24 +135,21 @@ async def _get_payment(url: str = None,
     print(ack)
 
 
-async def _get_payment_request(wallet: Wallet,
-                               crypto_currency: str = 'all') -> PaymentRequestEnvelope:
+async def _get_payment_request(wallet: Wallet, crypto_currency: str = 'all',
+                               once: bool = False) -> PaymentRequestEnvelope:
     try:
         envelope = await wallet.get_payment_request(crypto_currency)
     except TimeoutError as e:
-        if ONCE:
-            print("Timeout exception in waiting for payment")
-            sys.exit(1)
-        else:
-            raise e
-
+        logger.error("Timeout exception in waiting for payment")
+        raise e
     return envelope
 
 
 async def _interactive_payment(wallet: Wallet, payment_req: PaymentRequestMessage,
                                nano_wallet: str = None, account: str = None,
                                certificate: x509.Certificate = None,
-                               ca_certificate: str = None):
+                               ca_certificate: str = None,
+                               once: bool = False):
     """Pay a ``PaymentRequestMessage`` interactively asking questions on
     ``sys.stdout`` and reading answers on ``sys.stdin``."""
 
@@ -156,7 +166,13 @@ async def _interactive_payment(wallet: Wallet, payment_req: PaymentRequestMessag
     # Otherwise ask payment provider
     if not destination:
         logger.info('Requesting payment request for {}'.format(chosen_crypto))
-        envelope = await _get_payment_request(wallet, chosen_crypto)
+        try:
+            envelope = await _get_payment_request(wallet, chosen_crypto, once=once)
+        except TimeoutError as e:
+            if once:
+                return
+            else:
+                raise e
         verified = False
 
         if ca_certificate:

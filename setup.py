@@ -60,7 +60,12 @@ setup(
         "Topic :: Office/Business :: Financial :: Point-Of-Sale"
         ],
     entry_points={
-        'console_scripts': ['manta-runner=manta.testing.__main__:main'],
+        'console_scripts': [
+            'manta-runner=manta.testing.__main__:main',
+            'manta-store=manta.testing.__main__:store_main',
+            'manta-payproc=manta.testing.__main__:payproc_main',
+            'manta-wallet=manta.testing.__main__:wallet_main',
+        ],
     },
 
 )

@@ -188,7 +188,7 @@ class AppRunnerConfig:
     """Configuration exchanged between the configurator and an AppRunner."""
 
     "callable used to ``start`` the Manta component"
-    starter: Callable[[], Union[None, Awaitable]]
+    starter: Callable[[], Union[None, Awaitable, bool]]
     "callable used to ``stop`` the Manta component"
     stopper: Callable[[], Union[None, Awaitable]]
     "the configured Manta component"

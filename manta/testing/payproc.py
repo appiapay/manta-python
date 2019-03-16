@@ -69,8 +69,9 @@ def dummy_payproc(runner: AppRunner) -> AppRunnerConfig:
     else:
         more_params = {}
 
-    def starter() -> None:
+    def starter() -> bool:
         pp.run()
+        return False
 
     def stopper() -> None:
         pp.mqtt_client.loop_stop()

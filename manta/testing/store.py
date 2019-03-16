@@ -120,8 +120,9 @@ def dummy_store(runner: AppRunner) -> AppRunnerConfig:
     else:
         more_params = {}
 
-    def starter() -> Awaitable:
-        return store.connect()
+    async def starter() -> bool:
+        await store.connect()
+        return False
 
     def stopper() -> None:
         store.mqtt_client.loop_stop()
