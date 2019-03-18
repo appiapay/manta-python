@@ -163,6 +163,7 @@ async def _interactive_payment(wallet: Wallet, payment_req: PaymentRequestMessag
     # Check if we have already the destination
     destination = payment_req.get_destination(chosen_crypto)
 
+    verified = False
     # Otherwise ask payment provider
     if not destination:
         logger.info('Requesting payment request for {}'.format(chosen_crypto))
@@ -173,7 +174,6 @@ async def _interactive_payment(wallet: Wallet, payment_req: PaymentRequestMessag
                 return
             else:
                 raise e
-        verified = False
 
         if ca_certificate:
             verified = _verify_envelope(envelope, certificate,
