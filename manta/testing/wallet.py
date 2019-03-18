@@ -116,9 +116,11 @@ async def _get_payment(url: str = None,
 
     certificate: x509.Certificate = None
 
+    verified = False
+
     if ca_certificate:
         certificate = await wallet.get_certificate()
-        _verify_envelope(envelope, certificate, ca_certificate)
+        verified = _verify_envelope(envelope, certificate, ca_certificate)
 
     payment_req = envelope.unpack()
     logger.info("Payment request: {}".format(payment_req))
@@ -126,7 +128,8 @@ async def _get_payment(url: str = None,
     if interactive:
         await _interactive_payment(wallet, payment_req, nano_wallet=nano_wallet,
                                    account=account, certificate=certificate,
-                                   ca_certificate=ca_certificate, once=once)
+                                   ca_certificate=ca_certificate, once=once,
+                                   verified=verified)
     else:
         await wallet.send_payment("myhash",
                                   payment_req.destinations[0].crypto_currency)
@@ -149,7 +152,8 @@ async def _interactive_payment(wallet: Wallet, payment_req: PaymentRequestMessag
                                nano_wallet: str = None, account: str = None,
                                certificate: x509.Certificate = None,
                                ca_certificate: str = None,
-                               once: bool = False):
+                               once: bool = False,
+                               verified: bool = False):
     """Pay a ``PaymentRequestMessage`` interactively asking questions on
     ``sys.stdout`` and reading answers on ``sys.stdin``."""
 
@@ -163,7 +167,6 @@ async def _interactive_payment(wallet: Wallet, payment_req: PaymentRequestMessag
     # Check if we have already the destination
     destination = payment_req.get_destination(chosen_crypto)
 
-    verified = False
     # Otherwise ask payment provider
     if not destination:
         logger.info('Requesting payment request for {}'.format(chosen_crypto))
@@ -174,6 +177,8 @@ async def _interactive_payment(wallet: Wallet, payment_req: PaymentRequestMessag
                 return
             else:
                 raise e
+
+        verified = False
 
         if ca_certificate:
             verified = _verify_envelope(envelope, certificate,
