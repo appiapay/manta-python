@@ -145,11 +145,16 @@ def check_args_wallet(parsed_args: Namespace) -> Optional[config.IntegrationConf
         bind_port=parsed_args.web_port,
         allow_port_reallocation=False
     )
-    wall_conf.account = parsed_args.account
-    wall_conf.certificate = parsed_args.cert
-    wall_conf.wallet = parsed_args.wallet
-    wall_conf.interactive = parsed_args.interactive
-    wall_conf.url = parsed_args.url
+    if parsed_args.account:
+        wall_conf.account = parsed_args.account
+    if parsed_args.cert:
+        wall_conf.certificate = parsed_args.cert
+    if parsed_args.wallet:
+        wall_conf.wallet = parsed_args.wallet
+    if parsed_args.interactive:
+        wall_conf.interactive = parsed_args.interactive
+    if parsed_args.url:
+        wall_conf.url = parsed_args.url
     return config.IntegrationConfig(  # type: ignore
         broker=config.BrokerConfig(  # type: ignore
             allow_port_reallocation=False,
