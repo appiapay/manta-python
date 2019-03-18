@@ -93,7 +93,7 @@ Single component runners
 To ease the development of new components this library installs in
 your path executables to run the individual components, they are named
 ``manta-store``, ``manta-payproc`` and ``manta-wallet``. They are
-implementd by the same code of the collective runner but they offer a
+implemented by the same code of the collective runner but they offer a
 different user interface with more commandline arguments, e.g.::
 
  $ manta-wallet --help
@@ -123,7 +123,10 @@ different user interface with more commandline arguments, e.g.::
    -c CONF, --conf CONF  path of a config file to load
    --print-config        print a sample of the default configuration
 
-All three expect for the broker to be up and running already.
+All three expect for the broker to be up and running
+already. ``manta-payproc`` and ``manta-wallet`` accept also a specific
+configuration file, please use the ``--print-config`` option to get a
+sample of that file.
 
 Tests
 =====
@@ -143,7 +146,7 @@ Then simply run::
 
  $ make tests
 
-or, if ``make`` isn't available on your platform::
+or, if ``make`` isn't available on your platform, just run::
 
  $ pytest
 
