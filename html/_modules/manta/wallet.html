@@ -161,7 +161,7 @@
 <span class="c1"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Library for implementing a Manta Wallet</span>
+<span class="sd">Library with a basic implementation of a Manta :term:`Wallet`.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">annotations</span>
@@ -169,14 +169,15 @@
 <span class="kn">import</span> <span class="nn">asyncio</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Match</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 
-<span class="kn">import</span> <span class="nn">paho.mqtt.client</span> <span class="k">as</span> <span class="nn">mqtt</span>
-
-<span class="kn">from</span> <span class="nn">manta.messages</span> <span class="k">import</span> <span class="n">PaymentRequestMessage</span><span class="p">,</span> <span class="n">PaymentRequestEnvelope</span><span class="p">,</span> <span class="n">PaymentMessage</span><span class="p">,</span> <span class="n">AckMessage</span>
-<span class="kn">from</span> <span class="nn">certvalidator</span> <span class="k">import</span> <span class="n">CertificateValidator</span>
 <span class="kn">from</span> <span class="nn">cryptography</span> <span class="k">import</span> <span class="n">x509</span>
 <span class="kn">from</span> <span class="nn">cryptography.hazmat.backends</span> <span class="k">import</span> <span class="n">default_backend</span>
+<span class="kn">import</span> <span class="nn">paho.mqtt.client</span> <span class="k">as</span> <span class="nn">mqtt</span>
+
+<span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="n">MantaComponent</span>
+<span class="kn">from</span> <span class="nn">.messages</span> <span class="k">import</span> <span class="n">PaymentRequestEnvelope</span><span class="p">,</span> <span class="n">PaymentMessage</span><span class="p">,</span> <span class="n">AckMessage</span>
+
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -188,37 +189,47 @@
     <span class="k">return</span> <span class="n">wrapper</span>
 
 
-<div class="viewcode-block" id="Wallet"><a class="viewcode-back" href="../../api/manta.wallet.Wallet.html#manta.wallet.Wallet">[docs]</a><span class="k">class</span> <span class="nc">Wallet</span><span class="p">:</span>
+<div class="viewcode-block" id="Wallet"><a class="viewcode-back" href="../../api/manta.wallet.html#manta.wallet.Wallet">[docs]</a><span class="k">class</span> <span class="nc">Wallet</span><span class="p">(</span><span class="n">MantaComponent</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Class for creating a Manta Wallet</span>
+<span class="sd">    Implements a Manta :term:`Wallet`. This class needs an *asyncio* loop</span>
+<span class="sd">    to run correctly as some of its features are implemented as</span>
+<span class="sd">    *coroutines*.</span>
 
-<span class="sd">    Instantiates using factory method</span>
+<span class="sd">    This is usually instantiated from a :term:`Manta URL` using the</span>
+<span class="sd">    :meth:`.factory` classmethod.</span>
 
-<span class="sd">    Parameters:</span>
-<span class="sd">        acks (asyncio.Queue): Queue for acks. Wait for it to retrieve the next ack message.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        url: a string containing a :term:`Manta URL`</span>
+<span class="sd">        session_id: a session_id</span>
+<span class="sd">        host: :term:`MQTT` broker IP addresses</span>
+<span class="sd">        port: optional port number of the broker service</span>
 
+<span class="sd">    Attributes:</span>
+<span class="sd">        acks: queue of :class:`~.messages.AckMessage` instances</span>
+<span class="sd">        loop: the *asyncio* loop that manages the asynchronous parts of this</span>
+<span class="sd">          object</span>
+<span class="sd">        session_id: :term:`session_id` of the ongoing session, if any</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">mqtt_client</span><span class="p">:</span> <span class="n">mqtt</span><span class="o">.</span><span class="n">Client</span>
     <span class="n">loop</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">AbstractEventLoop</span>
     <span class="n">connected</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Event</span>
-    <span class="n">host</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">port</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">payment_request_future</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">certificate_future</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">payment_request_future</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">certificate_future</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">acks</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Queue</span>
     <span class="n">first_connect</span> <span class="o">=</span> <span class="kc">False</span>
 
-<div class="viewcode-block" id="Wallet.factory"><a class="viewcode-back" href="../../api/manta.wallet.Wallet.html#manta.wallet.Wallet.factory">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">factory</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<div class="viewcode-block" id="Wallet.factory"><a class="viewcode-back" href="../../api/manta.wallet.html#manta.wallet.Wallet.factory">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">factory</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Wallet</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        This creates a Wallet instance from a manta url. Can be none if url is invalid.</span>
+<span class="sd">        This creates an instance from a :term:`Manta URL`. Can be ``None``</span>
+<span class="sd">        if the URL is invalid.</span>
+
 <span class="sd">        Args:</span>
 <span class="sd">            url: manta url (ex. manta://developer.beappia.com/2848839943)</span>
 
 <span class="sd">        Returns:</span>
-
+<span class="sd">            a new configured but unconnected instance</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">match</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">parse_url</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
@@ -227,7 +238,8 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">host</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="n">port</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1883</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">host</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+                 <span class="n">port</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1883</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">host</span> <span class="o">=</span> <span class="n">host</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">port</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">session_id</span> <span class="o">=</span> <span class="n">session_id</span>
@@ -246,9 +258,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">acks</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Queue</span><span class="p">(</span><span class="n">loop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">loop</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">connected</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Event</span><span class="p">(</span><span class="n">loop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">loop</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Wallet.close"><a class="viewcode-back" href="../../api/manta.wallet.html#manta.wallet.Wallet.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Disconnect and stop :term:`MQTT` client&#39;s processing loop.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span><span class="o">.</span><span class="n">loop_stop</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span><span class="o">.</span><span class="n">loop_stop</span><span class="p">()</span></div>
 
     <span class="nd">@wrap_callback</span>
     <span class="k">def</span> <span class="nf">on_disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">,</span> <span class="n">userdata</span><span class="p">,</span> <span class="n">rc</span><span class="p">):</span>
@@ -268,15 +281,17 @@
 
         <span class="k">if</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;payment_requests&quot;</span><span class="p">:</span>
             <span class="n">envelope</span> <span class="o">=</span> <span class="n">PaymentRequestEnvelope</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">payload</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">payment_request_future</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">loop</span><span class="o">.</span><span class="n">call_soon_threadsafe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">payment_request_future</span><span class="o">.</span><span class="n">set_result</span><span class="p">,</span> <span class="n">envelope</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;acks&quot;</span><span class="p">:</span>
             <span class="n">ack</span> <span class="o">=</span> <span class="n">AckMessage</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">payload</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">acks</span><span class="o">.</span><span class="n">put_nowait</span><span class="p">(</span><span class="n">ack</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;certificate&quot;</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">certificate_future</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">loop</span><span class="o">.</span><span class="n">call_soon_threadsafe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">certificate_future</span><span class="o">.</span><span class="n">set_result</span><span class="p">,</span> <span class="n">msg</span><span class="o">.</span><span class="n">payload</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Wallet.parse_url"><a class="viewcode-back" href="../../api/manta.wallet.Wallet.html#manta.wallet.Wallet.parse_url">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">parse_url</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">re</span><span class="o">.</span><span class="n">Match</span><span class="p">]:</span>
+<div class="viewcode-block" id="Wallet.parse_url"><a class="viewcode-back" href="../../api/manta.wallet.html#manta.wallet.Wallet.parse_url">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">parse_url</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Match</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Convenience method to check if Manta url is valid</span>
 <span class="sd">        Args:</span>
@@ -286,32 +301,48 @@
 <span class="sd">            A match object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># TODO: What is session format?</span>
-        <span class="n">pattern</span> <span class="o">=</span> <span class="s2">&quot;^manta:</span><span class="se">\\</span><span class="s2">/</span><span class="se">\\</span><span class="s2">/((?:</span><span class="se">\\</span><span class="s2">w|</span><span class="se">\\</span><span class="s2">.)+)(?::(</span><span class="se">\\</span><span class="s2">d+))?</span><span class="se">\\</span><span class="s2">/(.+)$&quot;</span>
+        <span class="n">pattern</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;^manta://((?:\w|\.)+)(?::(\d+))?/(.+)$&quot;</span>
         <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span></div>
 
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Wallet.connect"><a class="viewcode-back" href="../../api/manta.wallet.html#manta.wallet.Wallet.connect">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Connect to the :term:`MQTT` broker and wait for the connection</span>
+<span class="sd">        confirmation.</span>
+
+<span class="sd">        This is a coroutine.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">first_connect</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span><span class="o">.</span><span class="n">loop_start</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">first_connect</span> <span class="o">=</span> <span class="kc">True</span>
 
-        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">connected</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">connected</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span></div>
 
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">get_certificate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">x509</span><span class="o">.</span><span class="n">Certificate</span><span class="p">:</span>
-        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
-        <span class="n">certificate</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">certificate_future</span>
-        <span class="k">return</span> <span class="n">x509</span><span class="o">.</span><span class="n">load_pem_x509_certificate</span><span class="p">(</span><span class="n">certificate</span><span class="p">,</span> <span class="n">default_backend</span><span class="p">())</span>
-
-<div class="viewcode-block" id="Wallet.get_payment_request"><a class="viewcode-back" href="../../api/manta.wallet.Wallet.html#manta.wallet.Wallet.get_payment_request">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">get_payment_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">crypto_currency</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PaymentRequestEnvelope</span><span class="p">:</span>
+<div class="viewcode-block" id="Wallet.get_certificate"><a class="viewcode-back" href="../../api/manta.wallet.html#manta.wallet.Wallet.get_certificate">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">get_certificate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">x509</span><span class="o">.</span><span class="n">Certificate</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get Payment Request for specific crypto currency, or &#39;all&#39; crypto supported</span>
+<span class="sd">        Get :term:`Payment Processor`&#39;s certificate retained by the</span>
+<span class="sd">        :term:`MQTT` broker service.</span>
+
+<span class="sd">        This is a coroutine</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">certificate_future</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">certificate</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">certificate_future</span>
+        <span class="k">return</span> <span class="n">x509</span><span class="o">.</span><span class="n">load_pem_x509_certificate</span><span class="p">(</span><span class="n">certificate</span><span class="p">,</span> <span class="n">default_backend</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="Wallet.get_payment_request"><a class="viewcode-back" href="../../api/manta.wallet.html#manta.wallet.Wallet.get_payment_request">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">get_payment_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">crypto_currency</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PaymentRequestEnvelope</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the :class:`~.messages.PaymentRequestMessage` for specific crypto</span>
+<span class="sd">        currency, or ``all`` to obtain informations about all the supported</span>
+<span class="sd">        crypto currencies.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            crypto_currency: crypto to request payment for (ex. &#39;NANO&#39;)</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            The Payment Request Envelope</span>
+<span class="sd">            The Payment Request Envelope. It&#39;s ``all`` by default</span>
 
+<span class="sd">        This is a coroutine</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
 
@@ -324,7 +355,7 @@
         <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">wait_for</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">payment_request_future</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">result</span></div>
 
-<div class="viewcode-block" id="Wallet.send_payment"><a class="viewcode-back" href="../../api/manta.wallet.Wallet.html#manta.wallet.Wallet.send_payment">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">send_payment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transaction_hash</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">crypto_currency</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<div class="viewcode-block" id="Wallet.send_payment"><a class="viewcode-back" href="../../api/manta.wallet.html#manta.wallet.Wallet.send_payment">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">send_payment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transaction_hash</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">crypto_currency</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Send payment info</span>
 
@@ -332,7 +363,7 @@
 <span class="sd">            transaction_hash: the hash of transaction sent to blockchain</span>
 <span class="sd">            crypto_currency: the crypto currency used for transaction</span>
 
-
+<span class="sd">        This is a coroutine</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
         <span class="n">message</span> <span class="o">=</span> <span class="n">PaymentMessage</span><span class="p">(</span>
@@ -340,7 +371,8 @@
             <span class="n">crypto_currency</span><span class="o">=</span><span class="n">crypto_currency</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="s2">&quot;acks/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session_id</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="s2">&quot;payments/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session_id</span><span class="p">),</span> <span class="n">message</span><span class="o">.</span><span class="n">to_json</span><span class="p">(),</span> <span class="n">qos</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="s2">&quot;payments/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session_id</span><span class="p">),</span>
+                                 <span class="n">message</span><span class="o">.</span><span class="n">to_json</span><span class="p">(),</span> <span class="n">qos</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>
@@ -378,7 +410,6 @@
         <script type="text/javascript" src="../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
 
   

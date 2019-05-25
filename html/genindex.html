@@ -153,6 +153,8 @@
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
  | <a href="#I"><strong>I</strong></a>
+ | <a href="#J"><strong>J</strong></a>
+ | <a href="#K"><strong>K</strong></a>
  | <a href="#M"><strong>M</strong></a>
  | <a href="#N"><strong>N</strong></a>
  | <a href="#P"><strong>P</strong></a>
@@ -165,7 +167,13 @@
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/manta.payproc.PayProc.html#manta.payproc.PayProc.ack">ack() (manta.payproc.PayProc method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="protocol/messages.html#manta.messages.AckMessage">AckMessage (class in manta.messages)</a>
+</li>
+      <li><a href="protocol/parameters.html#term-application-id"><strong>application_id</strong></a>
 </li>
   </ul></td>
 </tr></table>
@@ -175,6 +183,14 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="protocol/messages.html#manta.messages.Status.CANCELED">CANCELED (manta.messages.Status attribute)</a>
 </li>
+      <li><a href="api/manta.store.html#manta.store.Store.clean">clean() (manta.store.Store method)</a>
+</li>
+      <li><a href="api/manta.store.html#manta.store.Store.close">close() (manta.store.Store method)</a>
+
+      <ul>
+        <li><a href="api/manta.wallet.html#manta.wallet.Wallet.close">(manta.wallet.Wallet method)</a>
+</li>
+      </ul></li>
       <li><a href="api/manta.payproc.PayProc.html#manta.payproc.PayProc.confirm">confirm() (manta.payproc.PayProc method)</a>
 </li>
       <li><a href="protocol/messages.html#manta.messages.Status.CONFIRMING">CONFIRMING (manta.messages.Status attribute)</a>
@@ -183,12 +199,20 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/manta.payproc.PayProc.html#manta.payproc.PayProc.confirming">confirming() (manta.payproc.PayProc method)</a>
 </li>
+      <li><a href="api/manta.store.html#manta.store.Store.connect">connect() (manta.store.Store method)</a>
+
+      <ul>
+        <li><a href="api/manta.wallet.html#manta.wallet.Wallet.connect">(manta.wallet.Wallet method)</a>
+</li>
+      </ul></li>
       <li><a href="api/manta.payproc.TXStorage.html#manta.payproc.TXStorage.create">create() (manta.payproc.TXStorage method)</a>
 
       <ul>
         <li><a href="api/manta.payproc.TXStorageMemory.html#manta.payproc.TXStorageMemory.create">(manta.payproc.TXStorageMemory method)</a>
 </li>
       </ul></li>
+      <li><a href="protocol/parameters.html#term-crypto-currency"><strong>crypto_currency</strong></a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -203,7 +227,7 @@
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/manta.wallet.Wallet.html#manta.wallet.Wallet.factory">factory() (manta.wallet.Wallet class method)</a>
+      <li><a href="api/manta.wallet.html#manta.wallet.Wallet.factory">factory() (manta.wallet.Wallet class method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -211,10 +235,14 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/manta.wallet.Wallet.html#manta.wallet.Wallet.get_payment_request">get_payment_request() (manta.wallet.Wallet method)</a>
+      <li><a href="api/manta.payproc.PayProc.html#manta.payproc.PayProc.generate_payment_request">generate_payment_request() (manta.payproc.PayProc method)</a>
+</li>
+      <li><a href="api/manta.wallet.html#manta.wallet.Wallet.get_certificate">get_certificate() (manta.wallet.Wallet method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/manta.wallet.html#manta.wallet.Wallet.get_payment_request">get_payment_request() (manta.wallet.Wallet method)</a>
+</li>
       <li><a href="api/manta.payproc.TXStorage.html#manta.payproc.TXStorage.get_state_for_session">get_state_for_session() (manta.payproc.TXStorage method)</a>
 
       <ul>
@@ -236,20 +264,44 @@
   </ul></td>
 </tr></table>
 
+<h2 id="J">J</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="protocol.html#term-json"><strong>JSON</strong></a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="K">K</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/manta.payproc.PayProc.html#manta.payproc.PayProc.key_from_keydata">key_from_keydata() (manta.payproc.PayProc static method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="protocol/parameters.html#term-manta-url"><strong>Manta URL</strong></a>
+</li>
       <li><a href="api/manta.store.html#module-manta.store">manta.store (module)</a>
 </li>
       <li><a href="api/manta.wallet.html#module-manta.wallet">manta.wallet (module)</a>
 </li>
+      <li><a href="protocol.html#term-merchant"><strong>Merchant</strong></a>
+
+      <ul>
+        <li><a href="protocol/messages.html#manta.messages.Merchant">(class in manta.messages)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="protocol/messages.html#manta.messages.Merchant">Merchant (class in manta.messages)</a>
-</li>
-      <li><a href="api/manta.store.Store.html#manta.store.Store.merchant_order_request">merchant_order_request() (manta.store.Store method)</a>
+      <li><a href="api/manta.store.html#manta.store.Store.merchant_order_request">merchant_order_request() (manta.store.Store method)</a>
 </li>
       <li><a href="protocol/messages.html#manta.messages.MerchantOrderRequestMessage">MerchantOrderRequestMessage (class in manta.messages)</a>
+</li>
+      <li><a href="protocol.html#term-mqtt"><strong>MQTT</strong></a>
 </li>
   </ul></td>
 </tr></table>
@@ -267,7 +319,9 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="protocol/messages.html#manta.messages.Status.PAID">PAID (manta.messages.Status attribute)</a>
 </li>
-      <li><a href="api/manta.wallet.Wallet.html#manta.wallet.Wallet.parse_url">parse_url() (manta.wallet.Wallet static method)</a>
+      <li><a href="api/manta.wallet.html#manta.wallet.Wallet.parse_url">parse_url() (manta.wallet.Wallet static method)</a>
+</li>
+      <li><a href="protocol.html#term-payment-processor"><strong>Payment Processor</strong></a>
 </li>
       <li><a href="protocol/messages.html#manta.messages.PaymentMessage">PaymentMessage (class in manta.messages)</a>
 </li>
@@ -281,11 +335,22 @@
 </li>
       <li><a href="protocol/messages.html#manta.messages.Status.PENDING">PENDING (manta.messages.Status attribute)</a>
 </li>
+      <li><a href="protocol.html#term-pos"><strong>POS</strong></a>
+</li>
   </ul></td>
 </tr></table>
 
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    RFC
+
+      <ul>
+        <li><a href="protocol.html#index-0">RFC 8259</a>
+</li>
+      </ul></li>
+  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/manta.payproc.PayProc.html#manta.payproc.PayProc.run">run() (manta.payproc.PayProc method)</a>
 </li>
@@ -295,7 +360,7 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/manta.wallet.Wallet.html#manta.wallet.Wallet.send_payment">send_payment() (manta.wallet.Wallet method)</a>
+      <li><a href="api/manta.wallet.html#manta.wallet.Wallet.send_payment">send_payment() (manta.wallet.Wallet method)</a>
 </li>
       <li><a href="api/manta.payproc.TXStorage.html#manta.payproc.TXStorage.session_exists">session_exists() (manta.payproc.TXStorage method)</a>
 
@@ -303,11 +368,21 @@
         <li><a href="api/manta.payproc.TXStorageMemory.html#manta.payproc.TXStorageMemory.session_exists">(manta.payproc.TXStorageMemory method)</a>
 </li>
       </ul></li>
+      <li><a href="protocol/parameters.html#term-session-id"><strong>session_id</strong></a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/manta.payproc.PayProc.html#manta.payproc.PayProc.sign">sign() (manta.payproc.PayProc method)</a>
+</li>
       <li><a href="protocol/messages.html#manta.messages.Status">Status (class in manta.messages)</a>
 </li>
-      <li><a href="api/manta.store.Store.html#manta.store.Store">Store (class in manta.store)</a>
+      <li><a href="protocol.html#term-store"><strong>Store</strong></a>
+
+      <ul>
+        <li><a href="api/manta.store.html#manta.store.Store">(class in manta.store)</a>
+</li>
+      </ul></li>
+      <li><a href="api/manta.store.html#manta.store.Store.subscribe">subscribe() (manta.store.Store method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -329,8 +404,12 @@
 <h2 id="W">W</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/manta.wallet.Wallet.html#manta.wallet.Wallet">Wallet (class in manta.wallet)</a>
+      <li><a href="protocol.html#term-wallet"><strong>Wallet</strong></a>
+
+      <ul>
+        <li><a href="api/manta.wallet.html#manta.wallet.Wallet">(class in manta.wallet)</a>
 </li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -371,7 +450,6 @@
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
 
   

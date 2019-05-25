@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Overview: module code &mdash; manta  documentation</title>
+  <title>Parameters &mdash; manta  documentation</title>
   
 
   
@@ -27,7 +27,9 @@
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" /> 
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Flow" href="flow.html" />
+    <link rel="prev" title="Manta Protocol" href="../protocol.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -77,8 +79,19 @@
             
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../protocol.html">Manta Protocol</a></li>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../protocol.html">Manta Protocol</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../protocol.html#glossary">Glossary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../protocol.html#technologies-used">Technologies Used</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../protocol.html#communication-protocol">Communication protocol</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="flow.html">Flow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="messages.html">Messages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="topics.html">Topics</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../api.html">API</a></li>
 </ul>
 
@@ -125,10 +138,16 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
-      <li>Overview: module code</li>
+          <li><a href="../protocol.html">Manta Protocol</a> &raquo;</li>
+        
+      <li>Parameters</li>
     
     
       <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/protocol/parameters.rst.txt" rel="nofollow"> View page source</a>
+          
         
       </li>
     
@@ -140,17 +159,41 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>All modules for which code is available</h1>
-<ul><li><a href="manta/messages.html">manta.messages</a></li>
-<li><a href="manta/payproc.html">manta.payproc</a></li>
-<li><a href="manta/store.html">manta.store</a></li>
-<li><a href="manta/wallet.html">manta.wallet</a></li>
-</ul>
+  <div class="section" id="parameters">
+<h1>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h1>
+<dl class="glossary docutils">
+<dt id="term-application-id">application_id</dt>
+<dd>Unique <a class="reference internal" href="../protocol.html#term-pos"><span class="xref std std-term">POS</span></a> identifier.</dd>
+<dt id="term-crypto-currency">crypto_currency</dt>
+<dd>Name of the currency used to complete the monetary transaction.</dd>
+<dt id="term-session-id">session_id</dt>
+<dd>Unique Session Identifier.</dd>
+<dt id="term-manta-url">Manta URL</dt>
+<dd><p class="first">It’s an Uniform Resource Locator of the Session initiated by the
+<a class="reference internal" href="../protocol.html#term-pos"><span class="xref std std-term">POS</span></a> and it’s shared with the <a class="reference internal" href="../protocol.html#term-wallet"><span class="xref std std-term">Wallet</span></a> via means like
+QR code or NFC.</p>
+<p>it’s encoded as:</p>
+<p>manta://&lt;<em>broker_host</em>&gt;[:&lt;<em>broker_port</em>&gt;]/&lt;<em>session_id</em>&gt;</p>
+<p class="last">where <code class="docutils literal notranslate"><span class="pre">broker_host</span></code> and <code class="docutils literal notranslate"><span class="pre">broker_port</span></code> are the IP address and
+TCP port where the broker service is listening.</p>
+</dd>
+</dl>
+</div>
+
 
            </div>
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="flow.html" class="btn btn-neutral float-right" title="Flow" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../protocol.html" class="btn btn-neutral" title="Manta Protocol" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

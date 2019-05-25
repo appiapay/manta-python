@@ -28,8 +28,7 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="manta.wallet.Wallet" href="manta.wallet.Wallet.html" />
-    <link rel="prev" title="manta.store.Store" href="manta.store.Store.html" /> 
+    <link rel="prev" title="manta.store" href="manta.store.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -85,7 +84,7 @@
 <li class="toctree-l2"><a class="reference internal" href="manta.payproc.html">manta.payproc</a></li>
 <li class="toctree-l2"><a class="reference internal" href="manta.store.html">manta.store</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">manta.wallet</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="manta.wallet.Wallet.html">manta.wallet.Wallet</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#reference">Reference</a></li>
 </ul>
 </li>
 </ul>
@@ -158,19 +157,201 @@
             
   <div class="section" id="module-manta.wallet">
 <span id="manta-wallet"></span><h1>manta.wallet<a class="headerlink" href="#module-manta.wallet" title="Permalink to this headline">¶</a></h1>
-<p>Library for implementing a Manta Wallet</p>
-<p class="rubric">Classes</p>
-<table border="1" class="longtable docutils">
-<colgroup>
-<col width="10%" />
-<col width="90%" />
-</colgroup>
+<p>Library with a basic implementation of a Manta <a class="reference internal" href="../protocol.html#term-wallet"><span class="xref std std-term">Wallet</span></a>.</p>
+<p>This module implements a basic Manta <a class="reference internal" href="../protocol.html#term-wallet"><span class="xref std std-term">Wallet</span></a>. An usage
+example of this class can be found in module
+<code class="docutils literal notranslate"><span class="pre">manta.testing.wallet</span></code>.</p>
+<p>The API is implemented in the <a class="reference internal" href="#manta.wallet.Wallet" title="manta.wallet.Wallet"><code class="xref py py-class docutils literal notranslate"><span class="pre">Wallet</span></code></a> class and
+specifically by the <a class="reference internal" href="#manta.wallet.Wallet.get_payment_request" title="manta.wallet.Wallet.get_payment_request"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Wallet.get_payment_request()</span></code></a> and
+<a class="reference internal" href="#manta.wallet.Wallet.send_payment" title="manta.wallet.Wallet.send_payment"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Wallet.send_payment()</span></code></a> methods.  The former requests the
+payment details to the <a class="reference internal" href="../protocol.html#term-payment-processor"><span class="xref std std-term">Payment Processor</span></a> while the latter
+creates an <a class="reference internal" href="../protocol/messages.html#manta.messages.PaymentMessage" title="manta.messages.PaymentMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">PaymentMessage</span></code></a> and sends it to the
+<a class="reference internal" href="../protocol.html#term-payment-processor"><span class="xref std std-term">Payment Processor</span></a> that is managing the payment process in
+order to complete the payment process.</p>
+<p>To work as expected, an object of the <a class="reference internal" href="#manta.wallet.Wallet" title="manta.wallet.Wallet"><code class="xref py py-class docutils literal notranslate"><span class="pre">Wallet</span></code></a> is created
+using the <a class="reference internal" href="#manta.wallet.Wallet.factory" title="manta.wallet.Wallet.factory"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Wallet.factory()</span></code></a> classmethod from a <a class="reference internal" href="../protocol/parameters.html#term-manta-url"><span class="xref std std-term">Manta
+URL</span></a>:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">asyncio</span>
+
+<span class="kn">from</span> <span class="nn">manta.wallet</span> <span class="k">import</span> <span class="n">Wallet</span>
+
+<span class="n">wallet</span> <span class="o">=</span> <span class="n">Wallet</span><span class="o">.</span><span class="n">factory</span><span class="p">(</span><span class="s2">&quot;manta://developer.beappia.com/774747&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>All the other operations are implemented as <em>coroutines</em> and so
+they need an <em>asyncio loop</em> to work correctly. The first operation
+needed is to retrieve the payment details:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
+
+<span class="n">envelope</span> <span class="o">=</span> <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="n">wallet</span><span class="o">.</span><span class="n">get_payment_request</span><span class="p">())</span>
+<span class="n">payment_req</span> <span class="o">=</span> <span class="n">envelope</span><span class="o">.</span><span class="n">unpack</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>…then a concrete wallet implementation is supposed to add the
+transaction on the block chain and then send these informations
+back to the <a class="reference internal" href="../protocol.html#term-payment-processor"><span class="xref std std-term">Payment Processor</span></a>. We here simulate it with:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="n">wallet</span><span class="o">.</span><span class="n">send_payment</span><span class="p">(</span><span class="n">transaction_hash</span><span class="o">=</span><span class="n">block</span><span class="p">,</span> <span class="n">crypto_currency</span><span class="o">=</span><span class="s1">&#39;NANO&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Like what happens with the <a class="reference internal" href="manta.store.html#manta.store.Store" title="manta.store.Store"><code class="xref py py-class docutils literal notranslate"><span class="pre">Store</span></code></a> class, the
+progress of the payment session can be monitored by looking into
+the <a class="reference internal" href="../protocol/messages.html#manta.messages.AckMessage" title="manta.messages.AckMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">AckMessage</span></code></a> instances collected by the
+<code class="docutils literal notranslate"><span class="pre">wallet.acks</span></code> queue. The payment is considered complete when a
+received ack has status == <code class="docutils literal notranslate"><span class="pre">PAID</span></code>:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">manta.messages</span> <span class="k">import</span> <span class="n">Status</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">wait_for_complete</span><span class="p">(</span><span class="n">wallet</span><span class="p">):</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">ack</span> <span class="o">=</span> <span class="k">await</span> <span class="n">wallet</span><span class="o">.</span><span class="n">acks</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ack</span><span class="o">.</span><span class="n">status</span> <span class="ow">is</span> <span class="n">Status</span><span class="o">.</span><span class="n">PAID</span><span class="p">:</span>
+            <span class="k">break</span>
+    <span class="k">return</span> <span class="n">ack</span>
+
+<span class="n">final_ack</span> <span class="o">=</span> <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="n">wait_for_complete</span><span class="p">(</span><span class="n">wallet</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="section" id="reference">
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="manta.wallet.Wallet">
+<em class="property">class </em><code class="descclassname">manta.wallet.</code><code class="descname">Wallet</code><span class="sig-paren">(</span><em>url</em>, <em>session_id</em>, <em>host='localhost'</em>, <em>port=1883</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/wallet.html#Wallet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.wallet.Wallet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements a Manta <a class="reference internal" href="../protocol.html#term-wallet"><span class="xref std std-term">Wallet</span></a>. This class needs an <em>asyncio</em> loop
+to run correctly as some of its features are implemented as
+<em>coroutines</em>.</p>
+<p>This is usually instantiated from a <a class="reference internal" href="../protocol/parameters.html#term-manta-url"><span class="xref std std-term">Manta URL</span></a> using the
+<a class="reference internal" href="#manta.wallet.Wallet.factory" title="manta.wallet.Wallet.factory"><code class="xref py py-meth docutils literal notranslate"><span class="pre">factory()</span></code></a> classmethod.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
 <tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="manta.wallet.Wallet.html#manta.wallet.Wallet" title="manta.wallet.Wallet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Wallet</span></code></a>(url,&nbsp;session_id[,&nbsp;host,&nbsp;port])</td>
-<td>Class for creating a Manta Wallet</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>url</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – a string containing a <a class="reference internal" href="../protocol/parameters.html#term-manta-url"><span class="xref std std-term">Manta URL</span></a></li>
+<li><strong>session_id</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – a session_id</li>
+<li><strong>host</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – <a class="reference internal" href="../protocol.html#term-mqtt"><span class="xref std std-term">MQTT</span></a> broker IP addresses</li>
+<li><strong>port</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – optional port number of the broker service</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><ul class="first last simple">
+<li><strong>acks</strong> – queue of <a class="reference internal" href="../protocol/messages.html#manta.messages.AckMessage" title="manta.messages.AckMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">AckMessage</span></code></a> instances</li>
+<li><strong>loop</strong> – the <em>asyncio</em> loop that manages the asynchronous parts of this
+object</li>
+<li><strong>session_id</strong> – <a class="reference internal" href="../protocol/parameters.html#term-session-id"><span class="xref std std-term">session_id</span></a> of the ongoing session, if any</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
+<dl class="method">
+<dt id="manta.wallet.Wallet.close">
+<code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/wallet.html#Wallet.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.wallet.Wallet.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disconnect and stop <a class="reference internal" href="../protocol.html#term-mqtt"><span class="xref std std-term">MQTT</span></a> client’s processing loop.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="manta.wallet.Wallet.connect">
+<em class="property">coroutine </em><code class="descname">connect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/wallet.html#Wallet.connect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.wallet.Wallet.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connect to the <a class="reference internal" href="../protocol.html#term-mqtt"><span class="xref std std-term">MQTT</span></a> broker and wait for the connection
+confirmation.</p>
+<p>This is a coroutine.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="manta.wallet.Wallet.factory">
+<em class="property">classmethod </em><code class="descname">factory</code><span class="sig-paren">(</span><em>url</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/wallet.html#Wallet.factory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.wallet.Wallet.factory" title="Permalink to this definition">¶</a></dt>
+<dd><p>This creates an instance from a <a class="reference internal" href="../protocol/parameters.html#term-manta-url"><span class="xref std std-term">Manta URL</span></a>. Can be <code class="docutils literal notranslate"><span class="pre">None</span></code>
+if the URL is invalid.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>url</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – manta url (ex. manta://developer.beappia.com/2848839943)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<a class="reference internal" href="#manta.wallet.Wallet" title="manta.wallet.Wallet"><code class="xref py py-class docutils literal notranslate"><span class="pre">Wallet</span></code></a>]</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a new configured but unconnected instance</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="manta.wallet.Wallet.get_certificate">
+<em class="property">coroutine </em><code class="descname">get_certificate</code><span class="sig-paren">(</span><em>self</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/wallet.html#Wallet.get_certificate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.wallet.Wallet.get_certificate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get <a class="reference internal" href="../protocol.html#term-payment-processor"><span class="xref std std-term">Payment Processor</span></a>’s certificate retained by the
+<a class="reference internal" href="../protocol.html#term-mqtt"><span class="xref std std-term">MQTT</span></a> broker service.</p>
+<p>This is a coroutine</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">Certificate</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="manta.wallet.Wallet.get_payment_request">
+<em class="property">coroutine </em><code class="descname">get_payment_request</code><span class="sig-paren">(</span><em>self</em>, <em>crypto_currency='all'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/wallet.html#Wallet.get_payment_request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.wallet.Wallet.get_payment_request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the <a class="reference internal" href="../protocol/messages.html#manta.messages.PaymentRequestMessage" title="manta.messages.PaymentRequestMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">PaymentRequestMessage</span></code></a> for specific crypto
+currency, or <code class="docutils literal notranslate"><span class="pre">all</span></code> to obtain informations about all the supported
+crypto currencies.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>crypto_currency</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – crypto to request payment for (ex. ‘NANO’)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="../protocol/messages.html#manta.messages.PaymentRequestEnvelope" title="manta.messages.PaymentRequestEnvelope"><code class="xref py py-class docutils literal notranslate"><span class="pre">PaymentRequestEnvelope</span></code></a></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The Payment Request Envelope. It’s <code class="docutils literal notranslate"><span class="pre">all</span></code> by default</td>
+</tr>
+</tbody>
+</table>
+<p>This is a coroutine</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="manta.wallet.Wallet.parse_url">
+<em class="property">static </em><code class="descname">parse_url</code><span class="sig-paren">(</span><em>url</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/wallet.html#Wallet.parse_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.wallet.Wallet.parse_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience method to check if Manta url is valid
+:type url: <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>
+:param url: manta url (ex. manta://developer.beappia.com/2848839943)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Match</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">AnyStr</span></code>]]</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A match object</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="manta.wallet.Wallet.send_payment">
+<em class="property">coroutine </em><code class="descname">send_payment</code><span class="sig-paren">(</span><em>self</em>, <em>transaction_hash</em>, <em>crypto_currency</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/wallet.html#Wallet.send_payment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.wallet.Wallet.send_payment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send payment info</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>transaction_hash</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – the hash of transaction sent to blockchain</li>
+<li><strong>crypto_currency</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – the crypto currency used for transaction</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>This is a coroutine</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 </div>
 
 
@@ -181,10 +362,8 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="manta.wallet.Wallet.html" class="btn btn-neutral float-right" title="manta.wallet.Wallet" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
-      
-        <a href="manta.store.Store.html" class="btn btn-neutral" title="manta.store.Store" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="manta.store.html" class="btn btn-neutral" title="manta.store" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -218,7 +397,6 @@
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
 
   

@@ -167,8 +167,8 @@
   <div class="section" id="manta-payproc-payproc">
 <h1>manta.payproc.PayProc<a class="headerlink" href="#manta-payproc-payproc" title="Permalink to this headline">¶</a></h1>
 <p>This class can be used to create a Manta Payment Processor.</p>
-<p>An example using the class is the payprocdummy.py in tests folder.</p>
-<p>Initialization of PayProc class:</p>
+<p>An example using the class is the <code class="docutils literal notranslate"><span class="pre">manta.testing.payproc</span></code> module.</p>
+<p>Here is an example of the initialization of the <code class="xref py py-class docutils literal notranslate"><span class="pre">PayProc</span></code> class:</p>
 <div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
 2
 3
@@ -178,17 +178,17 @@
  <span class="n">pp</span><span class="o">.</span><span class="n">get_supported_cryptos</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">device</span><span class="p">,</span> <span class="n">payment_request</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;btc&#39;</span><span class="p">,</span> <span class="s1">&#39;xmr&#39;</span><span class="p">,</span> <span class="s1">&#39;nano&#39;</span><span class="p">}</span>
 </pre></div>
 </td></tr></table></div>
-<p>Line 2 to line 4 defines the callbacks you need to implement.</p>
-<p>The class will callback to request information about which Merchant information to provide, which is the destination
-address, which supported cryptos.</p>
-<p>For example this is how get_destinations is defined in Payproc dummy</p>
+<p>The lines from 2 to 4 define the callbacks you need to implement.</p>
+<p>The class will callback to request information about which Merchant
+information to provide, which is the destination address, which
+supported crypto currencies.</p>
+<p>For example this is how get_destinations can be defined:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">DESTINATIONS</span> <span class="o">=</span> <span class="p">[</span>
     <span class="n">Destination</span><span class="p">(</span>
         <span class="n">amount</span><span class="o">=</span><span class="n">Decimal</span><span class="p">(</span><span class="s2">&quot;0.01&quot;</span><span class="p">),</span>
         <span class="n">destination_address</span><span class="o">=</span><span class="s2">&quot;xrb_3d1ab61eswzsgx5arwqc3gw8xjcsxd7a5egtr69jixa5it9yu9fzct9nyjyx&quot;</span><span class="p">,</span>
         <span class="n">crypto_currency</span><span class="o">=</span><span class="s2">&quot;NANO&quot;</span>
     <span class="p">),</span>
-
 <span class="p">]</span>
 
 <span class="k">def</span> <span class="nf">get_destinations</span><span class="p">(</span><span class="n">application_id</span><span class="p">,</span> <span class="n">merchant_order</span><span class="p">:</span> <span class="n">MerchantOrderRequestMessage</span><span class="p">):</span>
@@ -199,7 +199,8 @@ address, which supported cryptos.</p>
      <span class="k">return</span> <span class="n">DESTINATIONS</span>
 </pre></div>
 </div>
-<p>Finally you need to start the main loop (running in another thread):</p>
+<p>Finally you need to start the <a class="reference internal" href="../protocol.html#term-mqtt"><span class="xref std std-term">MQTT</span></a> processing loop which is
+started in another thread. To activate it just execute:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pp</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -207,34 +208,56 @@ address, which supported cryptos.</p>
 <h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="manta.payproc.PayProc">
-<em class="property">class </em><code class="descclassname">manta.payproc.</code><code class="descname">PayProc</code><span class="sig-paren">(</span><em>key_file</em>, <em>cert_file=None</em>, <em>host='localhost'</em>, <em>starting_txid=0</em>, <em>tx_storage=None</em>, <em>mqtt_options=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/payproc.html#PayProc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.payproc.PayProc" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">manta.payproc.</code><code class="descname">PayProc</code><span class="sig-paren">(</span><em>key_file</em>, <em>cert_file=None</em>, <em>host='localhost'</em>, <em>starting_txid=0</em>, <em>tx_storage=None</em>, <em>mqtt_options=None</em>, <em>port=1883</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/payproc.html#PayProc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.payproc.PayProc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Manta Protocol Payment Processor Implementation</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>key_file</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – File name of PEM private key of Payment Processor. This will be used to sign messages</li>
+<li><strong>key_file</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – File name of PEM private key of Payment Processor. This
+will be used to sign messages</li>
 <li><strong>certificate</strong> – File name of Manta Certificate Authority, IE Appia</li>
 <li><strong>host</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – MQTT Broker host</li>
-<li><strong>starting_txid</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – Transaction ID are progressive, starting from the one specified</li>
+<li><strong>starting_txid</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – Transaction ID are progressive, starting from the
+one specified</li>
 <li><strong>tx_storage</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<a class="reference internal" href="manta.payproc.TXStorage.html#manta.payproc.TXStorage" title="manta.payproc.TXStorage"><code class="xref py py-class docutils literal notranslate"><span class="pre">TXStorage</span></code></a>]) – TXStorage instance to store session information</li>
-<li><strong>mqtt_options</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, &lt;built-in function any&gt;]]) – A Dict of options to be passed to MQTT Client (like username, password)</li>
+<li><strong>mqtt_options</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]) – A Dict of options to be passed to MQTT Client (like
+username, password)</li>
+<li><strong>port</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – MQTT Broker port number. Specified only if it’s different
+than the default of 1883</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><ul class="first last simple">
 <li><strong>get_destinations</strong> – Callback function to retrieve list of Destination</li>
-<li><strong>get_supported_cryptos</strong> – Callback function to retrieve list of supported cryptos</li>
+<li><strong>get_supported_cryptos</strong> – Callback function to retrieve list of
+supported cryptos</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
 <dl class="method">
+<dt id="manta.payproc.PayProc.ack">
+<code class="descname">ack</code><span class="sig-paren">(</span><em>session_id</em>, <em>ack</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/payproc.html#PayProc.ack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.payproc.PayProc.ack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Publish the given <a class="reference internal" href="../protocol/messages.html#manta.messages.AckMessage" title="manta.messages.AckMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">AckMessage</span></code></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>session_id</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – id of the session where to send the messages</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="manta.payproc.PayProc.confirm">
 <code class="descname">confirm</code><span class="sig-paren">(</span><em>session_id</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/payproc.html#PayProc.confirm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.payproc.PayProc.confirm" title="Permalink to this definition">¶</a></dt>
-<dd><p>Change the status of session_id to PAID and send the ack</p>
+<dd><p>Change the status of the session with the given <code class="docutils literal notranslate"><span class="pre">session_id</span></code> to
+<a class="reference internal" href="../protocol/messages.html#manta.messages.Status.PAID" title="manta.messages.Status.PAID"><code class="xref py py-attr docutils literal notranslate"><span class="pre">PAID</span></code></a> and publish the
+<a class="reference internal" href="../protocol/messages.html#manta.messages.AckMessage" title="manta.messages.AckMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">AckMessage</span></code></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -248,7 +271,9 @@ address, which supported cryptos.</p>
 <dl class="method">
 <dt id="manta.payproc.PayProc.confirming">
 <code class="descname">confirming</code><span class="sig-paren">(</span><em>session_id</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/payproc.html#PayProc.confirming"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.payproc.PayProc.confirming" title="Permalink to this definition">¶</a></dt>
-<dd><p>Change the status of session_id to CONFIRMING and send the ack</p>
+<dd><p>Change the status of the session with the given <code class="docutils literal notranslate"><span class="pre">session_id</span></code> to
+<a class="reference internal" href="../protocol/messages.html#manta.messages.Status.CONFIRMING" title="manta.messages.Status.CONFIRMING"><code class="xref py py-attr docutils literal notranslate"><span class="pre">CONFIRMING</span></code></a> and publish the
+<a class="reference internal" href="../protocol/messages.html#manta.messages.AckMessage" title="manta.messages.AckMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">AckMessage</span></code></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -260,19 +285,63 @@ address, which supported cryptos.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="manta.payproc.PayProc.generate_payment_request">
+<code class="descname">generate_payment_request</code><span class="sig-paren">(</span><em>device</em>, <em>merchant_request</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/payproc.html#PayProc.generate_payment_request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.payproc.PayProc.generate_payment_request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a <a class="reference internal" href="../protocol/messages.html#manta.messages.PaymentRequestEnvelope" title="manta.messages.PaymentRequestEnvelope"><code class="xref py py-class docutils literal notranslate"><span class="pre">PaymentRequestEnvelope</span></code></a> containing the
+payment informations.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>device</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – <a class="reference internal" href="../protocol/parameters.html#term-application-id"><span class="xref std std-term">application_id</span></a> of the <a class="reference internal" href="../protocol.html#term-pos"><span class="xref std std-term">POS</span></a></li>
+<li><strong>merchant_request</strong> (<a class="reference internal" href="../protocol/messages.html#manta.messages.MerchantOrderRequestMessage" title="manta.messages.MerchantOrderRequestMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">MerchantOrderRequestMessage</span></code></a>) – object containing payment infos</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><a class="reference internal" href="../protocol/messages.html#manta.messages.PaymentRequestEnvelope" title="manta.messages.PaymentRequestEnvelope"><code class="xref py py-class docutils literal notranslate"><span class="pre">PaymentRequestEnvelope</span></code></a></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">an envelope containing a <code class="xref py py-class docutils literal notranslate"><span class="pre">PaymentRequestMessage</span></code></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="manta.payproc.PayProc.invalidate">
 <code class="descname">invalidate</code><span class="sig-paren">(</span><em>session_id</em>, <em>reason=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/payproc.html#PayProc.invalidate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.payproc.PayProc.invalidate" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div>Change the status of session_id to INVALID and send the ack</div></blockquote>
+<dd><p>Change the status of the session with the given <code class="docutils literal notranslate"><span class="pre">session_id</span></code> to
+<a class="reference internal" href="../protocol/messages.html#manta.messages.Status.INVALID" title="manta.messages.Status.INVALID"><code class="xref py py-attr docutils literal notranslate"><span class="pre">INVALID</span></code></a> and publish the
+<a class="reference internal" href="../protocol/messages.html#manta.messages.AckMessage" title="manta.messages.AckMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">AckMessage</span></code></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>session_id</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – session to change</li>
-<li><strong>reason</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – reason for INVALID (ex. ‘Timeout’)</li>
+<li><strong>reason</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – reason for INVALID status (ex. ‘Timeout’)</li>
 </ul>
 </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="manta.payproc.PayProc.key_from_keydata">
+<em class="property">static </em><code class="descname">key_from_keydata</code><span class="sig-paren">(</span><em>key_data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/payproc.html#PayProc.key_from_keydata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.payproc.PayProc.key_from_keydata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a string containing the key encoded in PEM format, loads it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>key_data</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code>) – string containing the key in PEM format</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">RSAPrivateKey</span></code></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a ready key object</td>
 </tr>
 </tbody>
 </table>
@@ -281,7 +350,27 @@ address, which supported cryptos.</p>
 <dl class="method">
 <dt id="manta.payproc.PayProc.run">
 <code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/payproc.html#PayProc.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.payproc.PayProc.run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Start processing network requests</p>
+<dd><p>Start processing network requests. This starts the <a class="reference internal" href="../protocol.html#term-mqtt"><span class="xref std std-term">MQTT</span></a>
+client processing loop in another thread.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="manta.payproc.PayProc.sign">
+<code class="descname">sign</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/payproc.html#PayProc.sign"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.payproc.PayProc.sign" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sign the given string with the cryptographic key specified at
+creation time.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>message</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code>) – string to sign</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">signature text</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
@@ -334,7 +423,6 @@ address, which supported cryptos.</p>
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
 
   

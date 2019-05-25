@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>TOPICS &mdash; manta  documentation</title>
+  <title>Topics &mdash; manta  documentation</title>
   
 
   
@@ -29,7 +29,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="API" href="../api.html" />
-    <link rel="prev" title="MESSAGES" href="messages.html" /> 
+    <link rel="prev" title="Messages" href="messages.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -81,14 +81,22 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../protocol.html">Manta Protocol</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="flow.html">FLOW</a></li>
-<li class="toctree-l2"><a class="reference internal" href="messages.html">MESSAGES</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">TOPICS</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#merchant-order-request-application-id">MERCHANT_ORDER_REQUEST/{APPLICATION_ID}</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#acks-session-id">ACKS/{SESSION_ID}</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#payment-requests-session-id">PAYMENT_REQUESTS/{SESSION_ID}</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#payment-requests-session-id-crypto-currency">PAYMENT_REQUESTS/{SESSION_ID}/{CRYPTO_CURRENCY}</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#payments-session-id">PAYMENTS/{SESSION_ID}</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../protocol.html#glossary">Glossary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../protocol.html#technologies-used">Technologies Used</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../protocol.html#communication-protocol">Communication protocol</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="parameters.html">Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="flow.html">Flow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="messages.html">Messages</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Topics</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#acks-session-id">acks/{session_id}</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#certificate">certificate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#merchant-order-cancel-session-id">merchant_order_cancel/{session_id}</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#merchant-order-request-application-id">merchant_order_request/{application_id}</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#payment-requests-session-id">payment_requests/{session_id}</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#payment-requests-session-id-crypto-currency">payment_requests/{session_id}/{crypto_currency}</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#payments-session-id">payments/{session_id}</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -141,7 +149,7 @@
         
           <li><a href="../protocol.html">Manta Protocol</a> &raquo;</li>
         
-      <li>TOPICS</li>
+      <li>Topics</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -161,38 +169,131 @@
            <div itemprop="articleBody">
             
   <div class="section" id="topics">
-<h1>TOPICS<a class="headerlink" href="#topics" title="Permalink to this headline">¶</a></h1>
-<p><strong>Attention</strong>: All topics below are meant to be lowercase,</p>
-<div class="section" id="merchant-order-request-application-id">
-<h2>MERCHANT_ORDER_REQUEST/{APPLICATION_ID}<a class="headerlink" href="#merchant-order-request-application-id" title="Permalink to this headline">¶</a></h2>
-<p><strong>APPLICATION_ID</strong> unique POS identifier</p>
-<p><strong>PUBLISHERS</strong> POS</p>
-<p><strong>SUBSCRIBERS</strong> Payment Processor</p>
-</div>
+<h1>Topics<a class="headerlink" href="#topics" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="acks-session-id">
-<h2>ACKS/{SESSION_ID}<a class="headerlink" href="#acks-session-id" title="Permalink to this headline">¶</a></h2>
-<p><strong>SESSION_ID</strong> unique Session Identifier</p>
-<p><strong>PUBLISHERS</strong> Payment Processor</p>
-<p><strong>SUBSCRIBERS</strong> POS/ Wallets</p>
+<span id="id1"></span><h2>acks/{session_id}<a class="headerlink" href="#acks-session-id" title="Permalink to this headline">¶</a></h2>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">parameters:</th><td class="field-body"><a class="reference internal" href="parameters.html#term-session-id"><span class="xref std std-term">session_id</span></a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">publishers:</th><td class="field-body"><a class="reference internal" href="../protocol.html#term-payment-processor"><span class="xref std std-term">Payment Processor</span></a></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">subscribers:</th><td class="field-body"><a class="reference internal" href="../protocol.html#term-merchant"><span class="xref std std-term">Merchant</span></a>, <a class="reference internal" href="../protocol.html#term-wallet"><span class="xref std std-term">Wallet</span></a></td>
+</tr>
+</tbody>
+</table>
+<p>Used by the <a class="reference internal" href="../protocol.html#term-payment-processor"><span class="xref std std-term">Payment Processor</span></a> to publish
+<a class="reference internal" href="messages.html#manta.messages.AckMessage" title="manta.messages.AckMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">AckMessage</span></code></a>: it serves the purpose of
+informing the other parties of the <a class="reference internal" href="messages.html#manta.messages.Status" title="manta.messages.Status"><code class="xref py py-class docutils literal notranslate"><span class="pre">Status</span></code></a> and
+other primary data of the session.</p>
+</div>
+<div class="section" id="certificate">
+<span id="id2"></span><h2>certificate<a class="headerlink" href="#certificate" title="Permalink to this headline">¶</a></h2>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">parameters:</th><td class="field-body">none</td>
+</tr>
+<tr class="field-even field"><th class="field-name">publishers:</th><td class="field-body"><a class="reference internal" href="../protocol.html#term-payment-processor"><span class="xref std std-term">Payment Processor</span></a></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">subscribers:</th><td class="field-body"><a class="reference internal" href="../protocol.html#term-wallet"><span class="xref std std-term">Wallet</span></a></td>
+</tr>
+</tbody>
+</table>
+<p>Used by the <a class="reference internal" href="../protocol.html#term-payment-processor"><span class="xref std std-term">Payment Processor</span></a> to publish the Manta CA
+certificate so that the wallet can use it to… TBD…</p>
+</div>
+<div class="section" id="merchant-order-cancel-session-id">
+<span id="merchant-order-cancel"></span><span id="id3"></span><h2>merchant_order_cancel/{session_id}<a class="headerlink" href="#merchant-order-cancel-session-id" title="Permalink to this headline">¶</a></h2>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">parameters:</th><td class="field-body"><a class="reference internal" href="parameters.html#term-session-id"><span class="xref std std-term">session_id</span></a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">publishers:</th><td class="field-body"><a class="reference internal" href="../protocol.html#term-merchant"><span class="xref std std-term">Merchant</span></a></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">subscribers:</th><td class="field-body"><a class="reference internal" href="../protocol.html#term-payment-processor"><span class="xref std std-term">Payment Processor</span></a></td>
+</tr>
+</tbody>
+</table>
+<p>TBD</p>
+</div>
+<div class="section" id="merchant-order-request-application-id">
+<span id="merchant-order-request"></span><span id="id4"></span><h2>merchant_order_request/{application_id}<a class="headerlink" href="#merchant-order-request-application-id" title="Permalink to this headline">¶</a></h2>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">parameters:</th><td class="field-body"><a class="reference internal" href="parameters.html#term-application-id"><span class="xref std std-term">application_id</span></a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">publishers:</th><td class="field-body"><a class="reference internal" href="../protocol.html#term-merchant"><span class="xref std std-term">Merchant</span></a></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">subscribers:</th><td class="field-body"><a class="reference internal" href="../protocol.html#term-payment-processor"><span class="xref std std-term">Payment Processor</span></a></td>
+</tr>
+</tbody>
+</table>
+<p>Used by the <a class="reference internal" href="../protocol.html#term-merchant"><span class="xref std std-term">Merchant</span></a> to initiate a new session by publishing a
+<a class="reference internal" href="messages.html#manta.messages.MerchantOrderRequestMessage" title="manta.messages.MerchantOrderRequestMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">MerchantOrderRequestMessage</span></code></a>.</p>
 </div>
 <div class="section" id="payment-requests-session-id">
-<h2>PAYMENT_REQUESTS/{SESSION_ID}<a class="headerlink" href="#payment-requests-session-id" title="Permalink to this headline">¶</a></h2>
-<p><strong>SESSION_ID</strong> unique Session Identifier</p>
-<p><strong>PUBLISHERS</strong> Payment Processor</p>
-<p><strong>SUBSCRIBERS</strong> Wallets</p>
+<span id="id5"></span><h2>payment_requests/{session_id}<a class="headerlink" href="#payment-requests-session-id" title="Permalink to this headline">¶</a></h2>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">parameters:</th><td class="field-body"><a class="reference internal" href="parameters.html#term-session-id"><span class="xref std std-term">session_id</span></a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">publishers:</th><td class="field-body"><a class="reference internal" href="../protocol.html#term-payment-processor"><span class="xref std std-term">Payment Processor</span></a></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">subscribers:</th><td class="field-body"><a class="reference internal" href="../protocol.html#term-wallet"><span class="xref std std-term">Wallet</span></a></td>
+</tr>
+</tbody>
+</table>
+<p>It’s where the <a class="reference internal" href="../protocol.html#term-payment-processor"><span class="xref std std-term">Payment Processor</span></a> publishes a
+<a class="reference internal" href="messages.html#manta.messages.PaymentRequestEnvelope" title="manta.messages.PaymentRequestEnvelope"><code class="xref py py-class docutils literal notranslate"><span class="pre">PaymentRequestEnvelope</span></code></a> in response to an
+event on the topic
+<a class="reference internal" href="#payment-requests-session-id-crypto-currency"><span class="std std-ref">payment_requests/{session_id}/{crypto_currency}</span></a> published by
+the <a class="reference internal" href="../protocol.html#term-wallet"><span class="xref std std-term">Wallet</span></a>.</p>
 </div>
 <div class="section" id="payment-requests-session-id-crypto-currency">
-<h2>PAYMENT_REQUESTS/{SESSION_ID}/{CRYPTO_CURRENCY}<a class="headerlink" href="#payment-requests-session-id-crypto-currency" title="Permalink to this headline">¶</a></h2>
-<p><strong>SESSION_ID</strong> unique Session Identifier</p>
-<p><strong>CRYPTO_CURRENCY</strong> crypto currency</p>
-<p><strong>PUBLISHERS</strong> Wallet</p>
-<p><strong>SUBSCRIBERS</strong> Payment Processor</p>
+<span id="id6"></span><span id="id7"></span><h2>payment_requests/{session_id}/{crypto_currency}<a class="headerlink" href="#payment-requests-session-id-crypto-currency" title="Permalink to this headline">¶</a></h2>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">parameters:</th><td class="field-body"><a class="reference internal" href="parameters.html#term-session-id"><span class="xref std std-term">session_id</span></a>, <a class="reference internal" href="parameters.html#term-crypto-currency"><span class="xref std std-term">crypto_currency</span></a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">publishers:</th><td class="field-body"><a class="reference internal" href="../protocol.html#term-wallet"><span class="xref std std-term">Wallet</span></a></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">subscribers:</th><td class="field-body"><a class="reference internal" href="../protocol.html#term-payment-processor"><span class="xref std std-term">Payment Processor</span></a></td>
+</tr>
+</tbody>
+</table>
+<p>Used by the <a class="reference internal" href="../protocol.html#term-wallet"><span class="xref std std-term">Wallet</span></a> to get informations about the
+payment. <code class="docutils literal notranslate"><span class="pre">{crypto_currency}</span></code> parameter can be “all” to request
+multiple cryptos.</p>
 </div>
 <div class="section" id="payments-session-id">
-<h2>PAYMENTS/{SESSION_ID}<a class="headerlink" href="#payments-session-id" title="Permalink to this headline">¶</a></h2>
-<p><strong>SESSION_ID</strong> unique Session Identifier</p>
-<p><strong>PUBLISHERS</strong> Wallets</p>
-<p><strong>SUBSCRIBERS</strong> Payment Processor</p>
+<span id="id8"></span><h2>payments/{session_id}<a class="headerlink" href="#payments-session-id" title="Permalink to this headline">¶</a></h2>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">parameters:</th><td class="field-body"><a class="reference internal" href="parameters.html#term-session-id"><span class="xref std std-term">session_id</span></a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">publishers:</th><td class="field-body"><a class="reference internal" href="../protocol.html#term-wallet"><span class="xref std std-term">Wallet</span></a></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">subscribers:</th><td class="field-body"><a class="reference internal" href="../protocol.html#term-payment-processor"><span class="xref std std-term">Payment Processor</span></a></td>
+</tr>
+</tbody>
+</table>
+<p>It’s where the <a class="reference internal" href="../protocol.html#term-wallet"><span class="xref std std-term">Wallet</span></a> publishes informations about the
+successful monetary transaction encoded as a
+<a class="reference internal" href="messages.html#manta.messages.PaymentMessage" title="manta.messages.PaymentMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">PaymentMessage</span></code></a>.</p>
 </div>
 </div>
 
@@ -207,7 +308,7 @@
         <a href="../api.html" class="btn btn-neutral float-right" title="API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="messages.html" class="btn btn-neutral" title="MESSAGES" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="messages.html" class="btn btn-neutral" title="Messages" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -241,7 +342,6 @@
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
 
   

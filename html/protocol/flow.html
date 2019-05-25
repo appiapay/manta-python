@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>FLOW &mdash; manta  documentation</title>
+  <title>Flow &mdash; manta  documentation</title>
   
 
   
@@ -28,8 +28,8 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="MESSAGES" href="messages.html" />
-    <link rel="prev" title="Manta Protocol" href="../protocol.html" /> 
+    <link rel="next" title="Messages" href="messages.html" />
+    <link rel="prev" title="Parameters" href="parameters.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -81,14 +81,21 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../protocol.html">Manta Protocol</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">FLOW</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#merchant">Merchant</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#payment-processor">Payment Processor</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#manta-enabled-wallet">Manta enabled wallet</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../protocol.html#glossary">Glossary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../protocol.html#technologies-used">Technologies Used</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../protocol.html#communication-protocol">Communication protocol</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="parameters.html">Parameters</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Flow</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#merchant">Merchant</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#payment-processor">Payment Processor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#manta-enabled-wallet">Manta enabled wallet</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#complete-manta-flow-diagram">Complete Manta flow diagram</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="messages.html">MESSAGES</a></li>
-<li class="toctree-l2"><a class="reference internal" href="topics.html">TOPICS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="messages.html">Messages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="topics.html">Topics</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../api.html">API</a></li>
@@ -139,7 +146,7 @@
         
           <li><a href="../protocol.html">Manta Protocol</a> &raquo;</li>
         
-      <li>FLOW</li>
+      <li>Flow</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -159,70 +166,428 @@
            <div itemprop="articleBody">
             
   <div class="section" id="flow">
-<h1>FLOW<a class="headerlink" href="#flow" title="Permalink to this headline">¶</a></h1>
+<h1>Flow<a class="headerlink" href="#flow" title="Permalink to this headline">¶</a></h1>
 <p>Flow is initiated by Merchant.</p>
-<div class="figure" id="id1">
-<img alt="../_images/manta-protocol-full.svg" src="../_images/manta-protocol-full.svg" /><p class="caption"><span class="caption-text">Detailed Manta Protocol flow</span></p>
-</div>
-<p>You can <a href="../_images/manta-protocol-full.svg" target="_blank">Open diagram in new window</a>.</p>
 <div class="section" id="merchant">
 <h2>Merchant<a class="headerlink" href="#merchant" title="Permalink to this headline">¶</a></h2>
+<p>The payment process from the <a class="reference internal" href="../protocol.html#term-merchant"><span class="xref std std-term">Merchant</span></a>’s point of view:</p>
+<div><svg height="361.2" viewBox="0 0 778 516" width="544.5999999999999" xmlns="http://www.w3.org/2000/svg" xmlns:inkspace="http://www.inkscape.org/namespaces/inkscape" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs id="defs_block">
+    <filter height="1.504" id="filter_blur" inkspace:collect="always" width="1.1575" x="-0.07875" y="-0.252">
+      <feGaussianBlur id="feGaussianBlur3780" inkspace:collect="always" stdDeviation="4.2" />
+    </filter>
+  </defs>
+  <title>blockdiag</title>
+  <desc />
+  <polygon fill="rgb(0,0,0)" points="140,126 245,126 253,134 253,158 140,158 140,126" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <polygon fill="rgb(0,0,0)" points="27,198 245,198 253,206 253,228 27,228 27,198" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <polygon fill="rgb(0,0,0)" points="477,268 582,268 590,276 590,298 477,298 477,268" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <polygon fill="rgb(0,0,0)" points="477,340 582,340 590,348 590,370 477,370 477,340" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <polygon fill="rgb(0,0,0)" points="129,402 245,402 253,410 253,434 129,434 129,402" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <rect fill="rgb(0,0,0)" height="40" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" width="128" x="205" y="46" />
+  <rect fill="rgb(0,0,0)" height="40" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" width="128" x="397" y="46" />
+  <rect fill="rgb(0,0,0)" height="40" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" width="128" x="589" y="46" />
+  <path d="M 266 80 L 266 504" fill="none" stroke="rgb(0,0,0)" stroke-dasharray="8 4" />
+  <path d="M 458 80 L 458 504" fill="none" stroke="rgb(0,0,0)" stroke-dasharray="8 4" />
+  <path d="M 650 80 L 650 504" fill="none" stroke="rgb(0,0,0)" stroke-dasharray="8 4" />
+  <rect fill="rgb(255,255,255)" height="40" stroke="rgb(0,0,0)" width="128" x="202" y="40" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="47" x="266.5" y="66">Merchant</text>
+  <rect fill="rgb(255,255,255)" height="40" stroke="rgb(0,0,0)" width="128" x="394" y="40" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="95" x="458.5" y="67">Payment Processor</text>
+  <rect fill="rgb(255,255,255)" height="40" stroke="rgb(0,0,0)" width="128" x="586" y="40" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="67" x="650.5" y="67">MQTT Broker</text>
+  <path d="M 274 136 L 642 136" fill="none" stroke="rgb(0,0,0)" stroke-dasharray="4" />
+  <polygon fill="rgb(0,0,0)" points="634,132 642,136 634,140" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(255,182,193)" points="137,120 242,120 250,128 250,152 137,152 137,120" stroke="rgb(0,0,0)" />
+  <path d="M 242 120 L 242 128" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 242 128 L 250 128" fill="none" stroke="rgb(0,0,0)" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="84" x="187.0" y="135">(2) SUBSCRIBE to</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="89" x="189.5" y="150">"acks/{session_id}"</text>
+  <path d="M 274 207 L 450 207" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 442 203 L 450 207" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 450 207 L 442 211" fill="none" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(255,182,193)" points="24,192 242,192 250,200 250,222 24,222 24,192" stroke="rgb(0,0,0)" />
+  <path d="M 242 192 L 242 200" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 242 200 L 250 200" fill="none" stroke="rgb(0,0,0)" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="59" x="61.5" y="205">PUBLISH on</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="202" x="133.0" y="220">"merchant_order_request/{application_id}"</text>
+  <path d="M 274 277 L 450 277" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 282 273 L 274 277" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 274 277 L 282 281" fill="none" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(255,182,193)" points="474,262 579,262 587,270 587,292 474,292 474,262" stroke="rgb(0,0,0)" />
+  <path d="M 579 262 L 579 270" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 579 270 L 587 270" fill="none" stroke="rgb(0,0,0)" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="59" x="511.5" y="275">PUBLISH on</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="89" x="526.5" y="290">"acks/{session_id}"</text>
+  <path d="M 274 349 L 450 349" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 282 345 L 274 349" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 274 349 L 282 353" fill="none" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(255,182,193)" points="474,334 579,334 587,342 587,364 474,364 474,334" stroke="rgb(0,0,0)" />
+  <path d="M 579 334 L 579 342" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 579 342 L 587 342" fill="none" stroke="rgb(0,0,0)" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="59" x="511.5" y="347">PUBLISH on</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="89" x="526.5" y="362">"acks/{session_id}"</text>
+  <path d="M 274 412 L 642 412" fill="none" stroke="rgb(0,0,0)" stroke-dasharray="4" />
+  <polygon fill="rgb(0,0,0)" points="634,408 642,412 634,416" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(255,182,193)" points="126,396 242,396 250,404 250,428 126,428 126,396" stroke="rgb(0,0,0)" />
+  <path d="M 242 396 L 242 404" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 242 404 L 250 404" fill="none" stroke="rgb(0,0,0)" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="100" x="184.0" y="411">(6) UNSUBSCRIBE to</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="89" x="178.5" y="426">"acks/{session_id}"</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="130" x="343.0" y="205">(3) MerchantOrderRequest</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="98" x="401.0" y="275">(4) Ack[status = new]</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="99" x="400.5" y="347">(5) Ack[status = paid]</text>
+</svg>
+</div>
 <ol class="arabic">
-<li><p class="first">Merchant generates a random SESSION_ID</p>
+<li><p class="first"><a class="reference internal" href="../protocol.html#term-merchant"><span class="xref std std-term">Merchant</span></a> generates a random <a class="reference internal" href="parameters.html#term-session-id"><span class="xref std std-term">session_id</span></a>.</p>
 </li>
-<li><p class="first">Merchant <em>subscribe</em> to <strong>ACKS/{SESSION_ID}</strong></p>
+<li><p class="first"><a class="reference internal" href="../protocol.html#term-merchant"><span class="xref std std-term">Merchant</span></a> <em>subscribes</em> to the topic <a class="reference internal" href="topics.html#acks-session-id"><span class="std std-ref">acks/{session_id}</span></a>.</p>
 </li>
-<li><p class="first">Merchant create a <strong>MERCHANT_ORDER_REQUEST_MESSAGE</strong> and <em>publish</em> on <strong>MERCHANT_ORDER_REQUEST/{APPLICATION_ID}</strong></p>
-<p>crypto_currency should be empty if customer wants to pay with Manta</p>
+<li><p class="first"><a class="reference internal" href="../protocol.html#term-merchant"><span class="xref std std-term">Merchant</span></a> create a
+<a class="reference internal" href="messages.html#manta.messages.MerchantOrderRequestMessage" title="manta.messages.MerchantOrderRequestMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">MerchantOrderRequestMessage</span></code></a> and <em>publishes</em> on
+topic <a class="reference internal" href="topics.html#merchant-order-request-application-id"><span class="std std-ref">merchant_order_request/{application_id}</span></a>.</p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">crypto_currency</span></code>
+field should be empty if customer wants to pay with Manta.</p>
 </li>
-<li><p class="first">Merchant receives <strong>ACK_MESSAGE</strong> with status == “new”</p>
-<p>Merchant can create QR/NDEF Message with URL data</p>
+<li><p class="first"><a class="reference internal" href="../protocol.html#term-merchant"><span class="xref std std-term">Merchant</span></a> <em>receives</em> an <a class="reference internal" href="messages.html#manta.messages.AckMessage" title="manta.messages.AckMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">AckMessage</span></code></a> with
+status == “new” on topic <a class="reference internal" href="topics.html#acks-session-id"><span class="std std-ref">acks/{session_id}</span></a>.</p>
+<p><a class="reference internal" href="../protocol.html#term-merchant"><span class="xref std std-term">Merchant</span></a> can create QR code/NDEF Message with URL data</p>
 </li>
-<li><p class="first">Merchant will receive ACK messages as payment change status. With <em>paid</em> status transaction is finished</p>
+<li><p class="first"><a class="reference internal" href="../protocol.html#term-merchant"><span class="xref std std-term">Merchant</span></a> <em>will receive</em> an
+<a class="reference internal" href="messages.html#manta.messages.AckMessage" title="manta.messages.AckMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">AckMessage</span></code></a> messages as payment changes
+state. With status == “paid” the transaction is completed.</p>
+</li>
+<li><p class="first"><a class="reference internal" href="../protocol.html#term-merchant"><span class="xref std std-term">Merchant</span></a> <em>unsubscribes</em> from the topic
+<a class="reference internal" href="topics.html#acks-session-id"><span class="std std-ref">acks/{session_id}</span></a>.</p>
 </li>
 </ol>
 </div>
 <div class="section" id="payment-processor">
 <h2>Payment Processor<a class="headerlink" href="#payment-processor" title="Permalink to this headline">¶</a></h2>
+<p>The payment process from the <a class="reference internal" href="../protocol.html#term-payment-processor"><span class="xref std std-term">Payment Processor</span></a>’s side:</p>
+<div><svg height="879.1999999999999" viewBox="0 0 1064 1256" width="744.8" xmlns="http://www.w3.org/2000/svg" xmlns:inkspace="http://www.inkscape.org/namespaces/inkscape" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs id="defs_block">
+    <filter height="1.504" id="filter_blur" inkspace:collect="always" width="1.1575" x="-0.07875" y="-0.252">
+      <feGaussianBlur id="feGaussianBlur3780" inkspace:collect="always" stdDeviation="4.2" />
+    </filter>
+  </defs>
+  <title>blockdiag</title>
+  <desc />
+  <polygon fill="rgb(0,0,0)" points="861,126 1012,126 1020,134 1020,158 861,158 861,126" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <polygon fill="rgb(0,0,0)" points="861,182 1006,182 1014,190 1014,214 861,214 861,182" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <polygon fill="rgb(0,0,0)" points="861,281 936,281 944,289 944,309 861,309 861,281" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <polygon fill="rgb(0,0,0)" points="27,440 245,440 253,448 253,470 27,470 27,440" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <polygon fill="rgb(0,0,0)" points="477,520 582,520 590,528 590,550 477,550 477,520" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <polygon fill="rgb(0,0,0)" points="861,662 992,662 1000,670 1000,694 861,694 861,662" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <polygon fill="rgb(0,0,0)" points="861,742 1043,742 1051,750 1051,774 861,774 861,742" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <polygon fill="rgb(0,0,0)" points="669,822 928,822 936,830 936,854 669,854 669,822" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <polygon fill="rgb(0,0,0)" points="265,920 437,920 445,928 445,950 265,950 265,920" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <polygon fill="rgb(0,0,0)" points="669,1000 800,1000 808,1008 808,1030 669,1030 669,1000" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <polygon fill="rgb(0,0,0)" points="669,1080 774,1080 782,1088 782,1110 669,1110 669,1080" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <polygon fill="rgb(0,0,0)" points="477,1160 582,1160 590,1168 590,1190 477,1190 477,1160" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <rect fill="rgb(0,0,0)" height="40" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" width="128" x="205" y="46" />
+  <rect fill="rgb(0,0,0)" height="40" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" width="128" x="397" y="46" />
+  <rect fill="rgb(0,0,0)" height="40" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" width="128" x="589" y="46" />
+  <rect fill="rgb(0,0,0)" height="40" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" width="128" x="781" y="46" />
+  <path d="M 266 80 L 266 592" fill="none" stroke="rgb(0,0,0)" stroke-dasharray="8 4" />
+  <path d="M 266 600 L 266 624" fill="none" stroke="rgb(0,0,0)" stroke-dasharray="2 8" />
+  <path d="M 266 632 L 266 1244" fill="none" stroke="rgb(0,0,0)" stroke-dasharray="8 4" />
+  <path d="M 458 80 L 458 592" fill="none" stroke="rgb(0,0,0)" stroke-dasharray="8 4" />
+  <path d="M 458 600 L 458 624" fill="none" stroke="rgb(0,0,0)" stroke-dasharray="2 8" />
+  <path d="M 458 632 L 458 1244" fill="none" stroke="rgb(0,0,0)" stroke-dasharray="8 4" />
+  <path d="M 650 80 L 650 592" fill="none" stroke="rgb(0,0,0)" stroke-dasharray="8 4" />
+  <path d="M 650 600 L 650 624" fill="none" stroke="rgb(0,0,0)" stroke-dasharray="2 8" />
+  <path d="M 650 632 L 650 1244" fill="none" stroke="rgb(0,0,0)" stroke-dasharray="8 4" />
+  <path d="M 842 80 L 842 592" fill="none" stroke="rgb(0,0,0)" stroke-dasharray="8 4" />
+  <path d="M 842 600 L 842 624" fill="none" stroke="rgb(0,0,0)" stroke-dasharray="2 8" />
+  <path d="M 842 632 L 842 1244" fill="none" stroke="rgb(0,0,0)" stroke-dasharray="8 4" />
+  <rect fill="rgb(255,255,255)" height="40" stroke="rgb(0,0,0)" width="128" x="202" y="40" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="47" x="266.5" y="66">Merchant</text>
+  <rect fill="rgb(255,255,255)" height="40" stroke="rgb(0,0,0)" width="128" x="394" y="40" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="95" x="458.5" y="67">Payment Processor</text>
+  <rect fill="rgb(255,255,255)" height="40" stroke="rgb(0,0,0)" width="128" x="586" y="40" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="33" x="650.5" y="66">Wallet</text>
+  <rect fill="rgb(255,255,255)" height="40" stroke="rgb(0,0,0)" width="128" x="778" y="40" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="67" x="842.5" y="67">MQTT Broker</text>
+  <path d="M 466 136 L 834 136" fill="none" stroke="rgb(0,0,0)" stroke-dasharray="4" />
+  <polygon fill="rgb(0,0,0)" points="826,132 834,136 826,140" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(255,182,193)" points="858,120 1009,120 1017,128 1017,152 858,152 858,120" stroke="rgb(0,0,0)" />
+  <path d="M 1009 120 L 1009 128" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 1009 128 L 1017 128" fill="none" stroke="rgb(0,0,0)" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="90" x="911.0" y="135">(1a) SUBSCRIBE to</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="135" x="933.5" y="150">"merchant_order_request/+"</text>
+  <path d="M 466 192 L 834 192" fill="none" stroke="rgb(0,0,0)" stroke-dasharray="4" />
+  <polygon fill="rgb(0,0,0)" points="826,188 834,192 826,196" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(255,182,193)" points="858,176 1003,176 1011,184 1011,208 858,208 858,176" stroke="rgb(0,0,0)" />
+  <path d="M 1003 176 L 1003 184" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 1003 184 L 1011 184" fill="none" stroke="rgb(0,0,0)" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="90" x="911.0" y="191">(1a) SUBSCRIBE to</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="129" x="930.5" y="206">"merchant_order_cancel/+"</text>
+  <path d="M 466 289 L 834 289" fill="none" stroke="rgb(0,0,0)" stroke-dasharray="4" />
+  <polygon fill="rgb(0,0,0)" points="826,285 834,289 826,293" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(255,182,193)" points="858,275 933,275 941,283 941,303 858,303 858,275" stroke="rgb(0,0,0)" />
+  <path d="M 933 275 L 933 283" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 933 283 L 941 283" fill="none" stroke="rgb(0,0,0)" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="59" x="895.5" y="288">PUBLISH on</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="58" x="895.0" y="301">"certificate"</text>
+  <path d="M 274 449 L 450 449" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 442 445 L 450 449" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 450 449 L 442 453" fill="none" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(255,182,193)" points="24,434 242,434 250,442 250,464 24,464 24,434" stroke="rgb(0,0,0)" />
+  <path d="M 242 434 L 242 442" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 242 442 L 250 442" fill="none" stroke="rgb(0,0,0)" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="59" x="61.5" y="447">PUBLISH on</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="202" x="133.0" y="462">"merchant_order_request/{application_id}"</text>
+  <path d="M 274 529 L 450 529" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 282 525 L 274 529" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 274 529 L 282 533" fill="none" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(255,182,193)" points="474,514 579,514 587,522 587,544 474,544 474,514" stroke="rgb(0,0,0)" />
+  <path d="M 579 514 L 579 522" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 579 522 L 587 522" fill="none" stroke="rgb(0,0,0)" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="59" x="511.5" y="527">PUBLISH on</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="89" x="526.5" y="542">"acks/{session_id}"</text>
+  <path d="M 466 672 L 834 672" fill="none" stroke="rgb(0,0,0)" stroke-dasharray="4" />
+  <polygon fill="rgb(0,0,0)" points="826,668 834,672 826,676" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(255,182,193)" points="858,656 989,656 997,664 997,688 858,688 858,656" stroke="rgb(0,0,0)" />
+  <path d="M 989 656 L 989 664" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 989 664 L 997 664" fill="none" stroke="rgb(0,0,0)" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="89" x="910.5" y="671">(2c) SUBSCRIBE to</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="115" x="923.5" y="686">"payments/{session_id}"</text>
+  <path d="M 466 752 L 834 752" fill="none" stroke="rgb(0,0,0)" stroke-dasharray="4" />
+  <polygon fill="rgb(0,0,0)" points="826,748 834,752 826,756" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(255,182,193)" points="858,736 1040,736 1048,744 1048,768 858,768 858,736" stroke="rgb(0,0,0)" />
+  <path d="M 1040 736 L 1040 744" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 1040 744 L 1048 744" fill="none" stroke="rgb(0,0,0)" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="89" x="910.5" y="751">(2c) SUBSCRIBE to</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="166" x="949.0" y="766">"payment_requests/{session_id}/+"</text>
+  <path d="M 466 832 L 642 832" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 474 828 L 466 832" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 466 832 L 474 836" fill="none" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(255,182,193)" points="666,816 925,816 933,824 933,848 666,848 666,816" stroke="rgb(0,0,0)" />
+  <path d="M 925 816 L 925 824" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 925 824 L 933 824" fill="none" stroke="rgb(0,0,0)" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="73" x="710.5" y="831">(3) PUBLISH on</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="243" x="795.5" y="846">"payment_requests/{session_id}/{crypto_currency}"</text>
+  <path d="M 466 929 L 642 929" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 634 925 L 642 929" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 642 929 L 634 933" fill="none" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(255,182,193)" points="262,914 434,914 442,922 442,944 262,944 262,914" stroke="rgb(0,0,0)" />
+  <path d="M 434 914 L 434 922" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 434 922 L 442 922" fill="none" stroke="rgb(0,0,0)" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="59" x="299.5" y="927">PUBLISH on</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="156" x="348.0" y="942">"payment_requests/{session_id}"</text>
+  <path d="M 466 1009 L 642 1009" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 474 1005 L 466 1009" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 466 1009 L 474 1013" fill="none" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(255,182,193)" points="666,994 797,994 805,1002 805,1024 666,1024 666,994" stroke="rgb(0,0,0)" />
+  <path d="M 797 994 L 797 1002" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 797 1002 L 805 1002" fill="none" stroke="rgb(0,0,0)" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="59" x="703.5" y="1007">PUBLISH on</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="115" x="731.5" y="1022">"payments/{session_id}"</text>
+  <path d="M 466 1089 L 642 1089" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 634 1085 L 642 1089" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 642 1089 L 634 1093" fill="none" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(255,182,193)" points="666,1074 771,1074 779,1082 779,1104 666,1104 666,1074" stroke="rgb(0,0,0)" />
+  <path d="M 771 1074 L 771 1082" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 771 1082 L 779 1082" fill="none" stroke="rgb(0,0,0)" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="59" x="703.5" y="1087">PUBLISH on</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="89" x="718.5" y="1102">"acks/{session_id}"</text>
+  <path d="M 274 1169 L 450 1169" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 282 1165 L 274 1169" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 274 1169 L 282 1173" fill="none" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(255,182,193)" points="474,1154 579,1154 587,1162 587,1184 474,1184 474,1154" stroke="rgb(0,0,0)" />
+  <path d="M 579 1154 L 579 1162" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 579 1162 L 587 1162" fill="none" stroke="rgb(0,0,0)" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="59" x="511.5" y="1167">PUBLISH on</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="89" x="526.5" y="1182">"acks/{session_id}"</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="121" x="530.5" y="287">(1b) Manta CA certificate</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="130" x="343.0" y="447">(2) MerchantOrderRequest</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="104" x="398.0" y="527">(2b) Ack[status = new]</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="149" x="544.5" y="927">(3a) PaymentRequestEnvelope</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="108" x="588.0" y="1007">(4a) PaymentMessage</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="105" x="522.5" y="1087">(4b) Ack[status = paid]</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="105" x="397.5" y="1167">(4b) Ack[status = paid]</text>
+  <path d="M 178 369 L 490 369" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 178 373 L 490 373" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 618 369 L 930 369" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 618 373 L 930 373" fill="none" stroke="rgb(0,0,0)" />
+  <rect fill="rgb(208,208,208)" height="21" stroke="rgb(0,0,0)" width="128" x="490" y="361" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="108" x="554.0" y="378">initialization complete</text>
+  <rect fill="white" height="21" stroke="white" width="131" x="488" y="601" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="111" x="553.5" y="618">crypto_currency == null</text>
+</svg>
+</div>
 <ol class="arabic">
-<li><p class="first">Subscribes to <strong>MERCHANT_ORDER_REQUEST/+</strong></p>
+<li><p class="first">When it starts:</p>
+<ol class="loweralpha simple">
+<li>it <em>subscribes</em> to <a class="reference internal" href="topics.html#merchant-order-request"><span class="std std-ref">merchant_order_request/{application_id}</span></a>
+and <a class="reference internal" href="topics.html#merchant-order-cancel"><span class="std std-ref">merchant_order_cancel/{session_id}</span></a> topics;</li>
+<li>it <em>publishes</em> the Manta CA certificate to <a class="reference internal" href="topics.html#certificate"><span class="std std-ref">certificate</span></a>
+topic, with retention.</li>
+</ol>
 </li>
-<li><p class="first">On message <strong>MERCHANT_ORDER_REQUEST/{APPLICATION_ID}</strong></p>
-<p>Generate <strong>ACK_MESSAGE</strong> with “new” status.
-URL is manta format if crypto_currency is null (manta protocol), otherwise URL will be crypto_currency legacy format</p>
-<p><em>publish</em> on <strong>ACKS/{SESSION_ID}</strong></p>
-<p>If manta protocol:</p>
-<p>Subscribes to <strong>PAYMENTS/{SESSION_ID}/+</strong></p>
+<li><p class="first">On message <a class="reference internal" href="messages.html#manta.messages.MerchantOrderRequestMessage" title="manta.messages.MerchantOrderRequestMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">MerchantOrderRequestMessage</span></code></a> on
+a specific <a class="reference internal" href="topics.html#merchant-order-request-application-id"><span class="std std-ref">merchant_order_request/{application_id}</span></a> topic:</p>
+<ol class="loweralpha simple">
+<li>generates an <a class="reference internal" href="messages.html#manta.messages.AckMessage" title="manta.messages.AckMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">AckMessage</span></code></a> with status ==
+“new”. The <code class="xref py py-attr docutils literal notranslate"><span class="pre">url</span></code> field is in
+manta format if field
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">crypto_currency</span></code> is null
+(manta protocol), otherwise
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">url</span></code> format will depend on the
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">crypto_currency</span></code>;</li>
+<li><em>publishes</em> this the <a class="reference internal" href="messages.html#manta.messages.AckMessage" title="manta.messages.AckMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">AckMessage</span></code></a> on the
+<a class="reference internal" href="topics.html#acks-session-id"><span class="std std-ref">acks/{session_id}</span></a> topic;</li>
+</ol>
+<p>If manta protocol is used:</p>
+<ol class="loweralpha simple" start="3">
+<li>It <em>subscribes</em> to <a class="reference internal" href="topics.html#payments-session-id"><span class="std std-ref">payments/{session_id}</span></a> and
+<a class="reference internal" href="topics.html#id6"><span class="std std-ref">payment_requests/{session_id}/{crypto_currency}</span></a> topics.</li>
+</ol>
 </li>
-<li><p class="first">On message <strong>PAYMENT_REQUEST_MESSAGE/{SESSION_ID}/{CRYPTO_CURRENCY}</strong></p>
-<p>Creates a new <strong>PAYMENT_REQUEST_MESSAGE</strong> and publish on <strong>PAYMENT_REQUESTS/{SESSION_ID}</strong> with retention</p>
-<p>CRYPTO_CURRENCY can be “all” to request multiple cryptos</p>
-<p>Destination should be specific to {CRYPTO_CURRENCY}</p>
+<li><p class="first">On an event on
+<a class="reference internal" href="topics.html#payment-requests-session-id-crypto-currency"><span class="std std-ref">payment_requests/{session_id}/{crypto_currency}</span></a> without any
+payload:</p>
+<ol class="loweralpha simple">
+<li>creates a new
+<a class="reference internal" href="messages.html#manta.messages.PaymentRequestMessage" title="manta.messages.PaymentRequestMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">PaymentRequestMessage</span></code></a> and <em>publishes</em> it on
+<a class="reference internal" href="topics.html#payment-requests-session-id"><span class="std std-ref">payment_requests/{session_id}</span></a> wrapped into a
+<a class="reference internal" href="messages.html#manta.messages.PaymentRequestEnvelope" title="manta.messages.PaymentRequestEnvelope"><code class="xref py py-class docutils literal notranslate"><span class="pre">PaymentRequestEnvelope</span></code></a> with retention.</li>
+</ol>
+<p><code class="docutils literal notranslate"><span class="pre">{crypto_currency}</span></code> parameter can be “all” to request multiple
+cryptos.</p>
+<p>Destination should be specific to <code class="docutils literal notranslate"><span class="pre">{crypto_currency}</span></code> field.</p>
 </li>
-<li><p class="first">On message <strong>PAYMENTS/{SESSION_ID}</strong></p>
-<p>Starts monitoring blockchain and on progress publish <strong>ACK_MESSAGE</strong> on <strong>ACKS/{SESSION_ID}</strong></p>
+<li><p class="first">On message (a) <a class="reference internal" href="messages.html#manta.messages.PaymentMessage" title="manta.messages.PaymentMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">PaymentMessage</span></code></a> on
+<a class="reference internal" href="topics.html#payments-session-id"><span class="std std-ref">payments/{session_id}</span></a> it starts monitoring blockchain and on
+progress <em>publishes</em> (b) <a class="reference internal" href="messages.html#manta.messages.AckMessage" title="manta.messages.AckMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">AckMessage</span></code></a> on
+<a class="reference internal" href="topics.html#acks-session-id"><span class="std std-ref">acks/{session_id}</span></a>.</p>
 </li>
 </ol>
 </div>
 <div class="section" id="manta-enabled-wallet">
 <h2>Manta enabled wallet<a class="headerlink" href="#manta-enabled-wallet" title="Permalink to this headline">¶</a></h2>
+<p>The payment process from the <a class="reference internal" href="../protocol.html#term-wallet"><span class="xref std std-term">Wallet</span></a> point of view:</p>
+<div><svg height="482.99999999999994" viewBox="0 0 861 690" width="602.6999999999999" xmlns="http://www.w3.org/2000/svg" xmlns:inkspace="http://www.inkscape.org/namespaces/inkscape" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs id="defs_block">
+    <filter height="1.504" id="filter_blur" inkspace:collect="always" width="1.1575" x="-0.07875" y="-0.252">
+      <feGaussianBlur id="feGaussianBlur3780" inkspace:collect="always" stdDeviation="4.2" />
+    </filter>
+  </defs>
+  <title>blockdiag</title>
+  <desc />
+  <polygon fill="rgb(0,0,0)" points="574,119 668,119 676,127 676,134 574,134 574,119" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <polygon fill="rgb(0,0,0)" points="156,176 328,176 336,184 336,208 156,208 156,176" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <polygon fill="rgb(0,0,0)" points="27,256 328,256 336,264 336,288 27,288 27,256" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <polygon fill="rgb(0,0,0)" points="156,354 328,354 336,362 336,384 156,384 156,354" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <polygon fill="rgb(0,0,0)" points="197,434 328,434 336,442 336,464 197,464 197,434" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <polygon fill="rgb(0,0,0)" points="223,496 328,496 336,504 336,528 223,528 223,496" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <polygon fill="rgb(0,0,0)" points="560,594 665,594 673,602 673,624 560,624 560,594" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <rect fill="rgb(0,0,0)" height="40" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" width="128" x="288" y="46" />
+  <rect fill="rgb(0,0,0)" height="40" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" width="128" x="480" y="46" />
+  <rect fill="rgb(0,0,0)" height="40" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" width="128" x="672" y="46" />
+  <path d="M 349 80 L 349 678" fill="none" stroke="rgb(0,0,0)" stroke-dasharray="8 4" />
+  <path d="M 541 80 L 541 678" fill="none" stroke="rgb(0,0,0)" stroke-dasharray="8 4" />
+  <path d="M 733 80 L 733 678" fill="none" stroke="rgb(0,0,0)" stroke-dasharray="8 4" />
+  <rect fill="rgb(255,255,255)" height="40" stroke="rgb(0,0,0)" width="128" x="285" y="40" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="33" x="349.5" y="66">Wallet</text>
+  <rect fill="rgb(255,255,255)" height="40" stroke="rgb(0,0,0)" width="128" x="477" y="40" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="95" x="541.5" y="67">Payment Processor</text>
+  <rect fill="rgb(255,255,255)" height="40" stroke="rgb(0,0,0)" width="128" x="669" y="40" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="67" x="733.5" y="67">MQTT Broker</text>
+  <path d="M 357 120 L 555 120" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 555 120 L 555 136" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 555 136 L 357 136" fill="none" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(0,0,0)" points="365,132 357,136 365,140" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(255,182,193)" points="571,113 665,113 673,121 673,128 571,128 571,113" stroke="rgb(0,0,0)" />
+  <path d="M 665 113 L 665 121" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 665 121 L 673 121" fill="none" stroke="rgb(0,0,0)" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="78" x="618.0" y="126">read manta URL</text>
+  <path d="M 357 186 L 725 186" fill="none" stroke="rgb(0,0,0)" stroke-dasharray="4" />
+  <polygon fill="rgb(0,0,0)" points="717,182 725,186 717,190" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(255,182,193)" points="153,170 325,170 333,178 333,202 153,202 153,170" stroke="rgb(0,0,0)" />
+  <path d="M 325 170 L 325 178" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 325 178 L 333 178" fill="none" stroke="rgb(0,0,0)" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="84" x="203.0" y="185">(1) SUBSCRIBE to</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="156" x="239.0" y="200">"payment_requests/{session_id}"</text>
+  <path d="M 357 266 L 533 266" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 525 262 L 533 266" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 533 266 L 525 270" fill="none" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(255,182,193)" points="24,250 325,250 333,258 333,282 24,282 24,250" stroke="rgb(0,0,0)" />
+  <path d="M 325 250 L 325 258" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 325 258 L 333 258" fill="none" stroke="rgb(0,0,0)" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="73" x="68.5" y="265">(2) PUBLISH on</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="285" x="174.5" y="280">"payment_request_message/{session_id}/{crypto_currency}"</text>
+  <path d="M 357 363 L 533 363" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 365 359 L 357 363" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 357 363 L 365 367" fill="none" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(255,182,193)" points="153,348 325,348 333,356 333,378 153,378 153,348" stroke="rgb(0,0,0)" />
+  <path d="M 325 348 L 325 356" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 325 356 L 333 356" fill="none" stroke="rgb(0,0,0)" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="59" x="190.5" y="361">PUBLISH on</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="156" x="239.0" y="376">"payment_requests/{session_id}"</text>
+  <path d="M 357 443 L 533 443" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 525 439 L 533 443" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 533 443 L 525 447" fill="none" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(255,182,193)" points="194,428 325,428 333,436 333,458 194,458 194,428" stroke="rgb(0,0,0)" />
+  <path d="M 325 428 L 325 436" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 325 436 L 333 436" fill="none" stroke="rgb(0,0,0)" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="59" x="231.5" y="441">PUBLISH on</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="115" x="259.5" y="456">"payments/{session_id}"</text>
+  <path d="M 357 506 L 725 506" fill="none" stroke="rgb(0,0,0)" stroke-dasharray="4" />
+  <polygon fill="rgb(0,0,0)" points="717,502 725,506 717,510" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(255,182,193)" points="220,490 325,490 333,498 333,522 220,522 220,490" stroke="rgb(0,0,0)" />
+  <path d="M 325 490 L 325 498" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 325 498 L 333 498" fill="none" stroke="rgb(0,0,0)" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="84" x="270.0" y="505">(6) SUBSCRIBE to</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="89" x="272.5" y="520">"acks/{session_id}"</text>
+  <path d="M 357 603 L 533 603" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 365 599 L 357 603" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 357 603 L 365 607" fill="none" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(255,182,193)" points="557,588 662,588 670,596 670,618 557,618 557,588" stroke="rgb(0,0,0)" />
+  <path d="M 662 588 L 662 596" fill="none" stroke="rgb(0,0,0)" />
+  <path d="M 662 596 L 670 596" fill="none" stroke="rgb(0,0,0)" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="59" x="594.5" y="601">PUBLISH on</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="89" x="609.5" y="616">"acks/{session_id}"</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="98" x="484.0" y="361">(3) PaymentRequest</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="58" x="390.0" y="441">(5) Payment</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="99" x="483.5" y="601">(7) Ack[status = paid]</text>
+</svg>
+</div>
 <ol class="arabic">
-<li><p class="first">After receiving QR/NFC manta</p>
-<p><em>Subscribe</em> to <strong>PAYMENT_REQUESTS/{SESSION_ID}</strong></p>
+<li><p class="first">After receiving a <a class="reference internal" href="parameters.html#term-manta-url"><span class="xref std std-term">Manta URL</span></a> via QR code or NFC it
+<em>subscribes</em> to <a class="reference internal" href="topics.html#payment-requests-session-id"><span class="std std-ref">payment_requests/{session_id}</span></a>.</p>
 </li>
-<li><p class="first"><em>Publish</em> on <strong>PAYMENT_REQUEST/{SESSION_ID}/{CRYPTO_CURRENCY}</strong></p>
-<p>CRYPTO_CURRENCY can be “all” to request multiple cryptos</p>
+<li><p class="first"><em>Publishes</em> on <a class="reference internal" href="topics.html#payment-requests-session-id-crypto-currency"><span class="std std-ref">payment_requests/{session_id}/{crypto_currency}</span></a>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">{crypto_currency}</span></code> can be “all” to request multiple cryptos.</p>
 </li>
-<li><p class="first">On <strong>PAYMENT_REQUEST_MESSAGE</strong>
-If <em>destinations</em> does not contain desired crypto, check <em>supported_cryptos</em> and eventually go back to 2)</p>
+<li><p class="first">On <a class="reference internal" href="messages.html#manta.messages.PaymentRequestMessage" title="manta.messages.PaymentRequestMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">PaymentRequestMessage</span></code></a> on topic
+<a class="reference internal" href="topics.html#payment-requests-session-id"><span class="std std-ref">payment_requests/{session_id}</span></a> if
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">destinations</span></code> field does
+not contain desired crypto, check <em>supported_cryptos</em> and eventually
+go back to 2).</p>
 </li>
-<li><p class="first">Verify PAYMENT_REQUEST_MESSAGE signature</p>
+<li><p class="first"><em>Verifies</em> <a class="reference internal" href="messages.html#manta.messages.PaymentRequestMessage" title="manta.messages.PaymentRequestMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">PaymentRequestMessage</span></code></a> signature.</p>
 </li>
-<li><p class="first">After payment on blockchain <em>publish</em> <strong>PAYMENT_MESSAGE</strong> on <strong>PAYMENTS/{SESSION_ID}</strong></p>
+<li><p class="first">After payment on blockchain <em>publishes</em> a
+<a class="reference internal" href="messages.html#manta.messages.PaymentMessage" title="manta.messages.PaymentMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">PaymentMessage</span></code></a> on
+<a class="reference internal" href="topics.html#payments-session-id"><span class="std std-ref">payments/{session_id}</span></a> topic.</p>
 </li>
-<li><p class="first">Subscribe to <strong>ACKS/{SESSION_ID}</strong></p>
+<li><p class="first"><em>Subscribes</em> to the topic named <a class="reference internal" href="topics.html#acks-session-id"><span class="std std-ref">acks/{session_id}</span></a></p>
+</li>
+<li><p class="first"><a class="reference internal" href="../protocol.html#term-wallet"><span class="xref std std-term">Wallet</span></a> <em>will receive</em> an
+<a class="reference internal" href="messages.html#manta.messages.AckMessage" title="manta.messages.AckMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">AckMessage</span></code></a> messages as payment changes
+state. With status == “paid” the transaction is completed.</p>
 </li>
 </ol>
+</div>
+<div class="section" id="complete-manta-flow-diagram">
+<h2>Complete Manta flow diagram<a class="headerlink" href="#complete-manta-flow-diagram" title="Permalink to this headline">¶</a></h2>
+<div class="figure" id="id1">
+<img alt="../_images/manta-protocol-full.svg" src="../_images/manta-protocol-full.svg" /><p class="caption"><span class="caption-text">Detailed Manta Protocol flow</span></p>
+</div>
+<p>You can <a href="../_images/manta-protocol-full.svg" target="_blank">Open diagram in new window</a>.</p>
 </div>
 </div>
 
@@ -234,10 +599,10 @@ If <em>destinations</em> does not contain desired crypto, check <em>supported_cr
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="messages.html" class="btn btn-neutral float-right" title="MESSAGES" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="messages.html" class="btn btn-neutral float-right" title="Messages" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="../protocol.html" class="btn btn-neutral" title="Manta Protocol" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="parameters.html" class="btn btn-neutral" title="Parameters" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -271,7 +636,6 @@ If <em>destinations</em> does not contain desired crypto, check <em>supported_cr
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
 
   

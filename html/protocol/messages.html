@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>MESSAGES &mdash; manta  documentation</title>
+  <title>Messages &mdash; manta  documentation</title>
   
 
   
@@ -28,8 +28,8 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="TOPICS" href="topics.html" />
-    <link rel="prev" title="FLOW" href="flow.html" /> 
+    <link rel="next" title="Topics" href="topics.html" />
+    <link rel="prev" title="Flow" href="flow.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -81,15 +81,21 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../protocol.html">Manta Protocol</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="flow.html">FLOW</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">MESSAGES</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#ack">Ack</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#merchant-order-request">Merchant Order Request</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#payment-request-message">Payment Request Message</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#payment">Payment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../protocol.html#glossary">Glossary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../protocol.html#technologies-used">Technologies Used</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../protocol.html#communication-protocol">Communication protocol</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="parameters.html">Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="flow.html">Flow</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Messages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ack">Ack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#merchant-order-request">Merchant Order Request</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#payment-request-message">Payment Request Message</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#payment">Payment</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="topics.html">TOPICS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="topics.html">Topics</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../api.html">API</a></li>
@@ -140,7 +146,7 @@
         
           <li><a href="../protocol.html">Manta Protocol</a> &raquo;</li>
         
-      <li>MESSAGES</li>
+      <li>Messages</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -160,7 +166,11 @@
            <div itemprop="articleBody">
             
   <div class="section" id="messages">
-<h1>MESSAGES<a class="headerlink" href="#messages" title="Permalink to this headline">¶</a></h1>
+<h1>Messages<a class="headerlink" href="#messages" title="Permalink to this headline">¶</a></h1>
+<p>Messages are object that are use used to store and communicate the
+data of the <a class="reference internal" href="../protocol.html#term-merchant"><span class="xref std std-term">Merchant</span></a> order and the correspondent
+<a class="reference internal" href="../protocol.html#term-wallet"><span class="xref std std-term">Wallet</span></a> payment. They are serialize to/from term:<cite>JSON</cite> for
+transmission using <a class="reference internal" href="../protocol.html#term-mqtt"><span class="xref std std-term">MQTT</span></a> protocol.</p>
 <div class="section" id="ack">
 <h2>Ack<a class="headerlink" href="#ack" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
@@ -168,7 +178,7 @@
 <em class="property">class </em><code class="descclassname">manta.messages.</code><code class="descname">AckMessage</code><span class="sig-paren">(</span><em>txid</em>, <em>status</em>, <em>url=None</em>, <em>amount=None</em>, <em>transaction_hash=None</em>, <em>transaction_currency=None</em>, <em>memo=None</em>, <em>version='1.6'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/messages.html#AckMessage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.messages.AckMessage" title="Permalink to this definition">¶</a></dt>
 <dd><p>Ack Message</p>
 <p>Order progress message.</p>
-<p>Published by Merchant on ACKS/{SESSION_ID}</p>
+<p>Published by the <a class="reference internal" href="../protocol.html#term-payment-processor"><span class="xref std std-term">Payment Processor</span></a> on <a class="reference internal" href="topics.html#acks-session-id"><span class="std std-ref">acks/{session_id}</span></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -237,7 +247,8 @@
 <dt id="manta.messages.MerchantOrderRequestMessage">
 <em class="property">class </em><code class="descclassname">manta.messages.</code><code class="descname">MerchantOrderRequestMessage</code><span class="sig-paren">(</span><em>amount</em>, <em>session_id</em>, <em>fiat_currency</em>, <em>crypto_currency=None</em>, <em>version='1.6'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/messages.html#MerchantOrderRequestMessage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.messages.MerchantOrderRequestMessage" title="Permalink to this definition">¶</a></dt>
 <dd><p>Merchant Order Request</p>
-<p>Published by Merchant on MERCHANT_ORDER_REQUEST..</p>
+<p>Published by <a class="reference internal" href="../protocol.html#term-merchant"><span class="xref std std-term">Merchant</span></a> on
+<a class="reference internal" href="topics.html#merchant-order-request-application-id"><span class="std std-ref">merchant_order_request/{application_id}</span></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -262,8 +273,10 @@
 <dt id="manta.messages.PaymentRequestMessage">
 <em class="property">class </em><code class="descclassname">manta.messages.</code><code class="descname">PaymentRequestMessage</code><span class="sig-paren">(</span><em>merchant</em>, <em>amount</em>, <em>fiat_currency</em>, <em>destinations</em>, <em>supported_cryptos</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/messages.html#PaymentRequestMessage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.messages.PaymentRequestMessage" title="Permalink to this definition">¶</a></dt>
 <dd><p>Payment Request</p>
-<p>Generated after request on payment_requests/[session_id}/crypto</p>
-<p>Published in Envelope to Payment Processor on payment_requests/{session_id}</p>
+<p>Generated after request on
+<a class="reference internal" href="topics.html#payment-requests-session-id-crypto-currency"><span class="std std-ref">payment_requests/{session_id}/{crypto_currency}</span></a>.</p>
+<p>Published in Envelope to Payment Processor on
+<a class="reference internal" href="topics.html#payment-requests-session-id"><span class="std std-ref">payment_requests/{session_id}</span></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -320,8 +333,9 @@
 <dt id="manta.messages.PaymentRequestEnvelope">
 <em class="property">class </em><code class="descclassname">manta.messages.</code><code class="descname">PaymentRequestEnvelope</code><span class="sig-paren">(</span><em>message</em>, <em>signature</em>, <em>version='1.6'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/messages.html#PaymentRequestEnvelope"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.messages.PaymentRequestEnvelope" title="Permalink to this definition">¶</a></dt>
 <dd><p>Payment Request Envelope</p>
-<p>Envelope with Payment Request message and signature</p>
-<p>Published to Payment Processor on payment_requests/{session_id}</p>
+<p>Envelope with <a class="reference internal" href="#manta.messages.PaymentRequestMessage" title="manta.messages.PaymentRequestMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">PaymentRequestMessage</span></code></a> and signature</p>
+<p>Published by <a class="reference internal" href="../protocol.html#term-payment-processor"><span class="xref std std-term">Payment Processor</span></a> on
+<a class="reference internal" href="topics.html#payment-requests-session-id"><span class="std std-ref">payment_requests/{session_id}</span></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -344,7 +358,7 @@
 <dt id="manta.messages.PaymentMessage">
 <em class="property">class </em><code class="descclassname">manta.messages.</code><code class="descname">PaymentMessage</code><span class="sig-paren">(</span><em>crypto_currency</em>, <em>transaction_hash</em>, <em>version='1.6'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/messages.html#PaymentMessage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.messages.PaymentMessage" title="Permalink to this definition">¶</a></dt>
 <dd><p>Payment Message</p>
-<p>Published by wallet on payments/{session_id}</p>
+<p>Published by <a class="reference internal" href="../protocol.html#term-wallet"><span class="xref std std-term">Wallet</span></a> on <a class="reference internal" href="topics.html#payments-session-id"><span class="std std-ref">payments/{session_id}</span></a></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -371,10 +385,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="topics.html" class="btn btn-neutral float-right" title="TOPICS" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="topics.html" class="btn btn-neutral float-right" title="Topics" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="flow.html" class="btn btn-neutral" title="FLOW" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="flow.html" class="btn btn-neutral" title="Flow" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -408,7 +422,6 @@
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
 
   

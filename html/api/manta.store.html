@@ -28,7 +28,7 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="manta.store.Store" href="manta.store.Store.html" />
+    <link rel="next" title="manta.wallet" href="manta.wallet.html" />
     <link rel="prev" title="manta.payproc.TransactionState" href="manta.payproc.TransactionState.html" /> 
 
   
@@ -84,7 +84,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="manta.payproc.html">manta.payproc</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">manta.store</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="manta.store.Store.html">manta.store.Store</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#reference">Reference</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="manta.wallet.html">manta.wallet</a></li>
@@ -158,19 +158,158 @@
             
   <div class="section" id="module-manta.store">
 <span id="manta-store"></span><h1>manta.store<a class="headerlink" href="#module-manta.store" title="Permalink to this headline">¶</a></h1>
-<p>Library for implementing a Manta Pos</p>
-<p class="rubric">Classes</p>
-<table border="1" class="longtable docutils">
-<colgroup>
-<col width="10%" />
-<col width="90%" />
-</colgroup>
+<p>Library with a basic implementation of a Manta <a class="reference internal" href="../protocol.html#term-pos"><span class="xref std std-term">POS</span></a>.</p>
+<p>This module implements a basic Manta <a class="reference internal" href="../protocol.html#term-merchant"><span class="xref std std-term">Merchant</span></a>. An usage example of
+this class can be found in module <code class="docutils literal notranslate"><span class="pre">manta.testing.store</span></code>.</p>
+<p>The API is implemented in the <a class="reference internal" href="#manta.store.Store" title="manta.store.Store"><code class="xref py py-class docutils literal notranslate"><span class="pre">Store</span></code></a> class and
+specifically by the <a class="reference internal" href="#manta.store.Store.merchant_order_request" title="manta.store.Store.merchant_order_request"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Store.merchant_order_request()</span></code></a> method
+that creates an <a class="reference internal" href="../protocol/messages.html#manta.messages.MerchantOrderRequestMessage" title="manta.messages.MerchantOrderRequestMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">MerchantOrderRequestMessage</span></code></a> and
+sends it to the <a class="reference internal" href="../protocol.html#term-payment-processor"><span class="xref std std-term">Payment Processor</span></a> that is managing the payment
+process.</p>
+<p>In order to work correctly, the class needs to be instantiated and
+connected to the <a class="reference internal" href="../protocol.html#term-mqtt"><span class="xref std std-term">MQTT</span></a> broker. This is implemented using an
+<em>asyncio</em> coroutine:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">asyncio</span>
+
+<span class="kn">from</span> <span class="nn">manta.store</span> <span class="k">import</span> <span class="n">Store</span>
+
+<span class="n">store</span> <span class="o">=</span> <span class="n">Store</span><span class="p">(</span><span class="s1">&#39;example_store&#39;</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s1">&#39;example.com&#39;</span><span class="p">)</span>
+
+<span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
+<span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="n">store</span><span class="o">.</span><span class="n">connect</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>Then the a new order needs to be created:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">ack</span> <span class="o">=</span> <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="n">store</span><span class="o">.</span><span class="n">merchant_order_request</span><span class="p">(</span><span class="n">amount</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">fiat</span><span class="o">=</span><span class="s1">&#39;eur&#39;</span><span class="p">))</span>
+
+<span class="n">ack</span><span class="o">.</span><span class="n">url</span>  <span class="c1"># contains the Manta URL</span>
+</pre></div>
+</div>
+<p>When that is done, the <a class="reference internal" href="../protocol/parameters.html#term-manta-url"><span class="xref std std-term">Manta URL</span></a> needs to be transmitted to
+the <a class="reference internal" href="../protocol.html#term-wallet"><span class="xref std std-term">Wallet</span></a> to pay, but this is out of the scope of this
+code. From the Merchant point of view the progress of the payment
+transaction can be monitored by looking into the
+<a class="reference internal" href="../protocol/messages.html#manta.messages.AckMessage" title="manta.messages.AckMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">AckMessage</span></code></a> instances collected by the
+<code class="docutils literal notranslate"><span class="pre">store.acks</span></code> queue. The payment is considered complete when a
+received ack has status == <code class="docutils literal notranslate"><span class="pre">PAID</span></code>:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">manta.messages</span> <span class="k">import</span> <span class="n">Status</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">wait_for_complete</span><span class="p">(</span><span class="n">store</span><span class="p">):</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">ack</span> <span class="o">=</span> <span class="k">await</span> <span class="n">store</span><span class="o">.</span><span class="n">acks</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ack</span><span class="o">.</span><span class="n">status</span> <span class="ow">is</span> <span class="n">Status</span><span class="o">.</span><span class="n">PAID</span><span class="p">:</span>
+            <span class="k">break</span>
+    <span class="k">return</span> <span class="n">ack</span>
+
+<span class="n">final_ack</span> <span class="o">=</span> <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="n">wait_for_complete</span><span class="p">(</span><span class="n">store</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="section" id="reference">
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="manta.store.Store">
+<em class="property">class </em><code class="descclassname">manta.store.</code><code class="descname">Store</code><span class="sig-paren">(</span><em>device_id</em>, <em>host='localhost'</em>, <em>client_options=None</em>, <em>port=1883</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/store.html#Store"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.store.Store" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements a Manta <a class="reference internal" href="../protocol.html#term-pos"><span class="xref std std-term">POS</span></a>. This class needs an <em>asyncio</em> loop
+to run correctly as some of its features are implemented as
+<em>coroutines</em>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
 <tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="manta.store.Store.html#manta.store.Store" title="manta.store.Store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Store</span></code></a>(device_id[,&nbsp;host,&nbsp;client_options])</td>
-<td>Store Class for implement Manta POS</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>device_id</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Device unique identifier (also called <a class="reference internal" href="../protocol/parameters.html#term-application-id"><span class="xref std std-term">application_id</span></a>)
+associated with the <a class="reference internal" href="../protocol.html#term-pos"><span class="xref std std-term">POS</span></a></li>
+<li><strong>host</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Hostname of the Manta broker</li>
+<li><strong>client_options</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[~KT, ~VT]]) – A Dict of options to be passed to MQTT Client (like
+username, password)</li>
+<li><strong>port</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – port of the Manta broker</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><ul class="first last simple">
+<li><strong>acks</strong> – queue of <a class="reference internal" href="../protocol/messages.html#manta.messages.AckMessage" title="manta.messages.AckMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">AckMessage</span></code></a> instances</li>
+<li><strong>device_id</strong> – Device unique identifier (also called
+<a class="reference internal" href="../protocol/parameters.html#term-application-id"><span class="xref std std-term">application_id</span></a>) associated with the <a class="reference internal" href="../protocol.html#term-pos"><span class="xref std std-term">POS</span></a></li>
+<li><strong>loop</strong> – the <em>asyncio</em> loop that manages the asynchronous parts of this
+object</li>
+<li><strong>session_id</strong> – <a class="reference internal" href="../protocol/parameters.html#term-session-id"><span class="xref std std-term">session_id</span></a> of the ongoing session, if any</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
+<dl class="method">
+<dt id="manta.store.Store.clean">
+<code class="descname">clean</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/store.html#Store.clean"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.store.Store.clean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clean the <a class="reference internal" href="../protocol/messages.html#manta.messages.AckMessage" title="manta.messages.AckMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">AckMessage</span></code></a> queue and unsubscribe
+from any active <a class="reference internal" href="../protocol.html#term-mqtt"><span class="xref std std-term">MQTT</span></a> subscriptions.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="manta.store.Store.close">
+<code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/store.html#Store.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.store.Store.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disconnect and stop <a class="reference internal" href="../protocol.html#term-mqtt"><span class="xref std std-term">MQTT</span></a> client’s processing loop.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="manta.store.Store.connect">
+<em class="property">coroutine </em><code class="descname">connect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/store.html#Store.connect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.store.Store.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connect to the <a class="reference internal" href="../protocol.html#term-mqtt"><span class="xref std std-term">MQTT</span></a> broker and wait for the connection
+confirmation.</p>
+<p>This is a coroutine.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="manta.store.Store.merchant_order_request">
+<em class="property">coroutine </em><code class="descname">merchant_order_request</code><span class="sig-paren">(</span><em>self</em>, <em>amount</em>, <em>fiat</em>, <em>crypto=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/store.html#Store.merchant_order_request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.store.Store.merchant_order_request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new Merchant Order and publish it to the
+<a class="reference internal" href="../protocol/topics.html#merchant-order-request-application-id"><span class="std std-ref">merchant_order_request/{application_id}</span></a> topic. Raises an
+exception if an <a class="reference internal" href="../protocol/messages.html#manta.messages.AckMessage" title="manta.messages.AckMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">AckMessage</span></code></a> isn’t received
+in less than 3 seconds.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>amount</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Decimal</span></code>) – Fiat Amount requested</li>
+<li><strong>fiat</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Fiat Currency requested (ex. ‘EUR’)</li>
+<li><strong>crypto</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – Crypto Currency requested (ex. ‘NANO’)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><a class="reference internal" href="../protocol/messages.html#manta.messages.AckMessage" title="manta.messages.AckMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">AckMessage</span></code></a></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><dl class="docutils">
+<dt>ack message with status ‘NEW’ if confirmed by Payment Processor or</dt>
+<dd><p class="first last">Timeout Exception</p>
+</dd>
+</dl>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>This is a coroutine.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="manta.store.Store.subscribe">
+<code class="descname">subscribe</code><span class="sig-paren">(</span><em>topic</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/store.html#Store.subscribe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.store.Store.subscribe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subscribe to the given <a class="reference internal" href="../protocol.html#term-mqtt"><span class="xref std std-term">MQTT</span></a> topic.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>topic</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – string containing the topic name.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 </div>
 
 
@@ -181,7 +320,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="manta.store.Store.html" class="btn btn-neutral float-right" title="manta.store.Store" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="manta.wallet.html" class="btn btn-neutral float-right" title="manta.wallet" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="manta.payproc.TransactionState.html" class="btn btn-neutral" title="manta.payproc.TransactionState" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -218,7 +357,6 @@
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
 
   
