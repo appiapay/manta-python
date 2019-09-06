@@ -38,7 +38,7 @@ def dummy_payproc(runner: AppRunner) -> AppRunnerConfig:
 
     cfg: DummyPayProcConfig = runner.app_config.payproc
 
-    pp = PayProc(cfg.keyfile, host=runner.app_config.broker.host,
+    pp = PayProc(cfg.keyfile, cert_file=cfg.certfile, host=runner.app_config.broker.host,
                  port=runner.app_config.broker.port)
     merchant = config2msg(cfg.merchant, Merchant)
     destinations = [config2msg(d, Destination) for d in cfg.destinations]

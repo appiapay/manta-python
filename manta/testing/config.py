@@ -70,6 +70,7 @@ class DummyPayProcConfig:
     supported_cryptos = var(List[str], unique=True, min=1)
     destinations = var(List[DestinationConfig], min=1)  # type: ignore
     keyfile = var(str)
+    certfile = var(str)
     merchant = var(MerchantConfig)
     web = var(PayProcWebConfig, default=PayProcWebConfig(), required=False)
 
@@ -121,7 +122,10 @@ def get_default_dummypayproc_config():
             amount=Decimal("0.01"))],
         keyfile=str(get_tests_dir() /
                     'certificates/root/keys/'
-                    'www.brainblocks.com.key'),
+                    'test.key'),
+        certfile=str(get_tests_dir() /
+                    'certificates/root/certs/'
+                    'test.crt'),
         merchant=DummyPayProcConfig.MerchantConfig(
             name='Merchant 1',
             address='5th Avenue'))
