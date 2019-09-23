@@ -11,7 +11,7 @@ payproc:
   - amount: '0.01'
     destination_address: xrb_3d1ab61eswzsgx5arwqc3gw8xjcsxd7a5egtr69jixa5it9yu9fzct9nyjyx
     crypto_currency: NANO
-  keyfile: tests/certificates/root/keys/www.brainblocks.com.key
+  keyfile: tests/certificates/root/keys/test.key
   merchant:
     name: Merchant 1
     address: 5th Avenue

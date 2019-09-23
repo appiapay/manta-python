@@ -13,7 +13,7 @@ from manta.payproc import PayProc
 
 logger = logging.getLogger(__name__)
 
-KEYFILE = "certificates/root/keys/www.brainblocks.com.key"
+KEYFILE = "certificates/root/keys/test.key"
 DESTINATIONS = [
     Destination(
         amount=Decimal("0.01"),
