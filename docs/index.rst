@@ -85,7 +85,7 @@ key APIs of each. To know what the entrypoints are you have (for now)
 to look into the files in the ``manta.testing`` subpackage or to look
 into the tests in the `github repository`_.
 
-.. _github repository: https://github.com/NanoRay/manta-python
+.. _github repository: https://github.com/appiapay/manta-python
 
 Single component runners
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -133,7 +133,7 @@ Tests
 
 To run the tests you have to run the following commands::
 
- $ git git@github.com:NanoRay/manta-python.git
+ $ git git@github.com:appiapay/manta-python.git
  $ cd manta-python
  $ pip install -r requirements-dev.txt
 

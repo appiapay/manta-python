@@ -28,7 +28,7 @@ setup(
     description="Manta protocol components",
     long_description=README,
     packages=['manta', 'manta.testing'],
-    url='https://nanoray.github.io/manta-python',
+    url='https://appiapay.github.io/manta-python',
     license='BSD',
     author='Alessandro Viganò',
     author_email='alvistar@gmail.com',
