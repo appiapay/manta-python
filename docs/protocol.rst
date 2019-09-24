@@ -2,8 +2,8 @@
  Manta Protocol
 ================
 
-Manta Protocol is designed to be a safe, crypto agnostic, privacy
-friendly payment platform.
+Manta is designed to be a safe, crypto agnostic, privacy
+friendly payment protocol.
 
 Glossary
 ========
