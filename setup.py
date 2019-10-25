@@ -24,7 +24,7 @@ with open(os.path.join(here_dir, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='manta',
-    version=MANTA_VERSION,
+    version='1.6.1',
     description="Manta protocol components",
     long_description=README,
     packages=['manta', 'manta.testing'],

@@ -12,3 +12,6 @@ __pycache__
 manta.egg-info
 venv
 docs/_build
+build
+dist
+.coverage

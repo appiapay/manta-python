@@ -135,6 +135,8 @@ class Store(MantaComponent):
         if len(self.subscriptions) > 0:
             self.mqtt_client.unsubscribe(self.subscriptions)
 
+        self.subscriptions.clear()
+
     async def connect(self):
         """
         Connect to the :term:`MQTT` broker and wait for the connection
