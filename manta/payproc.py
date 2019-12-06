@@ -26,9 +26,16 @@ import paho.mqtt.client as mqtt
 
 from .base import MantaComponent
 from .dispatcher import Dispatcher
-from .messages import (PaymentRequestMessage, MerchantOrderRequestMessage,
-                       PaymentRequestEnvelope, Destination, PaymentMessage,
-                       AckMessage, Status, Merchant)
+from .messages import (
+    PaymentRequestMessage,
+    MerchantOrderRequestMessage,
+    PaymentRequestEnvelope,
+    Destination,
+    PaymentMessage,
+    AckMessage,
+    Status,
+    Merchant,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -91,12 +98,16 @@ class TXStorage:
     Transaction with status 'PAID' or 'INVALID' must not be present
 
     """
+
     @abstractmethod
-    def create(self, txid: int,
-               session_id: str,
-               application: str,
-               order: MerchantOrderRequestMessage,
-               ack: AckMessage = None) -> TransactionState:
+    def create(
+        self,
+        txid: int,
+        session_id: str,
+        application: str,
+        order: MerchantOrderRequestMessage,
+        ack: AckMessage = None,
+    ) -> TransactionState:
         """
         Create a new transaction
 
@@ -153,31 +164,40 @@ class TXStorageMemory(TXStorage):
     """
     Implmentation of TXStorage as memory storage
     """
+
     states: Dict[str, TransactionState]
 
     def __init__(self):
         self.states = {}
 
     def _on_notify(self, txid, key, value):
-        if key == 'ack':
+        if key == "ack":
             value: AckMessage
             if value.status in [Status.PAID, Status.INVALID]:
-                session_id = next(key for key, state in self.states.items()
-                                  if state.txid == int(value.txid))
+                session_id = next(
+                    key
+                    for key, state in self.states.items()
+                    if state.txid == int(value.txid)
+                )
                 del self.states[session_id]
 
-    def create(self, txid: int,
-               session_id: str,
-               application: str,
-               order: MerchantOrderRequestMessage,
-               ack: AckMessage = None) -> TransactionState:
+    def create(
+        self,
+        txid: int,
+        session_id: str,
+        application: str,
+        order: MerchantOrderRequestMessage,
+        ack: AckMessage = None,
+    ) -> TransactionState:
 
-        tx = TransactionState(txid=txid,
-                              session_id=session_id,
-                              application=application,
-                              order=order,
-                              ack=ack,
-                              notify=self._on_notify)
+        tx = TransactionState(
+            txid=txid,
+            session_id=session_id,
+            application=application,
+            order=order,
+            ack=ack,
+            notify=self._on_notify,
+        )
 
         self.states[session_id] = tx
 
@@ -197,7 +217,7 @@ class TXStorageMemory(TXStorage):
 
 
 def generate_crypto_legacy_url(crypto: str, address: str, amount: float) -> str:
-    if crypto == 'btc':
+    if crypto == "btc":
         return "bitcoin:{}?amount={}".format(address, amount)
 
     return ""
@@ -231,13 +251,19 @@ class PayProc(MantaComponent):
     certificate: str
 
     # str is txid
-    on_processed_order: Optional[Callable[[str, MerchantOrderRequestMessage, AckMessage], None]] = None
+    on_processed_order: Optional[
+        Callable[[str, MerchantOrderRequestMessage, AckMessage], None]
+    ] = None
 
     # on_processed_get_payment(txid, crypto, payment_request_message)
-    on_processed_get_payment: Optional[Callable[[str, str, PaymentRequestMessage], None]] = None
+    on_processed_get_payment: Optional[
+        Callable[[str, str, PaymentRequestMessage], None]
+    ] = None
 
     # str is txid
-    on_processed_payment: Optional[Callable[[str, PaymentMessage, AckMessage], None]] = None
+    on_processed_payment: Optional[
+        Callable[[str, PaymentMessage, AckMessage], None]
+    ] = None
 
     on_processed_confirmation: Optional[Callable[[str, AckMessage], None]] = None
 
@@ -245,9 +271,16 @@ class PayProc(MantaComponent):
     dispatcher: Dispatcher
     txid: int
 
-    def __init__(self, key_file: str, cert_file: str = None, host: str = "localhost",
-                 starting_txid: int = 0, tx_storage: TXStorage = None,
-                 mqtt_options: Dict[str, Any] = None, port: int = 1883) -> None:
+    def __init__(
+        self,
+        key_file: str,
+        cert_file: str = None,
+        host: str = "localhost",
+        starting_txid: int = 0,
+        tx_storage: TXStorage = None,
+        mqtt_options: Dict[str, Any] = None,
+        port: int = 1883,
+    ) -> None:
 
         self.txid = starting_txid
         self.tx_storage = tx_storage if tx_storage is not None else TXStorageMemory()
@@ -260,23 +293,40 @@ class PayProc(MantaComponent):
         self.host = host
         self.port = port
 
-        with open(key_file, 'rb') as myfile:
+        with open(key_file, "rb") as myfile:
             key_data = myfile.read()
 
         self.key = PayProc.key_from_keydata(key_data)
 
         if cert_file is not None:
-            with open(cert_file, 'r') as cfile:
+            with open(cert_file, "r") as cfile:
                 self.certificate = cfile.read()
         else:
             self.certificate = ""
 
-        self.get_merchant: Callable[[str], Merchant]
+        def get_merchant(application: str) -> Merchant:
+            raise NotImplementedError
+
+        def get_destinations(
+            application: str, merchant_order: MerchantOrderRequestMessage
+        ) -> List[Destination]:
+            raise NotImplementedError
+
+        def get_supported_cryptos(
+            application: str, merchant_order: MerchantOrderRequestMessage
+        ) -> Set[str]:
+            raise NotImplementedError
+
+        self.get_merchant: Callable[[str], Merchant] = get_merchant
         # get_destinations(application: str, merchant_order: MerchantOrderRequestMessage)
-        self.get_destinations: Callable[[str, MerchantOrderRequestMessage], List[Destination]]
+        self.get_destinations: Callable[
+            [str, MerchantOrderRequestMessage], List[Destination]
+        ] = get_destinations
 
         # get_supported_cryptos(application: str, merchant_order: MerchantOrderRequestMessage)
-        self.get_supported_cryptos: Callable[[str, MerchantOrderRequestMessage], Set[str]]
+        self.get_supported_cryptos: Callable[
+            [str, MerchantOrderRequestMessage], Set[str]
+        ] = get_supported_cryptos
 
     def run(self):
         """
@@ -296,8 +346,7 @@ class PayProc(MantaComponent):
         Returns:
             a ready key object
         """
-        return load_pem_private_key(key_data, password=None,
-                                    backend=default_backend())
+        return load_pem_private_key(key_data, password=None, backend=default_backend())
 
     def sign(self, message: bytes) -> bytes:
         """
@@ -336,7 +385,7 @@ class PayProc(MantaComponent):
 
     def _subscribe(self, topic):
         self.mqtt_client.subscribe(topic)
-        logger.info('Subscribed to %r', topic)
+        logger.info("Subscribed to %r", topic)
 
     @Dispatcher.method_topic("merchant_order_cancel/+")
     def on_merchant_order_cancel(self, session_id, payload):
@@ -351,22 +400,22 @@ class PayProc(MantaComponent):
 
         p = MerchantOrderRequestMessage.from_json(payload)
 
-        ack: AckMessage = None
+        ack: AckMessage
 
         # This is a manta request
-        if p.crypto_currency is None or p.crypto_currency == '':
+        if p.crypto_currency is None or p.crypto_currency == "":
 
-
-            self.mqtt_client.subscribe('payment_requests/{}/+'.format(p.session_id))
-            self.mqtt_client.subscribe('payments/{}'.format(p.session_id))
+            self.mqtt_client.subscribe("payment_requests/{}/+".format(p.session_id))
+            self.mqtt_client.subscribe("payments/{}".format(p.session_id))
 
             ack = AckMessage(
                 status=Status.NEW,
-                url="manta://{}{}/{}".format(self.host,
-                                             ':' + str(self.port) if self.port != 1883
-                                             else '',
-                                             p.session_id),
-                txid=str(self.txid)
+                url="manta://{}{}/{}".format(
+                    self.host,
+                    ":" + str(self.port) if self.port != 1883 else "",
+                    p.session_id,
+                ),
+                txid=str(self.txid),
             )
 
             self.ack(p.session_id, ack)
@@ -382,7 +431,9 @@ class PayProc(MantaComponent):
             ack = AckMessage(
                 txid=str(self.txid),
                 status=Status.NEW,
-                url=generate_crypto_legacy_url(d.crypto_currency, d.destination_address, Decimal(d.amount))
+                url=generate_crypto_legacy_url(
+                    d.crypto_currency, d.destination_address, Decimal(d.amount)
+                ),
             )
 
             self.ack(p.session_id, ack)
@@ -396,7 +447,9 @@ class PayProc(MantaComponent):
 
     # noinspection PyUnusedLocal
     @Dispatcher.method_topic("payment_requests/+/+")
-    def on_get_payment_request(self, session_id: str, crypto_currency: str, payload: str):
+    def on_get_payment_request(
+        self, session_id: str, crypto_currency: str, payload: str
+    ):
         logger.info("Processing payment request message")
 
         state: TransactionState = self.tx_storage.get_state_for_session(session_id)
@@ -407,7 +460,7 @@ class PayProc(MantaComponent):
             fiat_currency=state.order.fiat_currency,
             amount=state.order.amount,
             session_id=session_id,
-            crypto_currency=None if crypto_currency == 'all' else crypto_currency
+            crypto_currency=None if crypto_currency == "all" else crypto_currency,
         )
         application = state.application
 
@@ -415,11 +468,15 @@ class PayProc(MantaComponent):
         state.payment_request = envelope.unpack()
 
         logger.info("Publishing {}".format(envelope))
-        self.mqtt_client.publish('payment_requests/{}'.format(session_id), envelope.to_json())
+        self.mqtt_client.publish(
+            "payment_requests/{}".format(session_id), envelope.to_json()
+        )
 
         if callable(self.on_processed_get_payment):
             assert state.ack is not None
-            self.on_processed_get_payment(state.ack.txid, crypto_currency, envelope.unpack())
+            self.on_processed_get_payment(
+                state.ack.txid, crypto_currency, envelope.unpack()
+            )
 
     @Dispatcher.method_topic("payments/+")
     def on_payment(self, session_id: str, payload: str):
@@ -433,15 +490,18 @@ class PayProc(MantaComponent):
             payment_request = state.payment_request
 
             assert payment_request is not None
-            if payment_message.crypto_currency.upper() not in \
-               [x.upper() for x in payment_request.supported_cryptos]:
+            if payment_message.crypto_currency.upper() not in [
+                x.upper() for x in payment_request.supported_cryptos
+            ]:
                 return
 
-            new_ack = attr.evolve(state.ack,
-                                  status=Status.PENDING,
-                                  transaction_hash=payment_message.transaction_hash,
-                                  transaction_currency=payment_message.crypto_currency,
-                                  url=None)
+            new_ack = attr.evolve(
+                state.ack,
+                status=Status.PENDING,
+                transaction_hash=payment_message.transaction_hash,
+                transaction_currency=payment_message.crypto_currency,
+                url=None,
+            )
             assert new_ack is not None
 
             state.payment_message = payment_message
@@ -471,7 +531,7 @@ class PayProc(MantaComponent):
         """
         logger.info("Publishing ack for {} as {}".format(session_id, ack.status.value))
 
-        self.mqtt_client.publish('acks/{}'.format(session_id), ack.to_json())
+        self.mqtt_client.publish("acks/{}".format(session_id), ack.to_json())
 
     def confirming(self, session_id: str):
         """
@@ -490,7 +550,12 @@ class PayProc(MantaComponent):
             state.ack = new_ack
             self.ack(session_id, new_ack)
 
-    def confirm(self, session_id: str):
+    def confirm(
+        self,
+        session_id: str,
+        transaction_hash: Optional[str] = None,
+        transaction_currency: Optional[str] = None,
+    ):
         """
         Change the status of the session with the given ``session_id`` to
         :attr:`~.messages.Status.PAID` and publish the
@@ -504,6 +569,14 @@ class PayProc(MantaComponent):
 
             new_ack = attr.evolve(state.ack, status=Status.PAID)
             assert new_ack is not None
+
+            new_ack.url = None
+
+            if transaction_hash:
+                new_ack.transaction_hash = transaction_hash
+
+            if transaction_currency:
+                new_ack.transaction_currency = transaction_currency
 
             state.ack = new_ack
             self.ack(session_id, new_ack)
@@ -530,8 +603,9 @@ class PayProc(MantaComponent):
             state.ack = new_ack
             self.ack(session_id, new_ack)
 
-    def generate_payment_request(self, device: str,
-                                 merchant_request: MerchantOrderRequestMessage) -> PaymentRequestEnvelope:
+    def generate_payment_request(
+        self, device: str, merchant_request: MerchantOrderRequestMessage
+    ) -> PaymentRequestEnvelope:
         """
         Create a :class:`~.messages.PaymentRequestEnvelope` containing the
         payment informations.
@@ -546,16 +620,19 @@ class PayProc(MantaComponent):
         destinations = self.get_destinations(device, merchant_request)
         supported_cryptos = self.get_supported_cryptos(device, merchant_request)
 
-        message = PaymentRequestMessage(merchant=merchant,
-                                        amount=merchant_request.amount,
-                                        fiat_currency=merchant_request.fiat_currency,
-                                        destinations=destinations,
-                                        supported_cryptos=supported_cryptos)
+        message = PaymentRequestMessage(
+            merchant=merchant,
+            amount=merchant_request.amount,
+            fiat_currency=merchant_request.fiat_currency,
+            destinations=destinations,
+            supported_cryptos=supported_cryptos,
+        )
 
         json_message = message.to_json()
-        signature = self.sign(json_message.encode('utf-8')).decode('utf-8')
+        signature = self.sign(json_message.encode("utf-8")).decode("utf-8")
 
         payment_request_envelope = PaymentRequestEnvelope(
-            message=json_message, signature=signature)
+            message=json_message, signature=signature
+        )
 
         return payment_request_envelope

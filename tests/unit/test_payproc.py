@@ -8,16 +8,22 @@ import attr
 from callee import Matcher
 from cryptography.hazmat.primitives import serialization
 
-from manta.messages import (Destination, MerchantOrderRequestMessage,
-                            PaymentRequestMessage, PaymentMessage, AckMessage,
-                            Status, Merchant)
+from manta.messages import (
+    Destination,
+    MerchantOrderRequestMessage,
+    PaymentRequestMessage,
+    PaymentMessage,
+    AckMessage,
+    Status,
+    Merchant,
+)
 from manta.payproc import PayProc, TXStorageMemory
 
 # pytest.register_assert_rewrite("tests.utils")
 from tests.utils import JsonContains
 from decimal import Decimal
 
-PRIV_KEY_DATA = b'''\
+PRIV_KEY_DATA = b"""\
 -----BEGIN RSA PRIVATE KEY-----
 MIIEpQIBAAKCAQEA1O+cC40Xtt1F87C7SHSckdEI6PeJKGaNGBfKLI8q+G3tbjFY
 e+A83skUkkcQd9yICZQmVZ4Qqd3LaaPhOy+sDxkvytcTMwHj/N3IBq9IpZK1nVAm
@@ -45,9 +51,9 @@ ewNEwhMCgYEAijETQlQTaEBRj4UD9rH4vUZfNnZO1NOetDBeXaLRLU7NJxTeZ/Tt
 chFd+tlGvwi4ynJ4lPsoyMYvD8DFj0nXUUpDD/b07fsPPDrRgnKHiiPJF2rUN0IB
 RWBnMUHLYluKopDqkoVAulUZ/QLWhmwvV4CV7G5PtIDpzmT3ycF2hqs=
 -----END RSA PRIVATE KEY-----
-'''
+"""
 
-CERT_DATA = b'''\
+CERT_DATA = b"""\
 -----BEGIN CERTIFICATE-----
 MIIDQjCCAiqgAwIBAgIRAPr1QV+OmLIjsRH4mOxjy1EwDQYJKoZIhvcNAQELBQAw
 KDEmMCQGA1UEAxMdTmFub3JheSBDZXJ0aWZpY2F0ZSBBdXRob3JpdHkwHhcNMTgw
@@ -68,34 +74,30 @@ QED2ofs5p/xm7qe/Ht58u6TqAYjxDO4OqSspzH2e6a2EIjVe81DvrfHnatDUar5m
 +XkSTmuqyX0wmxZ2E2hhlJkhyLCadkP3Hor2s3nUpkqKH3bSUJ5U/TuvvxrEEt0I
 z4TYl3Vuacma4wEMQGqhJSWv0gjRQg==
 -----END CERTIFICATE-----
-'''
+"""
 
-HELLO_SIGNED = b'LJH1BHPP/KmEnqyz24eb3ph8nyhS9TjVT1jnw7oSU3vbwoj9MMePwBifBbnpvFHl6KSUnTcX0I3OK6MSdF' \
-               b'm6/1I+i7RkyNeAIkN/boF46xRucuaaevfk5PWuHKJSPsQt6QLs3TyQUet+WLTu8sxIs29+wLTn71dzFfAe45YesIOoKhboyiPO23' \
-               b'Di8sLuFQCiW4uau4SttMK8+MCHMmQzShdu922JMHFv1l2sbqfnM0LNFzWIbVs35Q4pNow0P6gzECSOpREwdy5S793YJdA7goZNCM' \
-               b'QB6LpOEnuXBeA1wJ5t3fnSANUvXewyaMiNIXz93vh9UrDel7NITHo46dVKXw=='
+HELLO_SIGNED = (
+    b"LJH1BHPP/KmEnqyz24eb3ph8nyhS9TjVT1jnw7oSU3vbwoj9MMePwBifBbnpvFHl6KSUnTcX0I3OK6MSdF"
+    b"m6/1I+i7RkyNeAIkN/boF46xRucuaaevfk5PWuHKJSPsQt6QLs3TyQUet+WLTu8sxIs29+wLTn71dzFfAe45YesIOoKhboyiPO23"
+    b"Di8sLuFQCiW4uau4SttMK8+MCHMmQzShdu922JMHFv1l2sbqfnM0LNFzWIbVs35Q4pNow0P6gzECSOpREwdy5S793YJdA7goZNCM"
+    b"QB6LpOEnuXBeA1wJ5t3fnSANUvXewyaMiNIXz93vh9UrDel7NITHo46dVKXw=="
+)
 
 KEY_FILENAME = "certificates/root/keys/test.key"
 CERTIFICATE_FILENAME = "certificates/root/certs/AppiaDeveloperCA.crt"
 
 DESTINATIONS = [
     Destination(
-        amount=Decimal("5"),
-        destination_address="btc_daddress",
-        crypto_currency="btc"
+        amount=Decimal("5"), destination_address="btc_daddress", crypto_currency="btc"
     ),
     Destination(
         amount=Decimal("10"),
         destination_address="nano_daddress",
-        crypto_currency="nano"
+        crypto_currency="nano",
     ),
-
 ]
 
-MERCHANT = Merchant(
-    name="Merchant 1",
-    address="5th Avenue"
-)
+MERCHANT = Merchant(name="Merchant 1", address="5th Avenue")
 
 
 @pytest.fixture
@@ -103,7 +105,11 @@ def payproc():
     # noinspection PyUnusedLocal
     def get_destinations(device, merchant_order: MerchantOrderRequestMessage):
         if merchant_order.crypto_currency:
-            destination = next(x for x in DESTINATIONS if x.crypto_currency == merchant_order.crypto_currency)
+            destination = next(
+                x
+                for x in DESTINATIONS
+                if x.crypto_currency == merchant_order.crypto_currency
+            )
             return [destination]
         else:
             return DESTINATIONS
@@ -112,15 +118,17 @@ def payproc():
     pp.get_merchant = lambda x: MERCHANT
 
     pp.get_destinations = get_destinations
-    pp.get_supported_cryptos = lambda device, payment_request: {'btc', 'xmr', 'nano'}
+    pp.get_supported_cryptos = lambda device, payment_request: {"btc", "xmr", "nano"}
     return pp
 
 
 def test_key_from_keydata():
     key = PayProc.key_from_keydata(PRIV_KEY_DATA)
-    assert PRIV_KEY_DATA == key.private_bytes(encoding=serialization.Encoding.PEM,
-                                              format=serialization.PrivateFormat.TraditionalOpenSSL,
-                                              encryption_algorithm=serialization.NoEncryption())
+    assert PRIV_KEY_DATA == key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
 
 
 def test_sign():
@@ -133,21 +141,32 @@ def test_generate_payment_request():
     pp = PayProc(KEY_FILENAME, cert_file=CERTIFICATE_FILENAME)
     pp.get_merchant = lambda x: MERCHANT
     pp.get_destinations = lambda device, payment_request: [
-        Destination(amount=Decimal(5), destination_address="xrb123", crypto_currency="NANO")]
-    pp.get_supported_cryptos = lambda device, payment_request: ['BTC', 'XMR', 'NANO']
+        Destination(
+            amount=Decimal(5), destination_address="xrb123", crypto_currency="NANO"
+        )
+    ]
+    pp.get_supported_cryptos = lambda device, payment_request: ["BTC", "XMR", "NANO"]
 
-    payment_request = MerchantOrderRequestMessage(amount=Decimal(10), fiat_currency="EURO", session_id="123",
-                                                  crypto_currency="NANO")
+    payment_request = MerchantOrderRequestMessage(
+        amount=Decimal(10),
+        fiat_currency="EURO",
+        session_id="123",
+        crypto_currency="NANO",
+    )
 
     envelope = pp.generate_payment_request("device1", payment_request)
 
-    expected_message = PaymentRequestMessage(merchant=MERCHANT,
-                                             amount=Decimal(10),
-                                             fiat_currency="EURO",
-                                             destinations=[Destination(amount=Decimal(5), destination_address="xrb123",
-                                                                       crypto_currency="NANO")],
-                                             supported_cryptos={'BTC', 'XMR', 'NANO'}
-                                             )
+    expected_message = PaymentRequestMessage(
+        merchant=MERCHANT,
+        amount=Decimal(10),
+        fiat_currency="EURO",
+        destinations=[
+            Destination(
+                amount=Decimal(5), destination_address="xrb123", crypto_currency="NANO"
+            )
+        ],
+        supported_cryptos={"BTC", "XMR", "NANO"},
+    )
 
     assert expected_message == envelope.unpack()
 
@@ -155,7 +174,7 @@ def test_generate_payment_request():
 def test_on_connect(mock_mqtt, payproc):
     payproc.run()
 
-    with open(CERTIFICATE_FILENAME, 'r') as myfile:
+    with open(CERTIFICATE_FILENAME, "r") as myfile:
         certificate = myfile.read()
 
     mock_mqtt.subscribe.assert_any_call("merchant_order_request/+")
@@ -165,94 +184,76 @@ def test_on_connect(mock_mqtt, payproc):
 
 def test_receive_merchant_order_request(mock_mqtt, payproc):
     request = MerchantOrderRequestMessage(
-        amount=Decimal("1000"),
-        session_id='1423',
-        fiat_currency='eur',
+        amount=Decimal("1000"), session_id="1423", fiat_currency="eur",
     )
 
-    expected = AckMessage(
-        txid="0",
-        url="manta://localhost/1423",
-        status=Status.NEW
-    )
+    expected = AckMessage(txid="0", url="manta://localhost/1423", status=Status.NEW)
 
     mock_mqtt.push("merchant_order_request/device1", request.to_json())
 
-    mock_mqtt.publish.assert_any_call('acks/1423', JsonContains(expected))
-    mock_mqtt.subscribe.assert_any_call('payments/1423')
-    mock_mqtt.subscribe.assert_any_call('payment_requests/1423/+')
+    mock_mqtt.publish.assert_any_call("acks/1423", JsonContains(expected))
+    mock_mqtt.subscribe.assert_any_call("payments/1423")
+    mock_mqtt.subscribe.assert_any_call("payment_requests/1423/+")
 
 
 def test_receive_merchant_order_request_unkwnown_field(mock_mqtt, payproc):
     request = MerchantOrderRequestMessage(
-        amount=Decimal("1000"),
-        session_id='1423',
-        fiat_currency='eur'
+        amount=Decimal("1000"), session_id="1423", fiat_currency="eur"
     )
 
-    expected = AckMessage(
-        txid="0",
-        url="manta://localhost/1423",
-        status=Status.NEW
-    )
+    expected = AckMessage(txid="0", url="manta://localhost/1423", status=Status.NEW)
 
     request_json = request.unstructure()
-    request_json['extra_field'] = 'extra'
+    request_json["extra_field"] = "extra"
 
     mock_mqtt.push("merchant_order_request/device1", json.dumps(request_json))
 
-    mock_mqtt.publish.assert_any_call('acks/1423', JsonContains(expected))
-    mock_mqtt.subscribe.assert_any_call('payments/1423')
-    mock_mqtt.subscribe.assert_any_call('payment_requests/1423/+')
+    mock_mqtt.publish.assert_any_call("acks/1423", JsonContains(expected))
+    mock_mqtt.subscribe.assert_any_call("payments/1423")
+    mock_mqtt.subscribe.assert_any_call("payment_requests/1423/+")
 
 
 def test_receive_merchant_order_request_empty_string(mock_mqtt, payproc):
     request = MerchantOrderRequestMessage(
         amount=Decimal("1000"),
-        session_id='1423',
-        fiat_currency='eur',
-        crypto_currency=''
+        session_id="1423",
+        fiat_currency="eur",
+        crypto_currency="",
     )
 
-    expected = AckMessage(
-        txid="0",
-        url="manta://localhost/1423",
-        status=Status.NEW
-    )
+    expected = AckMessage(txid="0", url="manta://localhost/1423", status=Status.NEW)
 
     mock_mqtt.push("merchant_order_request/device1", request.to_json())
 
-    mock_mqtt.publish.assert_any_call('acks/1423', JsonContains(expected))
-    mock_mqtt.subscribe.assert_any_call('payments/1423')
+    mock_mqtt.publish.assert_any_call("acks/1423", JsonContains(expected))
+    mock_mqtt.subscribe.assert_any_call("payments/1423")
 
 
 def test_receive_merchant_cancel_order(mock_mqtt, payproc):
     test_receive_merchant_order_request(mock_mqtt, payproc)
 
-    mock_mqtt.push('merchant_order_cancel/1423', '')
+    mock_mqtt.push("merchant_order_cancel/1423", "")
 
     expected = AckMessage(
         txid="0",
         url="manta://localhost/1423",
         status=Status.INVALID,
-        memo='Canceled by Merchant'
+        memo="Canceled by Merchant",
     )
 
-    mock_mqtt.publish.assert_called_with('acks/1423', JsonContains(expected))
+    mock_mqtt.publish.assert_called_with("acks/1423", JsonContains(expected))
 
 
 def test_receive_merchant_order_request_legacy(mock_mqtt, payproc):
     request = MerchantOrderRequestMessage(
         amount=Decimal("1000"),
-        session_id='1423',
-        fiat_currency='eur',
-        crypto_currency='btc'
+        session_id="1423",
+        fiat_currency="eur",
+        crypto_currency="btc",
     )
 
     expected = AckMessage(
-        txid="0",
-        url="bitcoin:btc_daddress?amount=5",
-        status=Status.NEW
+        txid="0", url="bitcoin:btc_daddress?amount=5", status=Status.NEW
     )
 
     mock_mqtt.push("merchant_order_request/device1", request.to_json())
@@ -261,20 +262,18 @@ def test_receive_merchant_order_request_legacy(mock_mqtt, payproc):
 
 def test_get_payment_request(mock_mqtt, payproc):
     test_receive_merchant_order_request(mock_mqtt, payproc)
-    mock_mqtt.push('payment_requests/1423/btc', '')
+    mock_mqtt.push("payment_requests/1423/btc", "")
 
     destination = Destination(
-        amount=Decimal("5"),
-        destination_address="btc_daddress",
-        crypto_currency="btc"
+        amount=Decimal("5"), destination_address="btc_daddress", crypto_currency="btc"
     )
 
     expected = PaymentRequestMessage(
         merchant=MERCHANT,
-        fiat_currency='eur',
+        fiat_currency="eur",
         amount=Decimal("1000"),
         destinations=[destination],
-        supported_cryptos={'nano', 'btc', 'xmr'}
+        supported_cryptos={"nano", "btc", "xmr"},
     )
 
     class PMEqual(Matcher):
@@ -285,23 +284,23 @@ def test_get_payment_request(mock_mqtt, payproc):
 
         def match(self, value):
             decoded = json.loads(value)
-            message = PaymentRequestMessage.from_json(decoded['message'])
+            message = PaymentRequestMessage.from_json(decoded["message"])
             assert self.payment_request == message
             return True
 
-    mock_mqtt.publish.assert_called_with('payment_requests/1423', PMEqual(expected))
+    mock_mqtt.publish.assert_called_with("payment_requests/1423", PMEqual(expected))
 
 
 def test_get_payment_request_all(mock_mqtt, payproc):
     test_receive_merchant_order_request(mock_mqtt, payproc)
-    mock_mqtt.push('payment_requests/1423/all', '')
+    mock_mqtt.push("payment_requests/1423/all", "")
 
     expected = PaymentRequestMessage(
         merchant=MERCHANT,
-        fiat_currency='eur',
+        fiat_currency="eur",
         amount=Decimal("1000"),
         destinations=DESTINATIONS,
-        supported_cryptos={'nano', 'btc', 'xmr'}
+        supported_cryptos={"nano", "btc", "xmr"},
     )
 
     class PMEqual(Matcher):
@@ -312,43 +311,37 @@ def test_get_payment_request_all(mock_mqtt, payproc):
 
         def match(self, value):
             decoded = json.loads(value)
-            message = PaymentRequestMessage.from_json(decoded['message'])
+            message = PaymentRequestMessage.from_json(decoded["message"])
             assert self.payment_request == message
             return True
 
-    mock_mqtt.publish.assert_called_with('payment_requests/1423', PMEqual(expected))
+    mock_mqtt.publish.assert_called_with("payment_requests/1423", PMEqual(expected))
 
 
 def test_payment_message(mock_mqtt, payproc):
     test_get_payment_request_all(mock_mqtt, payproc)
-    message = PaymentMessage(
-        crypto_currency="NANO",
-        transaction_hash="myhash"
-    )
+    message = PaymentMessage(crypto_currency="NANO", transaction_hash="myhash")
 
     ack = AckMessage(
-        txid='0',
+        txid="0",
         status=Status.PENDING,
         transaction_hash="myhash",
-        transaction_currency="NANO"
+        transaction_currency="NANO",
     )
 
     mock_mqtt.push("payments/1423", message.to_json())
-    mock_mqtt.publish.assert_called_with('acks/1423', JsonContains(ack))
+    mock_mqtt.publish.assert_called_with("acks/1423", JsonContains(ack))
 
 
 def test_payment_message_unsupported(mock_mqtt, payproc):
     test_get_payment_request_all(mock_mqtt, payproc)
-    message = PaymentMessage(
-        crypto_currency="ETH",
-        transaction_hash="myhash"
-    )
+    message = PaymentMessage(crypto_currency="ETH", transaction_hash="myhash")
 
     ack = AckMessage(
-        txid='0',
+        txid="0",
         status=Status.PENDING,
         transaction_hash="myhash",
-        transaction_currency="NANO"
+        transaction_currency="NANO",
     )
 
     mock_mqtt.reset_mock()
@@ -364,10 +357,10 @@ def test_confirming(mock_mqtt, payproc):
         txid="0",
         status=Status.CONFIRMING,
         transaction_hash="myhash",
-        transaction_currency="NANO"
+        transaction_currency="NANO",
     )
 
-    mock_mqtt.publish.assert_called_with('acks/1423', JsonContains(ack))
+    mock_mqtt.publish.assert_called_with("acks/1423", JsonContains(ack))
 
 
 def test_confirm(mock_mqtt, payproc):
@@ -378,10 +371,26 @@ def test_confirm(mock_mqtt, payproc):
         txid="0",
         status=Status.PAID,
         transaction_hash="myhash",
-        transaction_currency="NANO"
+        transaction_currency="NANO",
     )
 
-    mock_mqtt.publish.assert_called_with('acks/1423', JsonContains(ack))
+    mock_mqtt.publish.assert_called_with("acks/1423", JsonContains(ack))
+
+
+# Lightning network wallets will not send the payment message
+# We need to specify transaction_hash and transaction_currency
+def test_confirm_without_payment_message(mock_mqtt, payproc):
+    test_get_payment_request_all(mock_mqtt, payproc)
+    payproc.confirm("1423", transaction_hash="myhash", transaction_currency="NANO")
+
+    ack = AckMessage(
+        txid="0",
+        status=Status.PAID,
+        transaction_hash="myhash",
+        transaction_currency="NANO",
+    )
+
+    mock_mqtt.publish.assert_called_with("acks/1423", JsonContains(ack))
 
 
 def test_invalidate(mock_mqtt, payproc):
@@ -393,10 +402,10 @@ def test_invalidate(mock_mqtt, payproc):
         status=Status.INVALID,
         transaction_hash="myhash",
         transaction_currency="NANO",
-        memo="Timeout"
+        memo="Timeout",
     )
 
-    mock_mqtt.publish.assert_called_with('acks/1423', JsonContains(ack))
+    mock_mqtt.publish.assert_called_with("acks/1423", JsonContains(ack))
 
 
 @pytest.fixture()
@@ -407,7 +416,9 @@ def tx_storage() -> TXStorageMemory:
 class TestTXStorageMemory:
     def test_create(self, tx_storage: TXStorageMemory):
         ack = AckMessage(amount=Decimal("10"), status=Status.NEW, txid="0")
-        order = MerchantOrderRequestMessage(amount=Decimal("10"), session_id="123", fiat_currency="EUR")
+        order = MerchantOrderRequestMessage(
+            amount=Decimal("10"), session_id="123", fiat_currency="EUR"
+        )
 
         tx_storage.create(0, "123", "app0@user0", order, ack)
 
@@ -443,7 +454,9 @@ class TestTXStorageMemory:
     def test_ack_paid(self, tx_storage):
         self.test_create(tx_storage)
         ack = AckMessage(amount=Decimal("10"), status=Status.NEW, txid="1")
-        order = MerchantOrderRequestMessage(amount=Decimal("10"), session_id="321", fiat_currency="EUR")
+        order = MerchantOrderRequestMessage(
+            amount=Decimal("10"), session_id="321", fiat_currency="EUR"
+        )
 
         tx_storage.create(1, "321", "app0@user0", order, ack)
 
