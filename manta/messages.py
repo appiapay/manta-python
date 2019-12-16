@@ -2,6 +2,11 @@
 # Manta Protocol Implementation for Python
 # Copyright (C) 2018-2019 Alessandro Viganò
 
+# Cryptography library generates UserWarning with latest CFFI libraries
+import warnings
+
+warnings.filterwarnings("ignore", message="Global variable")
+
 import base64
 from decimal import Decimal
 from enum import Enum
@@ -25,22 +30,25 @@ class Status(Enum):
     """
     Status for ack messages
     """
+
     NEW = "new"  #: Created after accepting Merchant Order
     INVALID = "invalid"  #: Order invalid - Ex timeout. Additional info can be specified in Ack Memo field
     PENDING = "pending"  #: Created after receiving payment from wallet
-    CONFIRMING = "confirming"  #: Paid received by Payment Processor but not yet confirmed
+    CONFIRMING = (
+        "confirming"  #: Paid received by Payment Processor but not yet confirmed
+    )
     PAID = "paid"  #: Created after blockchain confirmation
     CANCELED = "canceled"  #: Order has been canceled
 
 
-T = TypeVar('T', bound='Message')
+T = TypeVar("T", bound="Message")
 
 
 def drop_nonattrs(d: dict, type_: type) -> dict:
     """gets rid of all members of the dictionary that wouldn't fit in the given 'attrs' Type"""
-    attrs_attrs = getattr(type_, '__attrs_attrs__', None)
+    attrs_attrs = getattr(type_, "__attrs_attrs__", None)
     if attrs_attrs is None:
-        raise ValueError(f'type {type_} is not an attrs class')
+        raise ValueError(f"type {type_} is not an attrs class")
 
     attrs: Set[str] = {attr.name for attr in attrs_attrs}
     # attrs: Set[str] = {attr.name for attr in attrs_attrs if attr.init is True}
@@ -54,7 +62,6 @@ def structure_ignore_extras(d: dict, Type: type):
 
 @attr.s
 class Message:
-
     def unstructure(self):
         cattr.register_unstructure_hook(Decimal, lambda d: str(d))
         return cattr.unstructure(self)
@@ -68,8 +75,8 @@ class Message:
         d = json.loads(json_str)
         cattr.register_structure_hook(Decimal, lambda d, t: Decimal(d))
 
-        if 'version' not in d:
-            d['version'] = ''
+        if "version" not in d:
+            d["version"] = ""
 
         return structure_ignore_extras(d, cls)
 
@@ -115,6 +122,7 @@ class AckMessage(Message):
         memo: extra text field
         version: Manta protocol version
     """
+
     txid: str
     status: Status
     url: Optional[str] = None
@@ -135,6 +143,7 @@ class Destination(Message):
         destination_address: destination address for payment
         crypto_currency: crypto_currency (ex. NANO, BTC...)mo
     """
+
     amount: Decimal
     destination_address: str
     crypto_currency: str
@@ -149,6 +158,7 @@ class Merchant(Message):
         name: merchant name
         address: merchant address
     """
+
     name: str
     address: Optional[str] = None
 
@@ -172,6 +182,7 @@ class PaymentRequestMessage(Message):
         supported_cryptos: list of supported crypto currencies
 
     """
+
     merchant: Merchant
     amount: Decimal
     fiat_currency: str
@@ -180,17 +191,17 @@ class PaymentRequestMessage(Message):
 
     def get_envelope(self, key: RSAPrivateKey):
         json_message = self.to_json()
-        signature = base64.b64encode(key.sign(json_message.encode('utf-8'),
-                                              padding.PKCS1v15(),
-                                              hashes.SHA256()))
+        signature = base64.b64encode(
+            key.sign(json_message.encode("utf-8"), padding.PKCS1v15(), hashes.SHA256())
+        )
 
-        return PaymentRequestEnvelope(message=json_message,
-                                      signature=signature.decode('utf-8'))
+        return PaymentRequestEnvelope(
+            message=json_message, signature=signature.decode("utf-8")
+        )
 
     def get_destination(self, crypto: str) -> Optional[Destination]:
         try:
-            return next(d for d in self.destinations
-                        if d.crypto_currency == crypto)
+            return next(d for d in self.destinations if d.crypto_currency == crypto)
         except StopIteration:
             return None
 
@@ -210,6 +221,7 @@ class PaymentRequestEnvelope(Message):
         signature: PKCS#1 v1.5 signature of the message field
         version: Manta protocol version
     """
+
     message: str
     signature: str
     version: Optional[str] = MANTA_VERSION
@@ -225,7 +237,7 @@ class PaymentRequestEnvelope(Message):
             if certificate.startswith("-----BEGIN CERTIFICATE-----"):
                 pem = certificate.encode()
             else:
-                with open(certificate, 'rb') as my_file:
+                with open(certificate, "rb") as my_file:
                     pem = my_file.read()
 
             cert = x509.load_pem_x509_certificate(pem, default_backend())
@@ -233,9 +245,9 @@ class PaymentRequestEnvelope(Message):
         try:
             cert.public_key().verify(
                 base64.b64decode(self.signature),
-                self.message.encode('utf-8'),
+                self.message.encode("utf-8"),
                 padding.PKCS1v15(),
-                hashes.SHA256()
+                hashes.SHA256(),
             )
             return True
         except InvalidSignature:
@@ -255,6 +267,7 @@ class PaymentMessage(Message):
         version: Manta protocol version
 
     """
+
     crypto_currency: str
     transaction_hash: str
     version: Optional[str] = MANTA_VERSION
@@ -267,11 +280,11 @@ def verify_chain(certificate: Union[str, x509.Certificate], ca: str):
         if certificate.startswith("-----BEGIN CERTIFICATE-----"):
             pem = certificate.encode()
         else:
-            with open(certificate, 'rb') as my_file:
+            with open(certificate, "rb") as my_file:
                 pem = my_file.read()
         # cert = x509.load_pem_x509_certificate(pem, default_backend())
 
-    with open(ca, 'rb') as my_file:
+    with open(ca, "rb") as my_file:
         pem_ca = my_file.read()
     # ca = x509.load_pem_x509_certificate(pem_ca, default_backend())
 
