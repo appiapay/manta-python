@@ -12,8 +12,6 @@ Manta defines the transaction flow between three entities:
 
 .. glossary::
 
- POS
- Store
  Merchant
    It's the initiator of the single payment transaction. It requires
    that some amount of money is paid by a **Wallet** and to do so it

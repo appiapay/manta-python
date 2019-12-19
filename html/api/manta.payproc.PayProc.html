@@ -254,7 +254,7 @@ supported cryptos</li>
 
 <dl class="method">
 <dt id="manta.payproc.PayProc.confirm">
-<code class="descname">confirm</code><span class="sig-paren">(</span><em>session_id</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/payproc.html#PayProc.confirm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.payproc.PayProc.confirm" title="Permalink to this definition">¶</a></dt>
+<code class="descname">confirm</code><span class="sig-paren">(</span><em>session_id</em>, <em>transaction_hash=None</em>, <em>transaction_currency=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/payproc.html#PayProc.confirm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.payproc.PayProc.confirm" title="Permalink to this definition">¶</a></dt>
 <dd><p>Change the status of the session with the given <code class="docutils literal notranslate"><span class="pre">session_id</span></code> to
 <a class="reference internal" href="../protocol/messages.html#manta.messages.Status.PAID" title="manta.messages.Status.PAID"><code class="xref py py-attr docutils literal notranslate"><span class="pre">PAID</span></code></a> and publish the
 <a class="reference internal" href="../protocol/messages.html#manta.messages.AckMessage" title="manta.messages.AckMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">AckMessage</span></code></a>.</p>
@@ -272,7 +272,7 @@ supported cryptos</li>
 <dt id="manta.payproc.PayProc.confirming">
 <code class="descname">confirming</code><span class="sig-paren">(</span><em>session_id</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/payproc.html#PayProc.confirming"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.payproc.PayProc.confirming" title="Permalink to this definition">¶</a></dt>
 <dd><p>Change the status of the session with the given <code class="docutils literal notranslate"><span class="pre">session_id</span></code> to
-<a class="reference internal" href="../protocol/messages.html#manta.messages.Status.CONFIRMING" title="manta.messages.Status.CONFIRMING"><code class="xref py py-attr docutils literal notranslate"><span class="pre">CONFIRMING</span></code></a> and publish the
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">CONFIRMING</span></code> and publish the
 <a class="reference internal" href="../protocol/messages.html#manta.messages.AckMessage" title="manta.messages.AckMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">AckMessage</span></code></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -294,7 +294,7 @@ payment informations.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>device</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – <a class="reference internal" href="../protocol/parameters.html#term-application-id"><span class="xref std std-term">application_id</span></a> of the <a class="reference internal" href="../protocol.html#term-pos"><span class="xref std std-term">POS</span></a></li>
+<li><strong>device</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – <a class="reference internal" href="../protocol/parameters.html#term-application-id"><span class="xref std std-term">application_id</span></a> of the <span class="xref std std-term">POS</span></li>
 <li><strong>merchant_request</strong> (<a class="reference internal" href="../protocol/messages.html#manta.messages.MerchantOrderRequestMessage" title="manta.messages.MerchantOrderRequestMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">MerchantOrderRequestMessage</span></code></a>) – object containing payment infos</li>
 </ul>
 </td>

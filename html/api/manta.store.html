@@ -158,7 +158,7 @@
             
   <div class="section" id="module-manta.store">
 <span id="manta-store"></span><h1>manta.store<a class="headerlink" href="#module-manta.store" title="Permalink to this headline">¶</a></h1>
-<p>Library with a basic implementation of a Manta <a class="reference internal" href="../protocol.html#term-pos"><span class="xref std std-term">POS</span></a>.</p>
+<p>Library with a basic implementation of a Manta <span class="xref std std-term">POS</span>.</p>
 <p>This module implements a basic Manta <a class="reference internal" href="../protocol.html#term-merchant"><span class="xref std std-term">Merchant</span></a>. An usage example of
 this class can be found in module <code class="docutils literal notranslate"><span class="pre">manta.testing.store</span></code>.</p>
 <p>The API is implemented in the <a class="reference internal" href="#manta.store.Store" title="manta.store.Store"><code class="xref py py-class docutils literal notranslate"><span class="pre">Store</span></code></a> class and
@@ -209,7 +209,7 @@ received ack has status == <code class="docutils literal notranslate"><span clas
 <dl class="class">
 <dt id="manta.store.Store">
 <em class="property">class </em><code class="descclassname">manta.store.</code><code class="descname">Store</code><span class="sig-paren">(</span><em>device_id</em>, <em>host='localhost'</em>, <em>client_options=None</em>, <em>port=1883</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/manta/store.html#Store"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#manta.store.Store" title="Permalink to this definition">¶</a></dt>
-<dd><p>Implements a Manta <a class="reference internal" href="../protocol.html#term-pos"><span class="xref std std-term">POS</span></a>. This class needs an <em>asyncio</em> loop
+<dd><p>Implements a Manta <span class="xref std std-term">POS</span>. This class needs an <em>asyncio</em> loop
 to run correctly as some of its features are implemented as
 <em>coroutines</em>.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -218,7 +218,7 @@ to run correctly as some of its features are implemented as
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>device_id</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Device unique identifier (also called <a class="reference internal" href="../protocol/parameters.html#term-application-id"><span class="xref std std-term">application_id</span></a>)
-associated with the <a class="reference internal" href="../protocol.html#term-pos"><span class="xref std std-term">POS</span></a></li>
+associated with the <span class="xref std std-term">POS</span></li>
 <li><strong>host</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Hostname of the Manta broker</li>
 <li><strong>client_options</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[~KT, ~VT]]) – A Dict of options to be passed to MQTT Client (like
 username, password)</li>
@@ -229,7 +229,7 @@ username, password)</li>
 <tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><ul class="first last simple">
 <li><strong>acks</strong> – queue of <a class="reference internal" href="../protocol/messages.html#manta.messages.AckMessage" title="manta.messages.AckMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">AckMessage</span></code></a> instances</li>
 <li><strong>device_id</strong> – Device unique identifier (also called
-<a class="reference internal" href="../protocol/parameters.html#term-application-id"><span class="xref std std-term">application_id</span></a>) associated with the <a class="reference internal" href="../protocol.html#term-pos"><span class="xref std std-term">POS</span></a></li>
+<a class="reference internal" href="../protocol/parameters.html#term-application-id"><span class="xref std std-term">application_id</span></a>) associated with the <span class="xref std std-term">POS</span></li>
 <li><strong>loop</strong> – the <em>asyncio</em> loop that manages the asynchronous parts of this
 object</li>
 <li><strong>session_id</strong> – <a class="reference internal" href="../protocol/parameters.html#term-session-id"><span class="xref std std-term">session_id</span></a> of the ongoing session, if any</li>

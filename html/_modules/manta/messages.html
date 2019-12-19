@@ -147,6 +147,11 @@
 <span class="c1"># Manta Protocol Implementation for Python</span>
 <span class="c1"># Copyright (C) 2018-2019 Alessandro Viganò</span>
 
+<span class="c1"># Cryptography library generates UserWarning with latest CFFI libraries</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;Global variable&quot;</span><span class="p">)</span>
+
 <span class="kn">import</span> <span class="nn">base64</span>
 <span class="kn">from</span> <span class="nn">decimal</span> <span class="k">import</span> <span class="n">Decimal</span>
 <span class="kn">from</span> <span class="nn">enum</span> <span class="k">import</span> <span class="n">Enum</span>
@@ -170,22 +175,25 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Status for ack messages</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">NEW</span> <span class="o">=</span> <span class="s2">&quot;new&quot;</span>  <span class="c1">#: Created after accepting Merchant Order</span>
     <span class="n">INVALID</span> <span class="o">=</span> <span class="s2">&quot;invalid&quot;</span>  <span class="c1">#: Order invalid - Ex timeout. Additional info can be specified in Ack Memo field</span>
     <span class="n">PENDING</span> <span class="o">=</span> <span class="s2">&quot;pending&quot;</span>  <span class="c1">#: Created after receiving payment from wallet</span>
-    <span class="n">CONFIRMING</span> <span class="o">=</span> <span class="s2">&quot;confirming&quot;</span>  <span class="c1">#: Paid received by Payment Processor but not yet confirmed</span>
+    <span class="n">CONFIRMING</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;confirming&quot;</span>  <span class="c1">#: Paid received by Payment Processor but not yet confirmed</span>
+    <span class="p">)</span>
     <span class="n">PAID</span> <span class="o">=</span> <span class="s2">&quot;paid&quot;</span>  <span class="c1">#: Created after blockchain confirmation</span>
     <span class="n">CANCELED</span> <span class="o">=</span> <span class="s2">&quot;canceled&quot;</span>  <span class="c1">#: Order has been canceled</span></div>
 
 
-<span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="s1">&#39;Message&#39;</span><span class="p">)</span>
+<span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="s2">&quot;Message&quot;</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">drop_nonattrs</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">type_</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;gets rid of all members of the dictionary that wouldn&#39;t fit in the given &#39;attrs&#39; Type&quot;&quot;&quot;</span>
-    <span class="n">attrs_attrs</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">type_</span><span class="p">,</span> <span class="s1">&#39;__attrs_attrs__&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">attrs_attrs</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">type_</span><span class="p">,</span> <span class="s2">&quot;__attrs_attrs__&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">attrs_attrs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;type </span><span class="si">{type_}</span><span class="s1"> is not an attrs class&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;type </span><span class="si">{type_}</span><span class="s2"> is not an attrs class&quot;</span><span class="p">)</span>
 
     <span class="n">attrs</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">attr</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">attrs_attrs</span><span class="p">}</span>
     <span class="c1"># attrs: Set[str] = {attr.name for attr in attrs_attrs if attr.init is True}</span>
@@ -199,7 +207,6 @@
 
 <span class="nd">@attr</span><span class="o">.</span><span class="n">s</span>
 <span class="k">class</span> <span class="nc">Message</span><span class="p">:</span>
-
     <span class="k">def</span> <span class="nf">unstructure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">cattr</span><span class="o">.</span><span class="n">register_unstructure_hook</span><span class="p">(</span><span class="n">Decimal</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">cattr</span><span class="o">.</span><span class="n">unstructure</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -213,8 +220,8 @@
         <span class="n">d</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">json_str</span><span class="p">)</span>
         <span class="n">cattr</span><span class="o">.</span><span class="n">register_structure_hook</span><span class="p">(</span><span class="n">Decimal</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">d</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
 
-        <span class="k">if</span> <span class="s1">&#39;version&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
-            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;version&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">if</span> <span class="s2">&quot;version&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 
         <span class="k">return</span> <span class="n">structure_ignore_extras</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span>
 
@@ -260,6 +267,7 @@
 <span class="sd">        memo: extra text field</span>
 <span class="sd">        version: Manta protocol version</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">txid</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">status</span><span class="p">:</span> <span class="n">Status</span>
     <span class="n">url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
@@ -280,6 +288,7 @@
 <span class="sd">        destination_address: destination address for payment</span>
 <span class="sd">        crypto_currency: crypto_currency (ex. NANO, BTC...)mo</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">amount</span><span class="p">:</span> <span class="n">Decimal</span>
     <span class="n">destination_address</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">crypto_currency</span><span class="p">:</span> <span class="nb">str</span></div>
@@ -294,6 +303,7 @@
 <span class="sd">        name: merchant name</span>
 <span class="sd">        address: merchant address</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">address</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
 
@@ -317,6 +327,7 @@
 <span class="sd">        supported_cryptos: list of supported crypto currencies</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">merchant</span><span class="p">:</span> <span class="n">Merchant</span>
     <span class="n">amount</span><span class="p">:</span> <span class="n">Decimal</span>
     <span class="n">fiat_currency</span><span class="p">:</span> <span class="nb">str</span>
@@ -325,17 +336,17 @@
 
     <span class="k">def</span> <span class="nf">get_envelope</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">RSAPrivateKey</span><span class="p">):</span>
         <span class="n">json_message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
-        <span class="n">signature</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">json_message</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">),</span>
-                                              <span class="n">padding</span><span class="o">.</span><span class="n">PKCS1v15</span><span class="p">(),</span>
-                                              <span class="n">hashes</span><span class="o">.</span><span class="n">SHA256</span><span class="p">()))</span>
+        <span class="n">signature</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span>
+            <span class="n">key</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">json_message</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">),</span> <span class="n">padding</span><span class="o">.</span><span class="n">PKCS1v15</span><span class="p">(),</span> <span class="n">hashes</span><span class="o">.</span><span class="n">SHA256</span><span class="p">())</span>
+        <span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">PaymentRequestEnvelope</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="n">json_message</span><span class="p">,</span>
-                                      <span class="n">signature</span><span class="o">=</span><span class="n">signature</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">PaymentRequestEnvelope</span><span class="p">(</span>
+            <span class="n">message</span><span class="o">=</span><span class="n">json_message</span><span class="p">,</span> <span class="n">signature</span><span class="o">=</span><span class="n">signature</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_destination</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">crypto</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Destination</span><span class="p">]:</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">next</span><span class="p">(</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">destinations</span>
-                        <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">crypto_currency</span> <span class="o">==</span> <span class="n">crypto</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nb">next</span><span class="p">(</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">destinations</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">crypto_currency</span> <span class="o">==</span> <span class="n">crypto</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
@@ -355,6 +366,7 @@
 <span class="sd">        signature: PKCS#1 v1.5 signature of the message field</span>
 <span class="sd">        version: Manta protocol version</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">message</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">signature</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">version</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">MANTA_VERSION</span>
@@ -370,7 +382,7 @@
             <span class="k">if</span> <span class="n">certificate</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;-----BEGIN CERTIFICATE-----&quot;</span><span class="p">):</span>
                 <span class="n">pem</span> <span class="o">=</span> <span class="n">certificate</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">certificate</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">my_file</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">certificate</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">my_file</span><span class="p">:</span>
                     <span class="n">pem</span> <span class="o">=</span> <span class="n">my_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 
             <span class="n">cert</span> <span class="o">=</span> <span class="n">x509</span><span class="o">.</span><span class="n">load_pem_x509_certificate</span><span class="p">(</span><span class="n">pem</span><span class="p">,</span> <span class="n">default_backend</span><span class="p">())</span>
@@ -378,9 +390,9 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">cert</span><span class="o">.</span><span class="n">public_key</span><span class="p">()</span><span class="o">.</span><span class="n">verify</span><span class="p">(</span>
                 <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">signature</span><span class="p">),</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">),</span>
                 <span class="n">padding</span><span class="o">.</span><span class="n">PKCS1v15</span><span class="p">(),</span>
-                <span class="n">hashes</span><span class="o">.</span><span class="n">SHA256</span><span class="p">()</span>
+                <span class="n">hashes</span><span class="o">.</span><span class="n">SHA256</span><span class="p">(),</span>
             <span class="p">)</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">except</span> <span class="n">InvalidSignature</span><span class="p">:</span>
@@ -400,6 +412,7 @@
 <span class="sd">        version: Manta protocol version</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">crypto_currency</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">transaction_hash</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">version</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">MANTA_VERSION</span></div>
@@ -412,11 +425,11 @@
         <span class="k">if</span> <span class="n">certificate</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;-----BEGIN CERTIFICATE-----&quot;</span><span class="p">):</span>
             <span class="n">pem</span> <span class="o">=</span> <span class="n">certificate</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">certificate</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">my_file</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">certificate</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">my_file</span><span class="p">:</span>
                 <span class="n">pem</span> <span class="o">=</span> <span class="n">my_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
         <span class="c1"># cert = x509.load_pem_x509_certificate(pem, default_backend())</span>
 
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">ca</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">my_file</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">ca</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">my_file</span><span class="p">:</span>
         <span class="n">pem_ca</span> <span class="o">=</span> <span class="n">my_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
     <span class="c1"># ca = x509.load_pem_x509_certificate(pem_ca, default_backend())</span>
 
